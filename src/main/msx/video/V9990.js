@@ -1171,6 +1171,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                     f = x <= width - 16 ? 16 : width - x;
                     if (x >= width) x = 0;
                     paintSprite(bufferPosition, x, spritesGlobalPriority + sprite, pattPixelPos, palOff, s, f);
+
+                    // paintSprite2(bufferPosition, x >= width ? x - 1024 : x, spritesGlobalPriority + sprite, pattPixelPos, palOff);
                 }
             }
 
@@ -1188,6 +1190,47 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
             frameBackBuffer[bufferPosition + x] = paletteValuesReal[palOff | c];            // Paint
         }
+    }
+
+    function paintSprite2(bufferPosition, x, spritePri, pattPixelPos, palOff) {
+        var v = 0, c = 0, p = x + 16;
+        var buffPos = bufferPosition + x;
+
+        for (var i = 8; i > 0; --i, ++pattPixelPos) {
+            v = vram[pattPixelPos];
+            ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+            ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        }
+    }
+
+    function paintSprite3(bufferPosition, x, spritePri, pattPixelPos, palOff) {
+        var v = 0, c = 0, p = x + 16;
+        var buffPos = bufferPosition + x;
+
+        v = vram[pattPixelPos];
+        c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        v = vram[++pattPixelPos];
+        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        v = vram[++pattPixelPos];
+        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        v = vram[++pattPixelPos];
+        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        v = vram[++pattPixelPos];
+        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        v = vram[++pattPixelPos];
+        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        v = vram[++pattPixelPos];
+        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        v = vram[++pattPixelPos];
+        ++p; ++buffPos; c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
+        ++p; ++buffPos; c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; }
     }
 
     function renderLineTypeBD16(bufferPosition, quantPixels) {
@@ -1588,7 +1631,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     var spritePattAddress = 0;
     var spritesGlobalPriority = SPRITE_MAX_PRIORITY;        // Decreasing value for priority control. Never resets and lasts for years!
-    var spritesLinePriorities = wmsx.Util.arrayFill(new Array(LINE_WIDTH), SPRITE_MAX_PRIORITY);
+    var spritesLinePriorities = wmsx.Util.arrayFill(new Array(512 + 16 + 16 + 8), SPRITE_MAX_PRIORITY);     // Max P2 res + 16 for Left-overflow + 16 for Right-overflow + 8 slack
 
     var dispChangePending = false, dispEnabled = false;
     var renderMetricsChangePending = false, renderWidth = 0, renderHeight = 0;
