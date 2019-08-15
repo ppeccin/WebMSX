@@ -69,13 +69,6 @@ wmsx.V9990CommandProcessor = function() {
         return res;
     };
 
-    this.updateStatus = function() {
-        if (/*CE &&*/ finishingCycle >= 0 && (finishingCycle === 0 || v9990.updateCycles() >= finishingCycle))
-            finish();
-
-        // status[2] = (status[2] & ~0x81) | (TR << 7) | CE;
-    };
-
     this.setV9990ModeData = function(pModeData, pTypeData, pImageWidth, pImageHeight) {
         modeData = pModeData;
         typeData = pTypeData;
@@ -631,7 +624,7 @@ wmsx.V9990CommandProcessor = function() {
 
     function STOP() {
 
-        console.log("STOP: " + (writeHandler && writeHandler.name));
+        // console.log("STOP: " + (writeHandler && writeHandler.name));
 
         finish(true);
         // SDSnatcher Melancholia fix: TR not reset when command ends
@@ -906,6 +899,7 @@ wmsx.V9990CommandProcessor = function() {
 
     function finish(stop) {
         v9990.setStatusCE(0);
+        if (!stop) v9990.triggerCommandCompletionInterrupt();
         writeHandler = null;
         writeReady = false;
         writeDataPending = null;

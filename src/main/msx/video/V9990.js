@@ -388,11 +388,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 break;
             case 52:
                 commandProcessor.startCommand(val);
-
-                status |= 0x80;
-                interruptFlags |= 0x04;
-                updateIRQ();
-
                 break;
         }
 
@@ -601,16 +596,28 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (currentScanline >= finishingScanline) finishFrame();
     };
 
+    this.triggerCommandCompletionInterrupt = function() {
+        if (interruptFlags & 0x04) return;          // CE already == 1 ?
+        interruptFlags |= 0x04;                     // CE = 1
+        updateIRQ();
+
+        // logInfo("Command Completion Int. Ints " + ((register[9] & 0x04) ?  "ENABLED" : "disabled"));
+    };
+
     function triggerVerticalInterrupt() {
         if (interruptFlags & 0x01) return;          // VI already == 1 ?
         interruptFlags |= 0x01;                     // VI = 1
         updateIRQ();
 
-        // logInfo("Vertical Frame Int reached. Ints " + ((register[1] & 0x20) ?  "ENABLED" : "disabled"));
+        // logInfo("Vertical Frame Int reached. Ints " + ((register[9] & 0x01) ?  "ENABLED" : "disabled"));
     }
 
     function triggerHorizontalInterrupt() {
-        // logInfo("Horizontal Int Line reached. Ints " + ((register[0] & 0x10) ?  "ENABLED" : "disabled"));
+        if (interruptFlags & 0x02) return;          // HI already == 1 ?
+        interruptFlags |= 0x02;                     // HI = 1
+        updateIRQ();
+
+        // logInfo("Horizontal Int Line reached. Ints " + ((register[9] & 0x02) ?  "ENABLED" : "disabled"));
     }
 
     function updateIRQ() {
@@ -1724,7 +1731,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         return eval(str);
     };
 
-    // this.TEST = 0;
+    this.TEST = 0;
 
     this.register = register;
     this.registerWrite = registerWrite;
