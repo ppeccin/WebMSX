@@ -1763,10 +1763,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
 wmsx.V9990.VRAM_LIMIT = 0x7ffff;      // 512K
 
-wmsx.V9990.SIGNAL_MAX_WIDTH = 512 + 16 * 2;
-wmsx.V9990.SIGNAL_MAX_HEIGHT = (212 + 8 * 2) * 2;
+// wmsx.V9990.SIGNAL_MAX_WIDTH = 512 + 16 * 2;
+// wmsx.V9990.SIGNAL_MAX_HEIGHT = (212 + 8 * 2) * 2;
 
-// wmsx.V9990.SIGNAL_MAX_WIDTH =  1024 + 32 * 2;        // B7 mode, 0.5 pixel width
-// wmsx.V9990.SIGNAL_MAX_HEIGHT = 480 + 16 * 2;         // B6 mode, 1 pixel height
+wmsx.V9990.SIGNAL_MAX_WIDTH =  1024 + 32 * 2;        // B7 mode, 0.5 pixel width
+wmsx.V9990.SIGNAL_MAX_HEIGHT = 480 + 16 * 2;         // B6 mode, 1 pixel height
 
 wmsx.V9990.BASE_CLOCK = wmsx.VDP.BASE_CLOCK;      // 21504960 Hz
