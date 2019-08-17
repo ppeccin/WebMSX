@@ -3,7 +3,7 @@
 // This implementation fetches the base opcode at the FIRST clock cycle
 // Then fetches operands and executes all operations of the instruction at the LAST clock cycle
 // NMI is not supported. All IM modes supported, but data coming from device in bus will always be FFh (MSX). IFF2 is always the same as IFF1
-// Original base clock: 3579545 Hz. Rectified to real 60Hz: 3584160Hz
+// Original base clock: 3579545 Hz. Rectified to real 60Hz: 3584160 Hz
 
 wmsx.Z80 = function() {
 "use strict";
@@ -2755,4 +2755,4 @@ wmsx.Z80 = function() {
 
 };
 
-wmsx.Z80.BASE_CLOCK = 3584160;      // MHz
+wmsx.Z80.BASE_CLOCK = 3584160;      // Hz

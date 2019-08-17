@@ -3,7 +3,7 @@
 // V9958/V9938/V9918 VDPs supported
 // This implementation is line-accurate
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode, Wait Function not supported
-// Original base clock: 2147727 Hz which is 6x CPU clock
+// Original base clock: 21477270 Hz which is 6x CPU clock. Rectified to real 60Hz: 21504960 Hz
 
 wmsx.VDP = function(machine, cpu) {
 "use strict";
@@ -2555,3 +2555,4 @@ wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938 = (212 + 8 * 2) * 2;
 wmsx.VDP.SIGNAL_WIDTH_V9918 =  256 + 8 * 2;
 wmsx.VDP.SIGNAL_HEIGHT_V9918 = 192 + 8 * 2;
 
+wmsx.VDP.BASE_CLOCK = wmsx.Z80.BASE_CLOCK * 6;      // 21504960 Hz

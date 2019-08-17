@@ -3,7 +3,7 @@
 // V9990 VDP
 // This implementation is line-accurate
 // Digitize, Superimpose, Color Bus, External Synch, B/W Mode, Wait Function not supported
-// Original base clock: 2147727 Hz which is 6x CPU clock
+// Original base clock: 21477270 Hz (XTAL), same as VDD which is 6x CPU clock. Rectified to real 60Hz: 21504960 Hz
 
 wmsx.V9990 = function(machine, vdp, cpu) {
 "use strict";
@@ -181,6 +181,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     // Status Read
     this.input65 = function() {
+        commandProcessor.updateStatus();
+
         // if (self.TEST) logInfo("Status READ = " + status.toString(16));
 
         return status;
@@ -244,7 +246,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         frame = cycles = lastBUSCyclesComputed = 0;
         verticalAdjust = horizontalAdjust = 0;
         backdropColor = 0; backdropValue = solidBlackValue; backdropCacheUpdatePending = true;
-        dispEnabled = false; dispChangePending = false;
+        dispEnabled = false; dispChangePending = false; spritesEnabled = true;
         horizontalIntLine = 0;
         vramInterleaving = false;
         renderMetricsChangePending = false;
@@ -347,6 +349,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                     dispChangePending = true;                   // only detected at VBLANK
                     //logInfo("Blanking: " + !!(val & 0x40));
                 }
+                if (mod & 0x40) updateSpritesEnabled();         // SPD
                 if (mod & 0x20) updateYSEnabled();              // YSE
                 break;
             case 9:
@@ -568,6 +571,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         refresh();
     };
 
+    // Total line clocks: V9990: 1368, CPU: 228
+    // Timing for HR/VR should be different for Normal and Oversan modes. Ignoring for now
+
     this.lineEventStartActiveDisplay = function() {
         status &= ~0x20;                                                                        // HR = 0
 
@@ -613,6 +619,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function triggerHorizontalInterrupt() {
+        return;
+
         if (interruptFlags & 0x02) return;          // HI already == 1 ?
         interruptFlags |= 0x02;                     // HI = 1
         updateIRQ();
@@ -633,6 +641,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function updateVRAMInterleaving() {
+        return;
+
         if (modeData.vramInter === true && !vramInterleaving) vramEnterInterleaving();
         else if (modeData.vramInter === false && vramInterleaving) vramExitInterleaving();
     }
@@ -826,8 +836,16 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (dispEnabled !== ((register[8] & 0x80) !== 0)) {
             dispEnabled = !dispEnabled;
             updateLineActiveType();
+            commandProcessor.setV9990DisplayAndSpritesEnabled(dispEnabled, spritesEnabled);
         }
         dispChangePending = false;
+    }
+
+    function updateSpritesEnabled() {
+        if (spritesEnabled !== ((register[8] & 0x40) === 0)) {
+            spritesEnabled = !spritesEnabled;
+            commandProcessor.setV9990DisplayAndSpritesEnabled(dispEnabled, spritesEnabled);
+        }
     }
 
     function updateLineActiveType() {
@@ -1157,22 +1175,22 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function renderSpritesLine(bufferPosition, line, pr1, width, atrPos) {
+        if (!spritesEnabled || debugModeSpritesHidden) return;
+
         var palOff = 0, name = 0, info = 0, y = 0, spriteLine = 0, x = 0, pattPixelPos = 0, s = 0, f = 0;
 
         spritesGlobalPriority -= 128;
 
         var limit = 16;
         for (var sprite = 0; sprite < 125; ++sprite, atrPos += 4) {
-            info = vram[atrPos + 3];
-            if (info & 0x10) continue;                                      // PR0 = 1 : Sprite not shown
-
             y = vram[atrPos];
             spriteLine = (line - y - 1) & 255;
             if (spriteLine >= 16) continue;                                 // Not visible at line
 
             --limit;                                                        // Sprite already counts towards limit
 
-            if ((info & 0x20) === pr1) {                                    // PR1 === asked?
+            info = vram[atrPos + 3];
+            if ((info & 0x10) === 0 && (info & 0x20) === pr1) {             // PR0 === 0 (shown) && PR1 === asked?
                 x = vram[atrPos + 2] | ((info & 0x03) << 8);
                 if (x < width || x >= 1024 - 16) {                          // Only if not out to the right, or wrapping
                     palOff = (info & 0xc0) >> 2;
@@ -1591,39 +1609,39 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var spritesGlobalPriority = SPRITE_MAX_PRIORITY;        // Decreasing value for priority control. Never resets and lasts for years!
     var spritesLinePriorities = wmsx.Util.arrayFill(new Array(512 + 16 + 16 + 8), SPRITE_MAX_PRIORITY);     // Max P2 res + 16 for Left-overflow + 16 for Right-overflow + 8 slack
 
-    var dispChangePending = false, dispEnabled = false;
+    var dispChangePending = false, dispEnabled = false, spritesEnabled = true;
     var renderMetricsChangePending = false, renderWidth = 0, renderHeight = 0;
     var refreshWidth = 0, refreshHeight = 0;
 
     var vramEOLineShift = 0, vramEOLineAdd = 0;
 
     var modes = {};
-    modes[0x0c] = { name: "SBY", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, renderLine: renderLineModeSBY };
-    modes[0x00] = { name:  "P1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, renderLine:  renderLineModeP1 };
-    modes[0x05] = { name:  "P2", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL: false, renderLine:  renderLineModeP2 };
-    modes[0x48] = { name: "B0*", width:  192, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, renderLine:  renderLineModeB0 };       // Undocumented, B1 Overscan?
-    modes[0x08] = { name:  "B1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL:  true, renderLine:  renderLineModeB1 };
-    modes[0x49] = { name:  "B2", width:  384, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, renderLine:  renderLineModeB2 };       // B1 Overscan
-    modes[0x09] = { name:  "B3", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL:  true, renderLine:  renderLineModeB3 };
-    modes[0x4a] = { name:  "B4", width:  768, height: 240, pixelWidthDiv: 2, hasBorders: 0, allowIL:  true, renderLine:  renderLineModeB4 };       // B3 Overscan
-    modes[0x1a] = { name:  "B5", width:  640, height: 400, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, renderLine:  renderLineModeB5 };
-    modes[0x3a] = { name:  "B6", width:  640, height: 480, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, renderLine:  renderLineModeB6 };
-    modes[0x0a] = { name: "B7*", width: 1024, height: 212, pixelWidthDiv: 4, hasBorders: 1, allowIL:  true, renderLine:  renderLineModeB7 };       // Undocumented, Weird!
+    modes[0x0c] = { name: "SBY", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, cmdTiming: 0, renderLine: renderLineModeSBY };
+    modes[0x00] = { name:  "P1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, cmdTiming: 2, renderLine:  renderLineModeP1 };
+    modes[0x05] = { name:  "P2", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL: false, cmdTiming: 3, renderLine:  renderLineModeP2 };
+    modes[0x48] = { name: "B0*", width:  192, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine:  renderLineModeB0 };       // B1 Overscan? Undocumented
+    modes[0x08] = { name:  "B1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine:  renderLineModeB1 };
+    modes[0x49] = { name:  "B2", width:  384, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine:  renderLineModeB2 };       // B1 Overscan
+    modes[0x09] = { name:  "B3", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine:  renderLineModeB3 };
+    modes[0x4a] = { name:  "B4", width:  768, height: 240, pixelWidthDiv: 2, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine:  renderLineModeB4 };       // B3 Overscan
+    modes[0x1a] = { name:  "B5", width:  640, height: 400, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, cmdTiming: 0, renderLine:  renderLineModeB5 };
+    modes[0x3a] = { name:  "B6", width:  640, height: 480, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, cmdTiming: 0, renderLine:  renderLineModeB6 };
+    modes[0x0a] = { name: "B7*", width: 1024, height: 212, pixelWidthDiv: 4, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine:  renderLineModeB7 };       // Weird! Undocumented
     modes[  -1] = modes[0x0c];
 
     var types = {};
-    types[0xc0] = { name:   "SBY", bpp:  4, ppb:  2, renderLine:  renderLineTypeSBY };
-    types[0x01] = { name:   "PP1", bpp:  4, ppb:  2, renderLine:  renderLineTypePP1 };
-    types[0x41] = { name:   "PP2", bpp:  4, ppb:  2, renderLine:  renderLineTypePP2 };
-    types[0xb2] = { name:  "BYUV", bpp:  8, ppb:  1, renderLine:  renderLineTypeBD8 };
-    types[0xba] = { name: "BYUVP", bpp:  8, ppb:  1, renderLine:  renderLineTypeBD8 };
-    types[0xa2] = { name:  "BYJK", bpp:  8, ppb:  1, renderLine:  renderLineTypeBD8 };
-    types[0xaa] = { name: "BYJKP", bpp:  8, ppb:  1, renderLine:  renderLineTypeBD8 };
-    types[0x83] = { name:  "BD16", bpp: 16, ppb:  0, renderLine: renderLineTypeBD16 };
-    types[0x92] = { name:   "BD8", bpp:  8, ppb:  1, renderLine:  renderLineTypeBD8 };
-    types[0x82] = { name:   "BP6", bpp:  8, ppb:  1, renderLine:  renderLineTypeBP6 };
-    types[0x81] = { name:   "BP4", bpp:  4, ppb:  2, renderLine:  renderLineTypeBP4 };
-    types[0x80] = { name:   "BP2", bpp:  2, ppb:  4, renderLine:  renderLineTypeBP2 };
+    types[0xc0] = { name:   "SBY", bpp:  8, ppb: 1, renderLine:  renderLineTypeSBY };
+    types[0x01] = { name:   "PP1", bpp:  4, ppb: 2, renderLine:  renderLineTypePP1 };
+    types[0x41] = { name:   "PP2", bpp:  4, ppb: 2, renderLine:  renderLineTypePP2 };
+    types[0xb2] = { name:  "BYUV", bpp:  8, ppb: 1, renderLine:  renderLineTypeBD8 };
+    types[0xba] = { name: "BYUVP", bpp:  8, ppb: 1, renderLine:  renderLineTypeBD8 };
+    types[0xa2] = { name:  "BYJK", bpp:  8, ppb: 1, renderLine:  renderLineTypeBD8 };
+    types[0xaa] = { name: "BYJKP", bpp:  8, ppb: 1, renderLine:  renderLineTypeBD8 };
+    types[0x83] = { name:  "BD16", bpp: 16, ppb: 0, renderLine: renderLineTypeBD16 };
+    types[0x92] = { name:   "BD8", bpp:  8, ppb: 1, renderLine:  renderLineTypeBD8 };
+    types[0x82] = { name:   "BP6", bpp:  8, ppb: 1, renderLine:  renderLineTypeBP6 };
+    types[0x81] = { name:   "BP4", bpp:  4, ppb: 2, renderLine:  renderLineTypeBP4 };
+    types[0x80] = { name:   "BP2", bpp:  2, ppb: 4, renderLine:  renderLineTypeBP2 };
     types[  -1] = types[0xc0];
 
     var renderLine, renderLineActive;           // Update functions for current mode
@@ -1747,3 +1765,5 @@ wmsx.V9990.SIGNAL_MAX_HEIGHT = (212 + 8 * 2) * 2;
 
 // wmsx.V9990.SIGNAL_MAX_WIDTH =  1024 + 32 * 2;        // B7 mode, 0.5 pixel width
 // wmsx.V9990.SIGNAL_MAX_HEIGHT = 480 + 16 * 2;         // B6 mode, 1 pixel height
+
+wmsx.V9990.BASE_CLOCK = wmsx.VDP.BASE_CLOCK;      // 21504960 Hz

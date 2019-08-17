@@ -45,9 +45,10 @@ wmsx.V9990CommandProcessor = function() {
             // case 0x40:
             //     POINT(); break;
             default:
-                // console.log(">>>> V9990 Command: " + val.toString(16));
                 //    wmsx.Util.error("Unsupported V9938 Command: " + val.toString(16));
         }
+
+        // console.log(">>>> V9990 Command: " + val.toString(16) + ". DispSprites: " + dispAndSpritesMode);
     };
 
     this.cpuWrite = function(val) {
@@ -69,6 +70,11 @@ wmsx.V9990CommandProcessor = function() {
         return res;
     };
 
+    this.updateStatus = function() {
+        if (CE && finishingCycle >= 0 && (finishingCycle === 0 || v9990.updateCycles() >= finishingCycle))
+            finish();
+    };
+
     this.setV9990ModeData = function(pModeData, pTypeData, pImageWidth, pImageHeight) {
         modeData = pModeData;
         typeData = pTypeData;
@@ -77,11 +83,15 @@ wmsx.V9990CommandProcessor = function() {
         imageHeight = pImageHeight;
         imageHeightMask = pImageHeight - 1;
         imageWidthBytes = (imageWidth * typeData.bpp) >> 3;
-        colorPPB = typeData.ppb;
+        typeBPP = typeData.bpp;
 
         // ???
-        colosPPBShift = colorPPB >> 1;
+        colosPPBShift = typeData.ppb >> 1;
         colorPPBMask = ~0 << colosPPBShift;
+    };
+
+    this.setV9990DisplayAndSpritesEnabled = function(disp, sprites) {
+        dispAndSpritesMode = disp ? sprites ? 2 : 1 : 0;
     };
 
     this.setV9990TurboMulti = function(multi) {
@@ -230,7 +240,7 @@ wmsx.V9990CommandProcessor = function() {
         // setDY(dy);
         // setNY(ny - ny);
 
-        start(nx * ny, 72 + 24, ny, 64);      // 72R 24W   64L
+        start(LMMVTiming, nx * ny, ny);
     }
 
     function LMCM() {
@@ -295,7 +305,7 @@ wmsx.V9990CommandProcessor = function() {
         // setDY(dy);
         // setNY(0);
 
-        start(nx * ny, 64 + 32 + 24, ny, 64);      // 64R 32R 24W   64L
+        start(LMMMTiming, nx * ny, ny);
     }
 
     function HMMC() {
@@ -391,7 +401,7 @@ wmsx.V9990CommandProcessor = function() {
         setDY(dy + diy * eny);
         setNY(ny - eny);
 
-        start(nx * eny, 40 + 24, eny, 0);     	//  40R  24W   0L
+        start(null, nx * eny, eny);     	//  40R  24W   0L
     }
 
     function HMMM() {
@@ -439,7 +449,7 @@ wmsx.V9990CommandProcessor = function() {
         setDY(dy + diy * eny);
         setNY(ny - eny);
 
-        start(nx * eny, 64 + 24, eny, 64);      	//  64R 24W   64L
+        start(null, nx * eny, eny);      	//  64R 24W   64L
     }
 
     function HMMV() {
@@ -484,7 +494,7 @@ wmsx.V9990CommandProcessor = function() {
         setDY(dy + diy * eny);
         setNY(ny - eny);
 
-        start(nx * eny, 48, eny, 56);     	//  48W   56L
+        start(null, nx * eny, eny);     	//  48W   56L
     }
 
     function LINE() {
@@ -541,7 +551,7 @@ wmsx.V9990CommandProcessor = function() {
         // Final registers state
         setDY(dy);
 
-        start(n, 88 + 24, nMinor, 32);      // 88R 24W   32L
+        start(null, n, nMinor);      // 88R 24W   32L
     }
 
     function SRCH() {
@@ -582,7 +592,7 @@ wmsx.V9990CommandProcessor = function() {
 
         // No registers changed
 
-        start(Math.abs(x - sx) + 1, 86, 1, 50);      // 86R  50L estimated
+        start(null, Math.abs(x - sx) + 1, 1);      // 86R  50L estimated
     }
 
     function PSET() {
@@ -601,7 +611,7 @@ wmsx.V9990CommandProcessor = function() {
 
         // No registers changed
 
-        start(0, 0, 1, 40);      // 40 total estimated
+        start(null, 0, 1);      // 40 total estimated
     }
 
     function POINT() {
@@ -619,7 +629,7 @@ wmsx.V9990CommandProcessor = function() {
         // Final registers state
         readData = cd;
 
-        start(0, 0, 1, 40);      // 40 total estimated
+        start(null, 0, 1);      // 40 total estimated
     }
 
     function STOP() {
@@ -632,14 +642,14 @@ wmsx.V9990CommandProcessor = function() {
 
     function normalPGET(x, y) {
         var shift, mask;
-        switch (colorPPB) {
-            case 2:
+        switch (typeBPP) {
+            case 4:
                 shift = (x & 0x1) ? 0 : 4;
                 x >>>= 1; mask = 0x0f << shift; break;
-            case 4:
+            case 2:
                 shift = (3 - (x & 0x3)) * 2;
                 x >>>= 2; mask = 0x03 << shift; break;
-            default:  // including 1
+            case 8: default:
                 shift = 0; mask = 0xff;
         }
         // Perform operation
@@ -649,8 +659,8 @@ wmsx.V9990CommandProcessor = function() {
 
     function logicalPSET(x, y, co, op) {
         var shift, mask;
-        switch (colorPPB) {
-            case 0: // 16bbp
+        switch (typeBPP) {
+            case 16:
                 x <<= 1;
                 // Perform operation
                 var pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
@@ -658,13 +668,13 @@ wmsx.V9990CommandProcessor = function() {
                 vram[pos] = val & 0xff;
                 vram[pos + 1] = val >> 8;
                 break;
-            case 2: // 4bpp
+            case 4:
                 shift = (x & 0x1) ? 0 : 4;
                 x >>>= 1; co = (co & 0x0f) << shift; mask = 0x0f << shift; break;
-            case 4: // 2bpp
+            case 2:
                 shift = (3 - (x & 0x3)) * 2;
                 x >>>= 2; co = (co & 0x03) << shift; mask = 0x03 << shift; break;
-            default: // including 1, 8bpp and 6bpp
+            case 8: default:
                 mask = 0xff;
         }
 
@@ -675,8 +685,8 @@ wmsx.V9990CommandProcessor = function() {
 
     function logicalPCOPY(dx, dy, sx, sy, op) {
         var sShift, dShift, mask;
-        switch (colorPPB) {
-            case 0: // 16bbp
+        switch (typeBPP) {
+            case 16:
                 sx <<= 1; dx <<= 1;
                 // Perform operation
                 var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
@@ -687,13 +697,13 @@ wmsx.V9990CommandProcessor = function() {
                 vram[dPos] = wc & 0xff;
                 vram[dPos + 1] = wc >> 8;
                 break;
-            case 2: // 4bpp
+            case 4:
                 sShift = (sx & 0x1) ? 0 : 4; dShift = (dx & 0x1) ? 0 : 4;
                 sx >>>= 1; dx >>>= 1; mask = 0x0f; break;
-            case 4: // 2bpp
+            case 2:
                 sShift = (3 - (sx & 0x3)) * 2; dShift = (3 - (dx & 0x3)) * 2;
                 sx >>>= 2; dx >>>= 2; mask = 0x03; break;
-            default: // including 1, 8bpp and 6bpp
+            case 8: default:
                 sShift = dShift = 0;
                 mask = 0xff;
         }
@@ -846,33 +856,37 @@ wmsx.V9990CommandProcessor = function() {
         return a > b ? a : b;
     }
 
-    function start(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite) {
-        v9990.setStatusCE(1);
+    function start(timing, pixels, lines, infinite) {
+        CE = 1;
+        v9990.setStatusCE(CE);
         writeHandler = null;
         readHandler = null;
-        estimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite);
+        estimateDuration(timing, pixels, lines, infinite);
     }
 
-    function estimateDuration(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite) {
+    function estimateDuration(timing, pixels, lines, infinite) {
         if (infinite)
             finishingCycle = -1;    // infinite
-        else if (turboClockMulti === 0) {
+        else if (!timing || turboClockMulti === 0) {
             finishingCycle = 0;     // instantaneous
             finish();
         } else {
-            var duration = ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + lines * cyclesPerLine) / turboClockMulti) | 0;
+            var bppInfo = timing[modeData.cmdTiming][dispAndSpritesMode];
+            var pixelsPerFrame = bppInfo[typeBPP] || bppInfo;
+            var cyclesPerPixel = BASE_CLOCK / 50 / 256 / pixelsPerFrame;                                                // / 50 / 256 because timing is for 256 pixel blocks per PAL frame
+            var duration = ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR) / turboClockMulti) | 0;       // no cycles per line info available
             finishingCycle = v9990.updateCycles() + duration;
 
-            // TODO V9990: Command duration. Instantaneous for now
-            finishingCycle = 0;
-            finish();
+            // Instantaneous
+            // finishingCycle = 0;
+            // finish();
 
             //console.log ("+++++ Duration: " + duration);
         }
     }
 
     function writeStart(handler) {
-        start(0, 0, 0, 0, true);      // Commands driven by CPU writes do not have a duration and finish when last write is performed
+        start(null, 0, 0, true);      // Commands driven by CPU writes do not have a duration and finish when last write is performed
 
         CX = 0; CY = 0;
         writeHandler = handler;
@@ -887,7 +901,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function readStart(handler) {
-        start(0, 0, 0, 0, true);      // Commands driven by CPU reads do not have a duration and finish when last read is performed
+        start(null, 0, 0, true);      // Commands driven by CPU reads do not have a duration and finish when last read is performed
 
         CX = 0; CY = 0;
         readHandler = handler;
@@ -898,7 +912,8 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function finish(stop) {
-        v9990.setStatusCE(0);
+        CE = 0;
+        v9990.setStatusCE(CE);
         if (!stop) v9990.triggerCommandCompletionInterrupt();
         writeHandler = null;
         writeReady = false;
@@ -909,9 +924,11 @@ wmsx.V9990CommandProcessor = function() {
     }
 
 
+    var BASE_CLOCK = wmsx.V9990.BASE_CLOCK;
+
     var VRAM_LIMIT = wmsx.V9990.VRAM_LIMIT;
     var COMMAND_HANDLERS = { HMMCNextWrite: HMMCNextWrite, LMMCNextWrite: LMMCNextWrite, LMCMNextRead: LMCMNextRead };      // Used for savestates
-    var COMMAND_PER_PIXEL_DURATION_FACTOR = 1.1;
+    var COMMAND_PER_PIXEL_DURATION_FACTOR = 1;
 
     var LOGICAL_OPERATIONS = [
         lopNULL,           // 0000
@@ -946,7 +963,7 @@ wmsx.V9990CommandProcessor = function() {
         lopTNEXD,          // 1101 + T
         lopTOR,            // 1110 + T
         lopTID             // 1111 + T
-];
+    ];
 
     // Turbo
     var turboClockMulti = 1;
@@ -954,20 +971,71 @@ wmsx.V9990CommandProcessor = function() {
     // Main V9990 connections
     var v9990, vram, register;
 
+    var CE = 0;
     var SX = 0, SY = 0, DX = 0, DY = 0, NX = 0, NY = 0, ENY = 0, EDX = 0, ESX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, destPos = 0, LOP;
     var writeReady = false, readData = 0, writeDataPending = null, writeHandler = null, readHandler = null;
     var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
 
     var modeData, typeData;
-    var colorPPB = 0, colosPPBShift = 0, colorPPBMask = 0;
+
+    var dispAndSpritesMode = 0;  // 0: DISP off, 1: DISP on SPD off, 2: DISP on SPD on
+
+    var typeBPP = 8, colosPPBShift = 0, colorPPBMask = 0;
     var imageWidth = 0, imageHeight = 0, imageWidthMask = 0, imageHeightMask = 0;
     var imageWidthBytes = 0;
+
+
+
+    // Timing data for default Base Clock 21MHz (XTAL)
+    // Number of 256 pixel blocks transferable in 1 PAL frame for each Mode/Type, BPP, and Sprites ON / Sprites OFF / Display OFF
+    // No information available about additional cycles per line. Only per pixel average will be used
+    // Therefore => Cycles Per Pixel = BaseClock / 50 / 256 / value
+
+    var LMMVTiming = [
+        /* Normal Bitmap  */  [
+                /* DISP off SPD --- */  { 2: 0x02d3, 4: 0x0219, 8: 0x0190, 16: 0x00c8 },
+                /* DISP on  SPD off */  { 2: 0x02d0, 4: 0x020e, 8: 0x018a, 16: 0x00c7 },
+                /* DISP on  SPD on  */  { 2: 0x02ab, 4: 0x01f6, 8: 0x0174, 16: 0x00bc }
+        ],
+        /* Oversan Bitmap */  [ { 2: 0x01e1, 4: 0x0160, 8: 0x0106, 16: 0x0083 }, { 2: 0x01de, 4: 0x015d, 8: 0x0102, 16: 0x0081 }, { 2: 0x01b9, 4: 0x013b, 8: 0x00e8, 16: 0x0074 } ],
+        /* P1 Pattern     */  [ 0x0189, 0x00da, 0x00a7 ],
+        /* P2 Pattern     */  [ 0x0210, 0x0140, 0x00fb ]
+    ];
+
+    var LMMMTiming = [
+        [ { 2: 0x0271, 4: 0x0182, 8: 0x00c1, 16: 0x0060 }, { 2: 0x0271, 4: 0x0178, 8: 0x00bc, 16: 0x005f }, { 2: 0x0242, 4: 0x0161, 8: 0x00b0, 16: 0x0059 } ],
+        [ { 2: 0x0199, 4: 0x00f8, 8: 0x007b, 16: 0x003e }, { 2: 0x0192, 4: 0x00f3, 8: 0x0078, 16: 0x003c }, { 2: 0x0169, 4: 0x00d7, 8: 0x006c, 16: 0x0036 } ],
+        [ 0x00ba, 0x0068, 0x0050 ],
+        [ 0x0173, 0x00d1, 0x00a0 ]
+    ];
+
+    var BMLLTiming = [
+        [ 0x00c1, 0x00bc, 0x00b1 ],
+        [ 0x007b, 0x0078, 0x006b ],
+        [ 0x00ba, 0x0067, 0x004f ],
+        [ 0x00ba, 0x0067, 0x004f ]
+    ];
+
+    var BMXLTiming = [
+        [ { 2: 0x0272, 4: 0x0183, 8: 0x00c2, 16: 0x0061 }, { 2: 0x0272, 4: 0x0179, 8: 0x00bd, 16: 0x005f }, { 2: 0x0247, 4: 0x0164, 8: 0x00b1, 16: 0x005a } ],
+        [ { 2: 0x01a1, 4: 0x00fa, 8: 0x007d, 16: 0x003e }, { 2: 0x019b, 4: 0x00f3, 8: 0x0079, 16: 0x003c }, { 2: 0x016c, 4: 0x00d8, 8: 0x006c, 16: 0x0036 } ],
+        [ 0x00e4, 0x0081, 0x0064 ],
+        [ 0x0174, 0x00d2, 0x00a0 ]
+    ];
+
+    var BMLXTiming = [
+        [ { 2: 0x0271, 4: 0x0182, 8: 0x00c1, 16: 0x0060 }, { 2: 0x0271, 4: 0x0178, 8: 0x00bc, 16: 0x005f }, { 2: 0x0242, 4: 0x0161, 8: 0x00b0, 16: 0x0059 } ],
+        [ { 2: 0x0199, 4: 0x00f8, 8: 0x007b, 16: 0x003e }, { 2: 0x0192, 4: 0x00f3, 8: 0x0078, 16: 0x003c }, { 2: 0x0169, 4: 0x00d7, 8: 0x006c, 16: 0x0036 } ],
+        [ 0x00c3, 0x0073, 0x005a ],
+        [ 0x0173, 0x00d1, 0x00a0 ]
+    ];
 
 
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
+            ce: CE,
             wr: writeReady, wh: writeHandler && writeHandler.name, rh: readHandler && readHandler.name, fc: finishingCycle,
             SX: SX, SY: SY, DX: DX, DY: DY, NX: NX, NY: NY, ENY: ENY,
             DIX: DIX, DIY: DIY, CX: CX, CY: CY, LOP: LOP && LOGICAL_OPERATIONS.indexOf(LOP), dp: destPos,
@@ -976,6 +1044,7 @@ wmsx.V9990CommandProcessor = function() {
     };
 
     this.loadState = function(s) {
+        CE = s.ce;
         writeReady = s.wr; writeHandler = COMMAND_HANDLERS[s.wh]; readHandler = COMMAND_HANDLERS[s.rh]; finishingCycle = s.fc;
         SX = s.SX; SY = s.SY; DX = s.DX; DY = s.DY; NX = s.NX; NY = s.NY; ENY = s.ENY;
         DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; LOP = s.LOP >= 0 ? LOGICAL_OPERATIONS[s.LOP] : undefined; destPos = s.dp;
@@ -988,3 +1057,73 @@ wmsx.V9990CommandProcessor = function() {
     };
 
 };
+
+
+/*
+
+                     RAW DATA PAL                     CODE 42MHz                     COMPUTED 42MHz
+
+                LMMM BMLL BMXL BMLX LMMV       LMMM BMLL BMXL BMLX LMMV         LMMM BMLL BMXL BMLX LMMV
+S1    BX  2bpp: 0242 00b1 0247 0242 02ab          6   20    6    6    5
+S0    BX  2bpp: 0271 00bc 0272 0271 02d0          5   18    5    5    5
+D0    BX  2bpp: 0271 00c1 0272 0271 02d3          5   18    5    5    5
+
+                LMMM BMLL BMXL BMLX LMMV       LMMM BMLL BMXL BMLX LMMV         LMMM BMLL BMXL BMLX LMMV
+      BX  4bpp: 0161 00b1 0164 0161 01f6         10   20   10   10    7          9.5   19  9.4  9.5  6.7
+      BX  4bpp: 0178 00bc 0179 0178 020e          9   18    9    9    6          8.9 17.6  8.9  8.9  6.4
+      BX  4bpp: 0182 00c1 0183 0182 0219          9   18    9    9    6          8.7 17.4  8.7  8.7  6.2
+
+                LMMM BMLL BMXL BMLX LMMV       LMMM BMLL BMXL BMLX LMMV         LMMM BMLL BMXL BMLX LMMV
+      BX  8bpp: 00b0 00b0 00b1 00b0 0174         20   20   20   20    9
+      BX  8bpp: 00bc 00bc 00bd 00bc 018a         18   18   18   18    8
+      BX  8bpp: 00c1 00c1 00c2 00c1 0190         17   18   17   17    8
+
+                LMMM BMLL BMXL BMLX LMMV       LMMM BMLL BMXL BMLX LMMV         LMMM BMLL BMXL BMLX LMMV
+      BX  16pp: 0059 00b3 005a 0059 00bc         39   20   39   39   18
+      BX 16bpp: 005f 00be 005f 005f 00c7         35   18   35   35   17
+      BX 16bpp: 0060 00c1 0061 0060 00c8         35   18   35   35   17
+
+
+                LMMM BMLL BMXL BMLX LMMV       LMMM BMLL BMXL BMLX LMMV         LMMM BMLL BMXL BMLX LMMV
+          P1    0050 004f 0064 005a 00a7        115  118   85   84   56         41.9 42.5 33.6 37.3 20.1
+          P1    0068 0067 0081 0073 00da         52   52   41   44   25         32.3 32.6   26 29.2 15.4
+          P1    00ba 00ba 00e4 00c3 0189         18   18   14   17    9           18   18 14.7 17.2  8.5
+
+                LMMM BMLL BMXL BMLX LMMV       LMMM BMLL BMXL BMLX LMMV         LMMM BMLL BMXL BMLX LMMV
+          P2    00a0 004f 00a0 00a0 00fb         57  118   57   57   28           21 42.5   21   21 13.4
+          P2    00d1 0067 00d2 00d1 0140         25   52   25   25   15         16.1 32.6   16 16.1 10.5
+          P2    0173 00ba 0174 0173 0210          9   18    9    9    6            9   18    9    9  6.4
+
+
+    var LMMVCyclesPP = {
+        BX: { S1: { 2: 5, 4: 7, 8: 9, 16: 18 }, S0: { 2: 5, 4: 6, 8: 8, 16: 17 }, D0: { 2: 5, 4: 6, 8: 8, 16: 17 } },
+        P1: { S1: 56, S0: 25, D0: 9 },
+        P2: { S1: 28, S0: 15, D0: 6 }
+    };
+
+    var LMMMCyclesPP = {
+        BX: { S1: { 2: 6, 4: 10, 8: 20, 16: 39 }, S0: { 2: 5, 4: 9, 8: 18, 16: 35 }, D0: { 2: 5, 4: 9, 8: 17, 16: 35 } },
+        P1: { S1: 115, S0: 52, D0: 18 },
+        P2: { S1:  57, S0: 25, D0:  9 }
+    };
+
+    var BMLLCyclesPP = {
+        BX: { S1:  20, S0: 18, D0: 18 },
+        P1: { S1: 118, S0: 52, D0: 18 },
+        P2: { S1: 118, S0: 52, D0: 18 }
+    };
+
+    var BMXLCyclesPP = {
+        BX: { S1: { 2: 6, 4: 10, 8: 20, 16: 39 }, S0: { 2: 5, 4: 9, 8: 18, 16: 35 }, D0: { 2: 5, 4: 9, 8: 17, 16: 35 } },
+        P1: { S1: 85, S0: 41, D0: 14 },
+        P2: { S1: 57, S0: 25, D0:  9 }
+    };
+
+    var BMLXCyclesPP = {
+        BX: { S1: { 2: 6, 4: 10, 8: 20, 16: 39 }, S0: { 2: 5, 4: 9, 8: 18, 16: 35 }, D0: { 2: 5, 4: 9, 8: 17, 16: 35 } },
+        P1: { S1: 84, S0: 44, D0: 17 },
+        P2: { S1: 57, S0: 25, D0:  9 }
+    };
+
+*/
+
