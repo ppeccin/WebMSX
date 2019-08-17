@@ -253,6 +253,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         refreshWidth = refreshHeight = 0;
         frameVideoStandard = videoStandard; framePulldown = pulldown;
         currentScanline = -1;
+
         initVRAM();
         initRegisters();
         initColorPalette();
@@ -262,6 +263,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         updateMode();
         updateBackdropColor();
         updateSynchronization();
+        commandProcessor.setV9990DisplayAndSpritesEnabled(dispEnabled, spritesEnabled);
+
         beginFrame();
     };
 
