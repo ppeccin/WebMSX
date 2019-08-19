@@ -15,8 +15,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         initFrameResources(false);
         initColorCaches();
         initDebugPatternTables();
-        modeData = modes[-1];
-        typeData = types[-1];
+        modeData = modes.SBY;
+        typeData = types.SBY;
         self.setDefaults();
         commandProcessor = new wmsx.V9990CommandProcessor();
         commandProcessor.connectV9990(self, vram, register);
@@ -344,7 +344,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 break;
             case 7:
                 if (mod & 0x08) updateVideoStandardSoft();      // PAL
-                if (mod & 0x40) updateMode();                   // C25M (will also update RenderMetrics)
+                if (mod & 0x41) updateMode();                   // C25M, HSCN (will also update RenderMetrics)
                 else if (mod & 0x02) updateRenderMetrics();     // IL
                 break;
             case 8:
@@ -686,11 +686,34 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function updateMode() {
-        // 0 MCS C25M HSCN DSPM(2) DCKM(2)
-        var modeBits = ((systemControl & 0x01) << 6) | ((register[7] & 0x40) >> 1) | ((register[7] & 0x01) << 4) | (register[6] >> 4);
-        if ((modeBits & 0x0c) === 0x0c) modeBits = 0x0c;    // Special case for Stand-by mode (ignore other bits)
+        var newMode;
+        switch (register[6] >>  6) {                                    // DSPM
+            case 3: newMode = modes.SBY; break;
+            case 0: newMode = modes.P1; break;
+            case 1: newMode = modes.P2; break;
+            case 2:
+                switch (systemControl & 0x01) {                         // CSM
+                    case 0:
+                        switch ((register[6] & 0x30) >> 4) {            // DCKM
+                            case 0: newMode = modes.B1; break;
+                            case 1: newMode = modes.B3; break;
+                            case 2:
+                                switch (register[7] & 0x41) {           // C25M, HSCN
+                                    case 0x01: newMode = modes.B5; break;
+                                    case 0x41: newMode = modes.B6; break;
+                                    case 0x00: case 0x40: newMode = modes.B7; break;
+                                } break;
+                        } break;
+                    case 1:
+                        switch ((register[6] & 0x30) >> 4) {            // DCKM
+                            case 0: newMode = modes.B0; break;
+                            case 1: newMode = modes.B2; break;
+                            case 2: newMode = modes.B4; break;
+                        } break;
+                } break;
+        }
 
-        modeData = modes[modeBits] || modes[-1];
+        modeData = newMode || modes.SBY;
 
         updateType();              // Also updateImageSize()
         updateSpritePattAddress();
@@ -699,25 +722,45 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         updateSignalMetrics(false);
         updateRenderMetrics(false);
 
-        logInfo("Update Mode: " + modeData.name + ", modeBits: " + modeBits.toString(16));
+        logInfo("Update Mode: " + modeData.name);
     }
 
     function updateType() {
-        // DSPM(2) PLTM(2) YAE 0 CLRM(2)
-        var typeBits = (register[6] & 0xc3) | (register[13] >> 5 << 3);
-        if ((typeBits & 0xc0) === 0xc0) typeBits = 0xc0;        // Special case for Stand-by mode (ignore other bits)
-        if ((typeBits & 0x30) < 0x20)   typeBits &= ~0x08;      // Special case for PLTM < 2, ignore YAE
+        var newType;
+        switch (register[6] >>  6) {                                    // DSPM
+            case 3: newType = types.SBY; break;
+            case 0: newType = types.PP1; break;
+            case 1: newType = types.PP2; break;
+            case 2:
+                switch (register[6] & 0x03) {                           // CLRM
+                    case 0: newType = types.BP2; break;
+                    case 1: newType = types.BP4; break;
+                    case 3: newType = types.BD16; break;
+                    case 2:
+                        switch (register[13] >> 6) {                    // PLTM
+                            case 0: newType = types.BP6; break;
+                            case 1: newType = types.BD8; break;
+                            default:
+                                switch (register[13] >> 5) {           // PLTM, YAE
+                                    case 0x04: newType = types.BYJK;  break;
+                                    case 0x05: newType = types.BYJKP; break;
+                                    case 0x06: newType = types.BYUV;  break;
+                                    case 0x07: newType = types.BYUVP; break;
+                                } break;
+                        } break;
+                } break;
+        }
 
-        typeData = types[typeBits] || types[-1];
+        typeData = newType || types.SBY;
 
         updateImageSize();
 
-        logInfo("Update Type: " + typeData.name + ", typeBits: " + typeBits.toString(16));
+        logInfo("Update Type: " + typeData.name);
     }
 
     function updateImageSize() {
-        if (modeData.name === "P1")      { imageWidth = 256; imageHeight = 2048 }       // Pattern Generator Bitmap configuration as per doc. Ignore XIMM
-        else if (modeData.name === "P2") { imageWidth = 512; imageHeight = 2048 }
+        if (modeData === modes.P1)      { imageWidth = 256; imageHeight = 2048 }       // Pattern Generator Bitmap configuration as per doc. Ignore XIMM
+        else if (modeData === modes.P2) { imageWidth = 512; imageHeight = 2048 }
         else {
             imageWidth = 256 << ((register[6] & 0x0c) >> 2);        // XIMM
             imageHeight = VRAM_SIZE / ((imageWidth * typeData.bpp) >> 3);
@@ -739,7 +782,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function updateScrollYMax() {
         scrollYMax = (register[18] & 0x80) ? 511 : (register[18] & 0x40) ? 255
-            : modeData.name === "P1" || modeData.name === "P2" ? 511 : imageHeight - 1;
+            : modeData === modes.P1 || modeData === modes.P2 ? 511 : imageHeight - 1;
     }
 
     function updatePlanesEnabled() {
@@ -748,7 +791,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function updateSpritePattAddress() {
-        spritePattAddress = modeData.name === "P1" ? (register[25] & 0x0e) << 14 : (register[25] & 0x0f) << 15;
+        spritePattAddress = modeData === modes.P1 ? (register[25] & 0x0e) << 14 : (register[25] & 0x0f) << 15;
     }
 
     function updateVideoStandardSoft() {
@@ -854,7 +897,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function updateLineActiveType() {
         var wasActive = renderLine === renderLineActive;
 
-        renderLineActive = modeData.name === "SBY" ? renderLineModeSBY              // Stand-by
+        renderLineActive = modeData === modes.SBY ? renderLineModeSBY               // Stand-by
             : !dispEnabled ? renderLineBackdrop                                     // DISP, but only detected at VBLANK
             // : debugModePatternInfo ? modeData.renderLinePatInfo
             : modeData.renderLine;
@@ -1626,34 +1669,34 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     var vramEOLineShift = 0, vramEOLineAdd = 0;
 
-    var modes = {};
-    modes[0x0c] = { name: "SBY", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, cmdTiming: 0, renderLine: renderLineModeSBY };
-    modes[0x00] = { name:  "P1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, cmdTiming: 2, renderLine:  renderLineModeP1 };
-    modes[0x05] = { name:  "P2", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL: false, cmdTiming: 3, renderLine:  renderLineModeP2 };
-    modes[0x48] = { name: "B0*", width:  192, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine:  renderLineModeB0 };       // B1 Overscan? Undocumented
-    modes[0x08] = { name:  "B1", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine:  renderLineModeB1 };
-    modes[0x49] = { name:  "B2", width:  384, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine:  renderLineModeB2 };       // B1 Overscan
-    modes[0x09] = { name:  "B3", width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine:  renderLineModeB3 };
-    modes[0x4a] = { name:  "B4", width:  768, height: 240, pixelWidthDiv: 2, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine:  renderLineModeB4 };       // B3 Overscan
-    modes[0x1a] = { name:  "B5", width:  640, height: 400, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, cmdTiming: 0, renderLine:  renderLineModeB5 };
-    modes[0x3a] = { name:  "B6", width:  640, height: 480, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, cmdTiming: 0, renderLine:  renderLineModeB6 };
-    modes[0x0a] = { name: "B7*", width: 1024, height: 212, pixelWidthDiv: 4, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine:  renderLineModeB7 };       // Weird! Undocumented
-    modes[  -1] = modes[0x0c];
+    var modes = {
+        SBY: { name: "SBY", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, cmdTiming: 0, renderLine: renderLineModeSBY },
+        P1 : { name: "P1",  width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, cmdTiming: 2, renderLine: renderLineModeP1  },
+        P2 : { name: "P2",  width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL: false, cmdTiming: 3, renderLine: renderLineModeP2  },
+        B0 : { name: "B0",  width:  192, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine: renderLineModeB0  },       // B1 Overscan? Undocumented
+        B1 : { name: "B1",  width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine: renderLineModeB1  },
+        B2 : { name: "B2",  width:  384, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine: renderLineModeB2  },       // B1 Overscan
+        B3 : { name: "B3",  width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine: renderLineModeB3  },
+        B4 : { name: "B4",  width:  768, height: 240, pixelWidthDiv: 2, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine: renderLineModeB4  },       // B3 Overscan
+        B5 : { name: "B5",  width:  640, height: 400, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, cmdTiming: 0, renderLine: renderLineModeB5  },
+        B6 : { name: "B6",  width:  640, height: 480, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, cmdTiming: 0, renderLine: renderLineModeB6  },
+        B7 : { name: "B7",  width: 1024, height: 212, pixelWidthDiv: 4, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine: renderLineModeB7  }        // Weird! Undocumented
+    };
 
-    var types = {};
-    types[0xc0] = { name:   "SBY", bpp:  8, ppb: 1, renderLine:  renderLineTypeSBY };
-    types[0x01] = { name:   "PP1", bpp:  4, ppb: 2, renderLine:  renderLineTypePP1 };
-    types[0x41] = { name:   "PP2", bpp:  4, ppb: 2, renderLine:  renderLineTypePP2 };
-    types[0xb2] = { name:  "BYUV", bpp:  8, ppb: 1, renderLine:  renderLineTypeBD8 };
-    types[0xba] = { name: "BYUVP", bpp:  8, ppb: 1, renderLine:  renderLineTypeBD8 };
-    types[0xa2] = { name:  "BYJK", bpp:  8, ppb: 1, renderLine:  renderLineTypeBD8 };
-    types[0xaa] = { name: "BYJKP", bpp:  8, ppb: 1, renderLine:  renderLineTypeBD8 };
-    types[0x83] = { name:  "BD16", bpp: 16, ppb: 0, renderLine: renderLineTypeBD16 };
-    types[0x92] = { name:   "BD8", bpp:  8, ppb: 1, renderLine:  renderLineTypeBD8 };
-    types[0x82] = { name:   "BP6", bpp:  8, ppb: 1, renderLine:  renderLineTypeBP6 };
-    types[0x81] = { name:   "BP4", bpp:  4, ppb: 2, renderLine:  renderLineTypeBP4 };
-    types[0x80] = { name:   "BP2", bpp:  2, ppb: 4, renderLine:  renderLineTypeBP2 };
-    types[  -1] = types[0xc0];
+    var types = {
+        SBY:   { name: "SBY",   bpp:  8, ppb: 1, renderLine: renderLineTypeSBY  },
+        PP1:   { name: "PP1",   bpp:  4, ppb: 2, renderLine: renderLineTypePP1  },
+        PP2:   { name: "PP2",   bpp:  4, ppb: 2, renderLine: renderLineTypePP2  },
+        BYUV:  { name: "BYUV",  bpp:  8, ppb: 1, renderLine: renderLineTypeBD8  },
+        BYUVP: { name: "BYUVP", bpp:  8, ppb: 1, renderLine: renderLineTypeBD8  },
+        BYJK:  { name: "BYJK",  bpp:  8, ppb: 1, renderLine: renderLineTypeBD8  },
+        BYJKP: { name: "BYJKP", bpp:  8, ppb: 1, renderLine: renderLineTypeBD8  },
+        BD16:  { name: "BD16",  bpp: 16, ppb: 0, renderLine: renderLineTypeBD16 },
+        BD8:   { name: "BD8",   bpp:  8, ppb: 1, renderLine: renderLineTypeBD8  },
+        BP6:   { name: "BP6",   bpp:  8, ppb: 1, renderLine: renderLineTypeBP6  },
+        BP4:   { name: "BP4",   bpp:  4, ppb: 2, renderLine: renderLineTypeBP4  },
+        BP2:   { name: "BP2",   bpp:  2, ppb: 4, renderLine: renderLineTypeBP2  }
+    };
 
     var renderLine, renderLineActive;           // Update functions for current mode
 
