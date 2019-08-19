@@ -1294,10 +1294,14 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         quantBytes = (quantPixels >> 1) + leftPixels;           // 2 ppb
         buffPos = bufferPosition - leftPixels;
 
+        // Even/Odd pixel special offsets for modes >= B4. Ignore PLTO5 bit and use even: 0, odd: 1
+        var palOffsetBEven = quantPixels > 512 ? paletteOffsetB & ~0x20 : paletteOffsetB;
+        var palOffsetBOdd  = quantPixels > 512 ? paletteOffsetB | 0x20  : paletteOffsetB;
+
         for (var b = quantBytes; b > 0; --b, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
             v = vram[byteYBase + byteXPos];
-            frameBackBuffer[buffPos++] = paletteValues[paletteOffsetB | (v >> 4)];
-            frameBackBuffer[buffPos++] = paletteValues[paletteOffsetB | (v & 0x0f)];
+            frameBackBuffer[buffPos++] = paletteValues[palOffsetBEven | (v >> 4)];
+            frameBackBuffer[buffPos++] = paletteValues[palOffsetBOdd  | (v & 0x0f)];
         }
     }
 
@@ -1313,12 +1317,16 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         quantBytes = (quantPixels >> 2) + (leftPixels ? 1 : 0); // 4 ppb
         buffPos = bufferPosition - leftPixels;
 
+        // Even/Odd pixel special offsets for modes >= B4. Ignore PLTO5 bit and use even: 0, odd: 1
+        var palOffsetEven = quantPixels > 512 ? paletteOffset & ~0x20 : paletteOffset;
+        var palOffsetOdd  = quantPixels > 512 ? paletteOffset | 0x20  : paletteOffset;
+
         for (var b = quantBytes; b > 0; --b, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
             v = vram[byteYBase + byteXPos];
-            frameBackBuffer[buffPos++] = paletteValues[paletteOffset | (v >> 6)];
-            frameBackBuffer[buffPos++] = paletteValues[paletteOffset | ((v >> 4) & 0x03)];
-            frameBackBuffer[buffPos++] = paletteValues[paletteOffset | ((v >> 2) & 0x03)];
-            frameBackBuffer[buffPos++] = paletteValues[paletteOffset | (v & 0x03)];
+            frameBackBuffer[buffPos++] = paletteValues[palOffsetEven | (v >> 6)];
+            frameBackBuffer[buffPos++] = paletteValues[palOffsetOdd  | ((v >> 4) & 0x03)];
+            frameBackBuffer[buffPos++] = paletteValues[palOffsetEven | ((v >> 2) & 0x03)];
+            frameBackBuffer[buffPos++] = paletteValues[palOffsetOdd  | (v & 0x03)];
         }
     }
 
