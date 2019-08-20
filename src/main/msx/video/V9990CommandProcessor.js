@@ -690,59 +690,62 @@ wmsx.V9990CommandProcessor = function() {
         // SDSnatcher Melancholia fix: TR not reset when command ends
     }
 
-    function normalPGET(x, y) {
-        var shift, mask;
+    function normalPGET(sx, sy) {
+        var sShift, mask;
         switch (typeBPP) {
             case 16:
-                x <<= 1;
+                sx <<= 1;
                 // Perform operation
-                var pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
+                var pos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
                 return vram[pos] | (vram[pos + 1] << 8);
             case 8:
-                shift = 0; mask = 0xff;
+                sShift = 0;
+                mask = 0xff;
                 break;
             case 4:
-                shift = (x & 0x1) ? 0 : 4;
-                x >>>= 1; mask = 0x0f << shift;
+                sShift = (sx & 0x1) ? 0 : 4;
+                sx >>>= 1; mask = 0x0f;
                 break;
             case 2:
-                shift = (3 - (x & 0x3)) * 2;
-                x >>>= 2; mask = 0x03 << shift;
+                sShift = (3 - (sx & 0x3)) * 2;
+                sx >>>= 2; mask = 0x03;
                 break;
         }
         // Perform operation
-        pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
-        return (vram[pos] & mask) >> shift;
+        pos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
+        return (vram[pos] >> sShift) & mask;
     }
 
-    function logicalPSET(x, y, sc, op) {
-        var shift, mask;
+    function logicalPSET(dx, dy, sc, op) {
+        var dShift, mask;
         switch (typeBPP) {
             case 16:
-                x <<= 1;
+                dx <<= 1;
                 // Perform operation
-                var pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
+                var pos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
                 var dc = vram[pos] | (vram[pos + 1] << 8);
                 var wc = op(dc, sc, 0xffff);
                 vram[pos] = wc & 0xff;
                 vram[pos + 1] = wc >> 8;
                 return;
             case 8: default:
+                dShift = 0;
                 mask = 0xff;
                 break;
             case 4:
-                shift = (x & 0x1) ? 0 : 4;
-                x >>>= 1; sc = (sc & 0x0f) << shift; mask = 0x0f << shift;
+                dShift = (dx & 0x1) ? 0 : 4;
+                dx >>>= 1; mask = 0x0f;
                 break;
             case 2:
-                shift = (3 - (x & 0x3)) * 2;
-                x >>>= 2; sc = (sc & 0x03) << shift; mask = 0x03 << shift;
+                dShift = (3 - (dx & 0x3)) * 2;
+                dx >>>= 2; mask = 0x03;
                 break;
         }
 
         // Perform operation
-        pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
-        vram[pos] = op(vram[pos], sc, mask);
+        pos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
+        sc = (sc & mask) << dShift;
+        vram[pos] = op(vram[pos], sc, mask << dShift);
     }
 
     function logicalPCOPY(dx, dy, sx, sy, op) {
