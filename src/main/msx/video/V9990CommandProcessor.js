@@ -16,7 +16,6 @@ wmsx.V9990CommandProcessor = function() {
     };
 
     this.startCommand = function(val) {
-
         switch (val & 0xf0) {
             case 0x00:
                 STOP(); break;
@@ -45,10 +44,9 @@ wmsx.V9990CommandProcessor = function() {
             // case 0x40:
             //     POINT(); break;
             default:
-                //    wmsx.Util.error("Unsupported V9938 Command: " + val.toString(16));
+                console.log(">>>> V9990 Command: " + val.toString(16) + ". DispSprites: " + dispAndSpritesMode);
+            //    wmsx.Util.error("Unsupported V9938 Command: " + val.toString(16));
         }
-
-        // console.log(">>>> V9990 Command: " + val.toString(16) + ". DispSprites: " + dispAndSpritesMode);
     };
 
     this.cpuWrite = function(val) {
@@ -190,10 +188,33 @@ wmsx.V9990CommandProcessor = function() {
     function LMMCNextWrite(cd) {
         // console.log("LMMC Write CX: " + CX + ", CY: " + CY);
 
-        if (writeDataPending === null) return writeDataPending = cd;
+        switch (typeBPP) {
+            case 16:
+                if (writeDataPending === null)
+                    writeDataPending = cd;
+                else {
+                    LMMCNextPut((cd << 8) | writeDataPending);
+                    writeDataPending = null;
+                }
+                break;
+            case 8:
+                LMMCNextPut(cd);
+                break;
+            case 4:
+                LMMCNextPut(cd >> 4);
+                if (CE) LMMCNextPut(cd & 0x0f);
+                break;
+            case 2:
+                LMMCNextPut(cd >> 6);
+                if (CE) LMMCNextPut((cd >> 4) & 0x03);
+                if (CE) LMMCNextPut((cd >> 2) & 0x03);
+                if (CE) LMMCNextPut(cd & 0x03);
+                break;
+        }
+    }
 
-        var sc = (cd << 8) | writeDataPending;
-        writeDataPending = null;
+    function LMMCNextPut(sc) {
+        // console.log("LMMC Put CX: " + CX + ", CY: " + CY);
 
         logicalPSET(EDX, DY, sc, LOP);
 
@@ -252,7 +273,7 @@ wmsx.V9990CommandProcessor = function() {
         DIX = getDIX();
         DIY = getDIY();
 
-        console.log("LMCM START x: " + SX + ", y: " + SY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
+        // console.log("LMCM START x: " + SX + ", y: " + SY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
         ESX = SX;
 
@@ -260,7 +281,34 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function LMCMNextRead() {
-        readData = normalPGET(ESX, SY);
+        switch (typeBPP) {
+            case 16:
+                if (readDataPending === null) {
+                    readDataPending = LMCMNextGet();
+                    readData = readDataPending & 0xff;
+                } else {
+                    readData = readDataPending >> 8;
+                    readDataPending = null;
+                }
+                break;
+            case 8:
+                readData = LMCMNextGet();
+                break;
+            case 4:
+                readData = LMCMNextGet() << 4;
+                if (CE) readData |= LMCMNextGet();
+                break;
+            case 2:
+                readData = LMCMNextGet() << 6;
+                if (CE) readData |= LMCMNextGet() << 4;
+                if (CE) readData |= LMCMNextGet() << 2;
+                if (CE) readData |= LMCMNextGet();
+                break;
+        }
+    }
+
+    function LMCMNextGet() {
+        var sc = normalPGET(ESX, SY);
 
         CX = CX + 1;
         if (CX >= NX) {
@@ -274,6 +322,8 @@ wmsx.V9990CommandProcessor = function() {
         // Set visible changed register state
         // setSY(SY);
         // setNY(NY - CY);
+
+        return sc;
     }
 
     function LMMM() {
@@ -643,44 +693,56 @@ wmsx.V9990CommandProcessor = function() {
     function normalPGET(x, y) {
         var shift, mask;
         switch (typeBPP) {
+            case 16:
+                x <<= 1;
+                // Perform operation
+                var pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
+                return vram[pos] | (vram[pos + 1] << 8);
+            case 8:
+                shift = 0; mask = 0xff;
+                break;
             case 4:
                 shift = (x & 0x1) ? 0 : 4;
-                x >>>= 1; mask = 0x0f << shift; break;
+                x >>>= 1; mask = 0x0f << shift;
+                break;
             case 2:
                 shift = (3 - (x & 0x3)) * 2;
-                x >>>= 2; mask = 0x03 << shift; break;
-            case 8: default:
-                shift = 0; mask = 0xff;
+                x >>>= 2; mask = 0x03 << shift;
+                break;
         }
         // Perform operation
-        var pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
+        pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
         return (vram[pos] & mask) >> shift;
     }
 
-    function logicalPSET(x, y, co, op) {
+    function logicalPSET(x, y, sc, op) {
         var shift, mask;
         switch (typeBPP) {
             case 16:
                 x <<= 1;
                 // Perform operation
                 var pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
-                var val = op(vram[pos] | (vram[pos + 1] << 8), co, 0xffff);
-                vram[pos] = val & 0xff;
-                vram[pos + 1] = val >> 8;
+                var dc = vram[pos] | (vram[pos + 1] << 8);
+                var wc = op(dc, sc, 0xffff);
+                vram[pos] = wc & 0xff;
+                vram[pos + 1] = wc >> 8;
+                return;
+            case 8: default:
+                mask = 0xff;
                 break;
             case 4:
                 shift = (x & 0x1) ? 0 : 4;
-                x >>>= 1; co = (co & 0x0f) << shift; mask = 0x0f << shift; break;
+                x >>>= 1; sc = (sc & 0x0f) << shift; mask = 0x0f << shift;
+                break;
             case 2:
                 shift = (3 - (x & 0x3)) * 2;
-                x >>>= 2; co = (co & 0x03) << shift; mask = 0x03 << shift; break;
-            case 8: default:
-                mask = 0xff;
+                x >>>= 2; sc = (sc & 0x03) << shift; mask = 0x03 << shift;
+                break;
         }
 
         // Perform operation
         pos = (y * imageWidthBytes + x) & VRAM_LIMIT;
-        vram[pos] = op(vram[pos], co, mask);
+        vram[pos] = op(vram[pos], sc, mask);
     }
 
     function logicalPCOPY(dx, dy, sx, sy, op) {
@@ -696,16 +758,19 @@ wmsx.V9990CommandProcessor = function() {
                 var wc = op(dc, sc, 0xffff);
                 vram[dPos] = wc & 0xff;
                 vram[dPos + 1] = wc >> 8;
+                return;
+            case 8:
+                sShift = dShift = 0;
+                mask = 0xff;
                 break;
             case 4:
                 sShift = (sx & 0x1) ? 0 : 4; dShift = (dx & 0x1) ? 0 : 4;
-                sx >>>= 1; dx >>>= 1; mask = 0x0f; break;
+                sx >>>= 1; dx >>>= 1; mask = 0x0f;
+                break;
             case 2:
                 sShift = (3 - (sx & 0x3)) * 2; dShift = (3 - (dx & 0x3)) * 2;
-                sx >>>= 2; dx >>>= 2; mask = 0x03; break;
-            case 8: default:
-                sShift = dShift = 0;
-                mask = 0xff;
+                sx >>>= 2; dx >>>= 2; mask = 0x03;
+                break;
         }
 
         // Perform operation
@@ -905,6 +970,7 @@ wmsx.V9990CommandProcessor = function() {
 
         CX = 0; CY = 0;
         readHandler = handler;
+        readDataPending = null;
         v9990.setStatusTR(1);
 
         // Perform first iteration
@@ -918,6 +984,7 @@ wmsx.V9990CommandProcessor = function() {
         writeHandler = null;
         writeReady = false;
         writeDataPending = null;
+        readDataPending = null;
         readHandler = null;
 
         //console.log("FINISH");
@@ -973,7 +1040,7 @@ wmsx.V9990CommandProcessor = function() {
 
     var CE = 0;
     var SX = 0, SY = 0, DX = 0, DY = 0, NX = 0, NY = 0, ENY = 0, EDX = 0, ESX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, destPos = 0, LOP;
-    var writeReady = false, readData = 0, writeDataPending = null, writeHandler = null, readHandler = null;
+    var writeReady = false, readData = 0, writeDataPending = null, readDataPending = null, writeHandler = null, readHandler = null;
     var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
 
     var modeData, typeData;

@@ -741,7 +741,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                             case 0: newType = types.BP6; break;
                             case 1: newType = types.BD8; break;
                             default:
-                                switch (register[13] >> 5) {           // PLTM, YAE
+                                switch (register[13] >> 5) {            // PLTM, YAE
                                     case 0x04: newType = types.BYJK;  break;
                                     case 0x05: newType = types.BYJKP; break;
                                     case 0x06: newType = types.BYUV;  break;
