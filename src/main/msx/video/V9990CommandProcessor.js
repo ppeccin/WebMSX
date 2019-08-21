@@ -82,6 +82,7 @@ wmsx.V9990CommandProcessor = function() {
         imageHeightMask = pImageHeight - 1;
         imageWidthBytes = (imageWidth * typeData.bpp) >> 3;
         typeBPP = typeData.bpp;
+        isP1 = pModeData.name === "P1";
 
         // ???
         colosPPBShift = typeData.ppb >> 1;
@@ -103,7 +104,9 @@ wmsx.V9990CommandProcessor = function() {
     };
 
     function getSX() {
-        return (((register[33] & 0x07) << 8) | register[32]) & imageWidthMask;
+        return isP1
+            ? (((register[33] & 0x01) << 8) | register[32]) & imageWidthMask    // Only 9 bits in P1 mode
+            : (((register[33] & 0x07) << 8) | register[32]) & imageWidthMask;
     }
 
     function getSY() {
@@ -113,8 +116,15 @@ wmsx.V9990CommandProcessor = function() {
         register[35] = (val >> 8) & 0x0f; register[34] = val & 0xff;
     }
 
+    function getSYP1Offset() {
+        return isP1 && (register[33] & 0x02) ? 2048 : 0;        // SX9 bit in P1 mode -> start at Plane B
+    }
+
+
     function getDX() {
-        return (((register[37] & 0x07) << 8) | register[36]) & imageWidthMask;
+        return isP1
+            ? (((register[37] & 0x01) << 8) | register[36]) & imageWidthMask    // Only 9 bits in P1 mode
+            : (((register[37] & 0x07) << 8) | register[36]) & imageWidthMask;
     }
 
     function getDY() {
@@ -122,6 +132,10 @@ wmsx.V9990CommandProcessor = function() {
     }
     function setDY(val) {
         register[39] = (val >> 8) & 0x0f; register[38] = val & 0xff;
+    }
+
+    function getDYP1Offset() {
+        return isP1 && (register[37] & 0x02) ? 2048 : 0;        // DX9 bit in P1 mode -> start at Plane B
     }
 
     function getNX() {
@@ -155,6 +169,16 @@ wmsx.V9990CommandProcessor = function() {
         return LOGICAL_OPERATIONS[register[45] & 0x1f];
     }
 
+    function getWM() {
+        return (register[47] << 8) | register[46];
+    }
+
+    function getWMPos(wm, pos) {
+        return isP1
+            ? (pos & 0x40000) ? wm >> 8 : wm & 0xff
+            : (pos & 1) ? wm >> 8 : wm & 0xff;
+    }
+
     function getFC() {
         return (register[49] << 8) | register[48];
     }
@@ -171,14 +195,16 @@ wmsx.V9990CommandProcessor = function() {
     function LMMC() {
         // Collect parameters
         DX = getDX();
-        DY = getDY();
+        DYP1Off = getDYP1Offset();
+        DY = getDY() + DYP1Off;
         NX = getNX();
         NY = getNY();
         DIX = getDIX();
         DIY = getDIY();
         LOP = getLOP();
+        WM = getWM();
 
-        // console.log("LMMC START x: " + DX + ", y: " + DY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
+        // console.log("LMMC START x: " + DX + ", y: " + DY + " + " + DYP1Off + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
         EDX = DX;
 
@@ -216,12 +242,12 @@ wmsx.V9990CommandProcessor = function() {
     function LMMCNextPut(sc) {
         // console.log("LMMC Put CX: " + CX + ", CY: " + CY);
 
-        logicalPSET(EDX, DY, sc, LOP);
+        logicalPSET(EDX, DY, sc, LOP, WM);
 
         CX = CX + 1;
         if (CX >= NX) {
             EDX = DX;
-            CX = 0; CY = CY + 1; DY = (DY + DIY) & imageHeightMask;
+            CX = 0; CY = CY + 1; DY = ((DY - DYP1Off + DIY) & imageHeightMask) + DYP1Off;
             if (CY >= NY) {
                 finish();
             }
@@ -237,24 +263,26 @@ wmsx.V9990CommandProcessor = function() {
     function LMMV() {
         // Collect parameters
         var dx = getDX();
-        var dy = getDY();
+        var dyP1Off = getDYP1Offset();
+        var dy = getDY() + dyP1Off;
         var nx = getNX();
         var ny = getNY();
         var fc = getFC();
         var dix = getDIX();
         var diy = getDIY();
         var op = getLOP();
+        var wm = getWM();
 
-        // console.log("LMMV dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", fc: " + fc.toString(16));
+        // console.log("LMMV dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", fc: " + fc.toString(16));
 
         // Perform operation
         for (var cy = ny; cy > 0; --cy) {
             var edx = dx;
             for (var cx = nx; cx > 0; --cx) {
-                logicalPSET(edx, dy, fc, op);
+                logicalPSET(edx, dy, fc, op, wm);
                 edx = (edx + dix) & imageWidthMask;
             }
-            dy = (dy + diy) & imageHeightMask;
+            dy = ((dy - dyP1Off + diy) & imageHeightMask) + dyP1Off;
         }
 
         // Final registers state
@@ -267,13 +295,14 @@ wmsx.V9990CommandProcessor = function() {
     function LMCM() {
         // Collect parameters
         SX = getSX();
-        SY = getSY();
+        SYP1Off = getSYP1Offset();
+        SY = getSY() + SYP1Off;
         NX = getNX();
         NY = getNY();
         DIX = getDIX();
         DIY = getDIY();
 
-        // console.log("LMCM START x: " + SX + ", y: " + SY + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
+        // console.log("LMCM START x: " + SX + ", y: " + SY + " + " + SYP1Off + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
         ESX = SX;
 
@@ -313,7 +342,7 @@ wmsx.V9990CommandProcessor = function() {
         CX = CX + 1;
         if (CX >= NX) {
             ESX = SX;
-            CX = 0; CY = CY + 1; SY = (SY + DIY) & imageHeightMask;
+            CX = 0; CY = CY + 1; SY = ((SY - SYP1Off + DIY) & imageHeightMask) + SYP1Off;
             if (CY >= NY) finish();
         } else {
             ESX = (ESX + DIX) & imageWidthMask;
@@ -329,25 +358,28 @@ wmsx.V9990CommandProcessor = function() {
     function LMMM() {
         // Collect parameters
         var sx = getSX();
-        var sy = register[33] & 0x02 ? getSY() : getSY();
+        var syP1Off = getSYP1Offset();
+        var sy = getSY() + syP1Off;
         var dx = getDX();
-        var dy = getDY();
+        var dyP1Off = getDYP1Offset();
+        var dy = getDY() + dyP1Off;
         var nx = getNX();
         var ny = getNY();
         var dix = getDIX();
         var diy = getDIY();
         var op = getLOP();
+        var wm = getWM();
 
-        // console.log("LMMM sx: " + sx + ", sy: " + sy + ", dx: " + dx + ", dy: " + dy + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
+        // console.log("LMMM sx: " + sx + ", sy: " + sy + " + " + syP1Off + ", dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
 
         // Perform operation
         for (var cy = ny; cy > 0; --cy) {
             var esx = sx, edx = dx;
             for (var cx = nx; cx > 0; --cx) {
-                logicalPCOPY(edx, dy, esx, sy, op);
+                logicalPCOPY(edx, dy, esx, sy, op, wm);
                 esx = (esx + dix) & imageWidthMask; edx = (edx + dix) & imageWidthMask;
             }
-            sy = (sy + diy) & imageHeightMask; dy = (dy + diy) & imageHeightMask;
+            sy = ((sy - syP1Off + diy) & imageHeightMask) + syP1Off; dy = ((dy - dyP1Off + diy) & imageHeightMask) + dyP1Off;
         }
 
         // Final registers state
@@ -574,7 +606,7 @@ wmsx.V9990CommandProcessor = function() {
         var e = 0;
         if (maj === 0) {
             for (var n = 0; n <= nx; n = n + 1) {
-                logicalPSET(dx, dy, fc, op);
+                logicalPSET(dx, dy, fc, op, 0);
                 dx += dix;
                 if (ny > 0) {
                     e += ny;
@@ -586,7 +618,7 @@ wmsx.V9990CommandProcessor = function() {
             }
         } else {
             for (n = 0; n <= nx; n = n + 1) {
-                logicalPSET(dx, dy, fc, op);
+                logicalPSET(dx, dy, fc, op, 0);
                 dy += diy;
                 if (ny > 0) {
                     e += ny;
@@ -657,7 +689,7 @@ wmsx.V9990CommandProcessor = function() {
         // Horizontal limits
         if (dx >= imageWidth) dx &= imageWidth - 1;
 
-        logicalPSET(dx, dy, fc, op);
+        logicalPSET(dx, dy, fc, op, 0);
 
         // No registers changed
 
@@ -716,7 +748,7 @@ wmsx.V9990CommandProcessor = function() {
         return (vram[pos] >> sShift) & mask;
     }
 
-    function logicalPSET(dx, dy, sc, op) {
+    function logicalPSET(dx, dy, sc, op, wm) {
         var dShift, mask;
         switch (typeBPP) {
             case 16:
@@ -724,7 +756,7 @@ wmsx.V9990CommandProcessor = function() {
                 // Perform operation
                 var pos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
                 var dc = vram[pos] | (vram[pos + 1] << 8);
-                var wc = op(dc, sc, 0xffff);
+                var wc = op(dc, sc, wm);
                 vram[pos] = wc & 0xff;
                 vram[pos + 1] = wc >> 8;
                 return;
@@ -745,10 +777,10 @@ wmsx.V9990CommandProcessor = function() {
         // Perform operation
         pos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
         sc = (sc & mask) << dShift;
-        vram[pos] = op(vram[pos], sc, mask << dShift);
+        vram[pos] = op(vram[pos], sc, (mask << dShift) & getWMPos(wm, pos));
     }
 
-    function logicalPCOPY(dx, dy, sx, sy, op) {
+    function logicalPCOPY(dx, dy, sx, sy, op, wm) {
         var sShift, dShift, mask;
         switch (typeBPP) {
             case 16:
@@ -758,7 +790,7 @@ wmsx.V9990CommandProcessor = function() {
                 var dPos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
                 var sc = vram[sPos] | (vram[sPos + 1] << 8);
                 var dc = vram[dPos] | (vram[dPos + 1] << 8);
-                var wc = op(dc, sc, 0xffff);
+                var wc = op(dc, sc, wm);
                 vram[dPos] = wc & 0xff;
                 vram[dPos + 1] = wc >> 8;
                 return;
@@ -776,13 +808,13 @@ wmsx.V9990CommandProcessor = function() {
                 break;
         }
 
+
         // Perform operation
         sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
         dPos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
         sc = ((vram[sPos] >> sShift) & mask) << dShift;
-        vram[dPos] = op(vram[dPos], sc, mask << dShift);
+        vram[dPos] = op(vram[dPos], sc, (mask << dShift) & getWMPos(wm, dPos));
     }
-
 
 
     function lopNULL(dest, src, mask) {
@@ -794,7 +826,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopEXD(dest, src, mask) {
-        return dest & (dest & ~src);
+        return dest & ~(src & mask);
     }
 
     function lopNOTS(dest, src, mask) {
@@ -802,7 +834,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopEXS(dest, src, mask) {
-        return (dest & ~mask) | (src & ~dest);
+        return (dest & ~mask) | ((src & ~dest) & mask);
     }
 
     function lopNOTD(dest, src, mask) {
@@ -810,7 +842,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopXOR(dest, src, mask) {
-        return dest ^ src;
+        return dest ^ (src & mask);
     }
 
     function lopNAND(dest, src, mask) {
@@ -834,7 +866,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopS(dest, src, mask) {
-        return (dest & ~mask) | src;
+        return (dest & ~mask) | (src & mask);
     }
 
     function lopNEXD(dest, src, mask) {
@@ -842,7 +874,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopOR(dest, src, mask) {
-        return dest | src;
+        return dest | (src & mask);
     }
 
     function lopID(dest, src, mask) {
@@ -858,7 +890,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopTEXD(dest, src, mask) {
-        return src === 0 ? dest : dest & (dest & ~src);
+        return src === 0 ? dest : dest & ~(src & mask);
     }
 
     function lopTNOTS(dest, src, mask) {
@@ -866,7 +898,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopTEXS(dest, src, mask) {
-        return src === 0 ? dest : (dest & ~mask) | (src & ~dest);
+        return src === 0 ? dest : (dest & ~mask) | ((src & ~dest) & mask);
     }
 
     function lopTNOTD(dest, src, mask) {
@@ -874,7 +906,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopTXOR(dest, src, mask) {
-        return src === 0 ? dest : dest ^ src;
+        return src === 0 ? dest : dest ^ (src & mask);
     }
 
     function lopTNAND(dest, src, mask) {
@@ -898,7 +930,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopTS(dest, src, mask) {
-        return src === 0 ? dest : (dest & ~mask) | src;
+        return src === 0 ? dest : (dest & ~mask) | (src & mask);
     }
 
     function lopTNEXD(dest, src, mask) {
@@ -906,13 +938,12 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function lopTOR(dest, src, mask) {
-        return src === 0 ? dest : dest | src;
+        return src === 0 ? dest : dest | (src & mask);
     }
 
     function lopTID(dest, src, mask) {
         return src === 0 ? dest : dest | mask;
     }
-
 
 
 
@@ -1042,11 +1073,11 @@ wmsx.V9990CommandProcessor = function() {
     var v9990, vram, register;
 
     var CE = 0;
-    var SX = 0, SY = 0, DX = 0, DY = 0, NX = 0, NY = 0, ENY = 0, EDX = 0, ESX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, destPos = 0, LOP;
+    var SX = 0, SY = 0, SYP1Off = 0, DX = 0, DY = 0, DYP1Off = 0, NX = 0, NY = 0, ENY = 0, EDX = 0, ESX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, WM = 0, destPos = 0, LOP;
     var writeReady = false, readData = 0, writeDataPending = null, readDataPending = null, writeHandler = null, readHandler = null;
     var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
 
-    var modeData, typeData;
+    var modeData, typeData, isP1 = false;
 
     var dispAndSpritesMode = 0;  // 0: DISP off, 1: DISP on SPD off, 2: DISP on SPD on
 
