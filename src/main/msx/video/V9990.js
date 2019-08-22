@@ -13,7 +13,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function init() {
         videoSignal = new wmsx.VideoSignal("V9990", self);
         initFrameResources(false);
-        initColorCaches();
         initDebugPatternTables();
         modeData = modes.SBY;
         typeData = types.SBY;
@@ -516,7 +515,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         //logInfo("updatePaletteValue entry " + entry + ": " + val);
 
         var index = entry << 2;
-        var value = colors64KValues[((paletteRAM[index] & 0x80) << 8) | ((paletteRAM[index + 1] & 0x1f) << 10) | ((paletteRAM[index] & 0x1f) << 5) | (paletteRAM[index + 2] & 0x1f)];
+        var value = colors16bitValues[((paletteRAM[index] & 0x80) << 8) | ((paletteRAM[index + 1] & 0x1f) << 10) | ((paletteRAM[index] & 0x1f) << 5) | (paletteRAM[index + 2] & 0x1f)];
         paletteValuesReal[entry] = value;
 
         if (debugModeSpriteHighlight) value &= DEBUG_DIM_ALPHA_MASK;
@@ -1272,8 +1271,86 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         }
     }
 
+    function renderLineTypeBYUV(bufferPosition, quantPixels) {
+        if (!colorsYUVValues) colorsYUVValues = wmsx.ColorCache.getColorsYUVValues();
+        renderLineTypeBYxx(colorsYUVValues, bufferPosition, quantPixels);
+    }
+
+    function renderLineTypeBYUVP(bufferPosition, quantPixels) {
+        if (!colorsYUVValues) colorsYUVValues = wmsx.ColorCache.getColorsYUVValues();
+        renderLineTypeBYxxP(colorsYUVValues, bufferPosition, quantPixels);
+    }
+
+    function renderLineTypeBYJK(bufferPosition, quantPixels) {
+        if (!colorsYJKValues) colorsYJKValues = wmsx.ColorCache.getColorsYJKValues();
+        renderLineTypeBYxx(colorsYJKValues, bufferPosition, quantPixels);
+    }
+
+    function renderLineTypeBYJKP(bufferPosition, quantPixels) {
+        if (!colorsYJKValues) colorsYJKValues = wmsx.ColorCache.getColorsYJKValues();
+        renderLineTypeBYxxP(colorsYJKValues, bufferPosition, quantPixels);
+    }
+
+    function renderLineTypeBYxx(colorValues, bufferPosition, quantPixels) {
+        var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
+        var byteYBase, byteXPos, v1, v2, v3, v4, chroma;
+
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        byteYBase = realLine * imageWidth;                      // 1 ppb
+        scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
+        byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
+
+        quantBytes = quantPixels;                               // 1 ppb
+        buffPos = bufferPosition;
+
+        leftPixels = scrollXOffset & 3;                         // 4 pixel blocks
+        quantBytes = quantPixels + (leftPixels ? 4 : 0);        // 1 ppb, 4 pixel blocks
+        buffPos = bufferPosition - leftPixels;
+
+        for (var b = quantBytes; b > 0; b -= 4) {
+            v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
+            v1 = vram[byteYBase + byteXPos]; v2 = vram[byteYBase + byteXPos + 1]; v3 = vram[byteYBase + byteXPos + 2]; v4 = vram[byteYBase + byteXPos + 3]; byteXPos = (byteXPos + 4) & scrollXMaxBytes;
+            chroma = ((v4 & 0x07) << 9) | ((v3 & 0x07) << 6) | ((v2 & 0x07) << 3) | (v1 & 0x07);
+            frameBackBuffer[buffPos] = colorValues[((v1 & 0xf8) << 9) | chroma]; ++buffPos;
+            frameBackBuffer[buffPos] = colorValues[((v2 & 0xf8) << 9) | chroma]; ++buffPos;
+            frameBackBuffer[buffPos] = colorValues[((v3 & 0xf8) << 9) | chroma]; ++buffPos;
+            frameBackBuffer[buffPos] = colorValues[((v4 & 0xf8) << 9) | chroma]; ++buffPos;
+        }
+    }
+
+    function renderLineTypeBYxxP(colorValues, bufferPosition, quantPixels) {
+        var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
+        var byteYBase, byteXPos, v1, v2, v3, v4, chroma;
+
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        byteYBase = realLine * imageWidth;                      // 1 ppb
+        scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
+        byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
+
+        quantBytes = quantPixels;                               // 1 ppb
+        buffPos = bufferPosition;
+
+        leftPixels = scrollXOffset & 3;                         // 4 pixel blocks
+        quantBytes = quantPixels + (leftPixels ? 4 : 0);        // 1 ppb, 4 pixel blocks
+        buffPos = bufferPosition - leftPixels;
+
+        // Even/Odd pixel special offsets for modes >= B4. Ignore PLTO5 bit and use even: 0, odd: 1
+        var palOffsetBEven = quantPixels > 512 ? paletteOffsetB & ~0x20 : paletteOffsetB;
+        var palOffsetBOdd  = quantPixels > 512 ? paletteOffsetB | 0x20  : paletteOffsetB;
+
+        for (var b = quantBytes; b > 0; b -= 4) {
+            v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
+            v1 = vram[byteYBase + byteXPos]; v2 = vram[byteYBase + byteXPos + 1]; v3 = vram[byteYBase + byteXPos + 2]; v4 = vram[byteYBase + byteXPos + 3]; byteXPos = (byteXPos + 4) & scrollXMaxBytes;
+            chroma = ((v4 & 0x07) << 9) | ((v3 & 0x07) << 6) | ((v2 & 0x07) << 3) | (v1 & 0x07);
+            frameBackBuffer[buffPos] = (v1 & 0x8) ? paletteValues[palOffsetBEven | (v1 >> 4)] : colorValues[((v1 & 0xf8) << 9) | chroma]; ++buffPos;
+            frameBackBuffer[buffPos] = (v2 & 0x8) ? paletteValues[palOffsetBOdd  | (v2 >> 4)] : colorValues[((v2 & 0xf8) << 9) | chroma]; ++buffPos;
+            frameBackBuffer[buffPos] = (v3 & 0x8) ? paletteValues[palOffsetBEven | (v3 >> 4)] : colorValues[((v3 & 0xf8) << 9) | chroma]; ++buffPos;
+            frameBackBuffer[buffPos] = (v4 & 0x8) ? paletteValues[palOffsetBOdd  | (v4 >> 4)] : colorValues[((v4 & 0xf8) << 9) | chroma]; ++buffPos;
+        }
+    }
+
     function renderLineTypeBD16(bufferPosition, quantPixels) {
-        var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
+        var buffPos, realLine, quantBytes, scrollXMaxBytes;
         var byteYBase, byteXPos, v;
 
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
@@ -1288,7 +1365,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         for (var b = quantBytes; b > 0; b -= 2) {
             v = vram[byteYBase + byteXPos] | (vram[byteYBase + byteXPos + 1] << 8); byteXPos = (byteXPos + 2) & scrollXMaxBytes;
-            frameBackBuffer[buffPos] = colors64KValues[v]; ++buffPos;
+            frameBackBuffer[buffPos] = colors16bitValues[v]; ++buffPos;
         }
     }
     // frameBackBuffer[buffPos++] = 0xff000000
@@ -1297,8 +1374,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     //     | color5to8bits[(v >> 5) & 0x1f];               // R
 
     function renderLineTypeBD8(bufferPosition, quantPixels) {
-        var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
+        var buffPos, realLine, quantBytes, scrollXMaxBytes;
         var byteYBase, byteXPos, v, pixelB;
+
+        if (!colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values();
 
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
@@ -1310,7 +1389,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         for (var b = quantBytes; b > 0; --b) {
             v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
-            frameBackBuffer[buffPos] = colors256Values[v]; ++buffPos;
+            frameBackBuffer[buffPos] = colors8bitValues[v]; ++buffPos;
         }
     }
     // frameBackBuffer[buffPos++] = 0xff000000
@@ -1319,7 +1398,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     //     | color3to8bits[(v >> 2) & 0x07];               // R
 
     function renderLineTypeBP6(bufferPosition, quantPixels) {
-        var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
+        var buffPos, realLine, quantBytes, scrollXMaxBytes;
         var byteYBase, byteXPos, v;
 
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
@@ -1339,6 +1418,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function renderLineTypeBP4(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v;
+
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * (imageWidth >> 1);               // 2 ppb
         scrollXMaxBytes = (imageWidth >> 1) - 1;                // 2 ppb
@@ -1362,6 +1442,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function renderLineTypeBP2(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v;
+
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * (imageWidth >> 2);               // 4 ppb
         scrollXMaxBytes = (imageWidth >> 2) - 1;                // 4 ppb
@@ -1516,27 +1597,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function initColorPalette() {
         for (var c = 0; c < 64; ++c)
             paletteValuesReal[c] = paletteValues[c] = solidBlackValue;
-    }
-
-    function initColorCaches() {
-        // Pre calculate all 256 32-bit ABGR colors encoded in 8 bits GRB. 0 is YS
-        colors256Values[0] = 0x00000000;    // YS, alpha = 0
-        for (var c = 1; c < 256; ++c)
-            colors256Values[c] = 0xff000000 | (color2to8bits[c & 0x3] << 16) | (color3to8bits[c >> 5] << 8) | color3to8bits[(c >> 2) & 0x7];
-
-        // Pre calculate all 64K 32-bit ABGR colors encoded in 16 bits YSGRB, bit 15 is YS
-        for (c = 0; c < 65536; ++c)
-            colors64KValues[c] = ( c < 32768 ? 0xff000000 : 0x00000000) | (color5to8bits[c & 0x1f] << 16) | (color5to8bits[c >> 10] << 8) | color5to8bits[(c >> 5) & 0x1f];
-
-        // Pre calculate all 128K 32-bit ABGR colors encoded in 17 bits YJK and YUV. No YS
-        var signed = [0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1];
-        function tops(x) { return x > 31 ? 31 : x; }
-        for (c = 0; c < 131072; ++c) {
-            var y = c >> 12, j = signed[(c >> 6) & 0x3f], k = signed[c & 0x3f];
-            var r = tops(y + j), g = tops(y + k), b = tops((y * 5 - (j << 1) - k) >> 2);
-            colorsYJKValues[c] = 0xff000000 | (b << 16) | (g << 8) | r;
-            colorsYUVValues[c] = 0xff000000 | (g << 16) | (b << 8) | r;
-        }
     }
 
     function initDebugPatternTables() {
@@ -1710,37 +1770,33 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     };
 
     var types = {
-        SBY:   { name: "SBY",   bpp:  8, ppb: 1, renderLine: renderLineTypeSBY  },
-        PP1:   { name: "PP1",   bpp:  4, ppb: 2, renderLine: renderLineTypePP1  },
-        PP2:   { name: "PP2",   bpp:  4, ppb: 2, renderLine: renderLineTypePP2  },
-        BYUV:  { name: "BYUV",  bpp:  8, ppb: 1, renderLine: renderLineTypeBD8  },
-        BYUVP: { name: "BYUVP", bpp:  8, ppb: 1, renderLine: renderLineTypeBD8  },
-        BYJK:  { name: "BYJK",  bpp:  8, ppb: 1, renderLine: renderLineTypeBD8  },
-        BYJKP: { name: "BYJKP", bpp:  8, ppb: 1, renderLine: renderLineTypeBD8  },
-        BD16:  { name: "BD16",  bpp: 16, ppb: 0, renderLine: renderLineTypeBD16 },
-        BD8:   { name: "BD8",   bpp:  8, ppb: 1, renderLine: renderLineTypeBD8  },
-        BP6:   { name: "BP6",   bpp:  8, ppb: 1, renderLine: renderLineTypeBP6  },
-        BP4:   { name: "BP4",   bpp:  4, ppb: 2, renderLine: renderLineTypeBP4  },
-        BP2:   { name: "BP2",   bpp:  2, ppb: 4, renderLine: renderLineTypeBP2  }
+        SBY:   { name: "SBY",   bpp:  8, ppb: 1, renderLine: renderLineTypeSBY   },
+        PP1:   { name: "PP1",   bpp:  4, ppb: 2, renderLine: renderLineTypePP1   },
+        PP2:   { name: "PP2",   bpp:  4, ppb: 2, renderLine: renderLineTypePP2   },
+        BYUV:  { name: "BYUV",  bpp:  8, ppb: 1, renderLine: renderLineTypeBYUV  },
+        BYUVP: { name: "BYUVP", bpp:  8, ppb: 1, renderLine: renderLineTypeBYUVP },
+        BYJK:  { name: "BYJK",  bpp:  8, ppb: 1, renderLine: renderLineTypeBYJK  },
+        BYJKP: { name: "BYJKP", bpp:  8, ppb: 1, renderLine: renderLineTypeBYJKP },
+        BD16:  { name: "BD16",  bpp: 16, ppb: 0, renderLine: renderLineTypeBD16  },
+        BD8:   { name: "BD8",   bpp:  8, ppb: 1, renderLine: renderLineTypeBD8   },
+        BP6:   { name: "BP6",   bpp:  8, ppb: 1, renderLine: renderLineTypeBP6   },
+        BP4:   { name: "BP4",   bpp:  4, ppb: 2, renderLine: renderLineTypeBP4   },
+        BP2:   { name: "BP2",   bpp:  2, ppb: 4, renderLine: renderLineTypeBP2   }
     };
 
     var renderLine, renderLineActive;           // Update functions for current mode
 
     var solidBlackValue =  0xff000000;
     var notPaintedValue  = 0xffff00ff;          // Pink
-    var superImposeValue = 0xff500000;          // Dark Blue
     var standByValue =     0xff000060;          // Dark Red
     var backdropValue =    solidBlackValue;
 
-    var color2to8bits = [ 0, 90, 172, 255 ];                        // 8 bit B values for 2 bit B colors
-    var color3to8bits = [ 0, 32, 74, 106, 148, 180, 222, 255 ];     // 8 bit R,G values for 3 bit R,G colors
-    var color5to8bits = [ 0, 8, 16, 24, 32, 41, 49, 57, 65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148, 156, 164, 172, 180, 189, 197, 205, 213, 222, 230, 238, 246, 255 ];    // 8 bit R,G,B values for 5 bit R,G,B colors
-    var colors256Values = new Uint32Array(256);                     // 32 bit ABGR values for 8 bit GRB colors. 0 = YS
-    var colors64KValues = new Uint32Array(64 * 1024);               // 32 bit ABGR values for YS + 15 bit GRB colors
-    var colorsYJKValues = new Uint32Array(128 * 1024);              // 32 bit ABGR values for 17 bit YJK colors, no YS
-    var colorsYUVValues = new Uint32Array(128 * 1024);              // 32 bit ABGR values for 17 bit YUV colors, no YS
+    var colors16bitValues = wmsx.ColorCache.getColors16bitValues();     // Init now, used by normal Palette
+    var colors8bitValues;       // Lazy, used only by type BD8
+    var colorsYUVValues;        // Lazy, used only by type YUV
+    var colorsYJKValues;        // Lazy, used only by type YJK
 
-    var paletteValues =      new Uint32Array(64);     // 32 bit ABGR palette values ready to paint with transparency (backdropValue) pre-computed in position 0, dimmed when in debug
+    var paletteValues =      new Uint32Array(64);     // 32 bit ABGR palette values ready to paint, dimmed when in debug
     var paletteValuesReal =  new Uint32Array(64);     // 32 bit ABGR palette values ready to paint with real solid palette values, used for Sprites, NEVER dimmed for debug
 
 
