@@ -1298,7 +1298,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
-        byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
+        byteXPos = (scrollXOffset & ~0x03) & scrollXMaxBytes;   // 4 pixel blocks
 
         quantBytes = quantPixels;                               // 1 ppb
         buffPos = bufferPosition;
@@ -1308,7 +1308,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         buffPos = bufferPosition - leftPixels;
 
         for (var b = quantBytes; b > 0; b -= 4) {
-            v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
             v1 = vram[byteYBase + byteXPos]; v2 = vram[byteYBase + byteXPos + 1]; v3 = vram[byteYBase + byteXPos + 2]; v4 = vram[byteYBase + byteXPos + 3]; byteXPos = (byteXPos + 4) & scrollXMaxBytes;
             chroma = ((v4 & 0x07) << 9) | ((v3 & 0x07) << 6) | ((v2 & 0x07) << 3) | (v1 & 0x07);
             frameBackBuffer[buffPos] = colorValues[((v1 & 0xf8) << 9) | chroma]; ++buffPos;
@@ -1325,7 +1324,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
-        byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
+        byteXPos = (scrollXOffset & ~0x03) & scrollXMaxBytes;   // 4 pixel blocks
 
         quantBytes = quantPixels;                               // 1 ppb
         buffPos = bufferPosition;
@@ -1339,7 +1338,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var palOffsetBOdd  = quantPixels > 512 ? paletteOffsetB | 0x20  : paletteOffsetB;
 
         for (var b = quantBytes; b > 0; b -= 4) {
-            v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
             v1 = vram[byteYBase + byteXPos]; v2 = vram[byteYBase + byteXPos + 1]; v3 = vram[byteYBase + byteXPos + 2]; v4 = vram[byteYBase + byteXPos + 3]; byteXPos = (byteXPos + 4) & scrollXMaxBytes;
             chroma = ((v4 & 0x07) << 9) | ((v3 & 0x07) << 6) | ((v2 & 0x07) << 3) | (v1 & 0x07);
             frameBackBuffer[buffPos] = (v1 & 0x8) ? paletteValues[palOffsetBEven | (v1 >> 4)] : colorValues[((v1 & 0xf8) << 9) | chroma]; ++buffPos;
