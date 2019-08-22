@@ -26,18 +26,20 @@ wmsx.Z80 = function() {
     };
 
     this.clockPulses = function(quant) {
+        // if (self.HALT) return;
+
         var turboQuant = (quant * turboClockMulti) | 0;
         for (var t = turboQuant; t > 0; --t) {
-            if (--T > 1) continue;                   // Still counting cycles of current instruction
+            if (--T > 1) continue;
             if (T > 0) {
                 instruction.operation();
             } else {
-                ++R;                                 // Verify: R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
+                ++R;
                 if (ackINT) acknowledgeINT();
                 else fetchNextInstruction();
             }
         }
-        busCycles += quant;                          // Quantized bus cycle reporting in original clock (no turbo). Lower precision, better performance
+        busCycles += quant;
     };
 
     // this.clockPulsesPrecise = function(quant) {
@@ -199,17 +201,16 @@ wmsx.Z80 = function() {
         opcode = fromN();           // Will inc PC
         selectInstruction();
         T = instruction.remainCycles;
-
-        // if (self.trace) self.breakpoint("TRACE");
-
-        // if (DEBUG_LOOP) {
-        //     var pc = PC- 1;
-        //     console.log((pc).toString(16) + ":", instruction.opcodeString);
-        //
-        //     if (pc > 0x2200 && DEBUG_LOOP_PCS[pc] >= 2) DEBUG_LOOP = 0;
-        //     else DEBUG_LOOP_PCS[pc] = (DEBUG_LOOP_PCS[pc] | 0) + 1;
-        // }
     }
+    // if (self.trace) self.breakpoint("TRACE");
+
+    // if (DEBUG_LOOP) {
+    //     var pc = PC- 1;
+    //     console.log((pc).toString(16) + ":", instruction.opcodeString);
+    //
+    //     if (pc > 0x2200 && DEBUG_LOOP_PCS[pc] >= 2) DEBUG_LOOP = 0;
+    //     else DEBUG_LOOP_PCS[pc] = (DEBUG_LOOP_PCS[pc] | 0) + 1;
+    // }
 
     function acknowledgeINT() {
         pINT();

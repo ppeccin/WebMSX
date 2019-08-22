@@ -319,8 +319,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function updateYSEnabled() {
-        //ysEnabled = (register[8] & 0x20) !== 0;          // YSE
-        for (var e = 63; e >= 0; --e) updatePaletteValue(e);
+        ysEnabled = (register[8] & 0x20) !== 0;                 // YSE
+        // for (var e = 63; e >= 0; --e) updatePaletteValue(e);
     }
 
     function registerWrite(reg, val) {
@@ -516,12 +516,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         //logInfo("updatePaletteValue entry " + entry + ": " + val);
 
         var index = entry << 2;
-        var r = paletteRAM[index];
-        var value = ysEnabled && (r & 0x80) ? superImposeValue : 0xff000000        // YS
-            | (color5to8bits[paletteRAM[index + 2]]) << 16
-            | (color5to8bits[paletteRAM[index + 1]]) << 8
-            | color5to8bits[r & 0x1f];
-
+        var value = colors64KValues[((paletteRAM[index] & 0x80) << 8) | ((paletteRAM[index + 1] & 0x1f) << 10) | ((paletteRAM[index] & 0x1f) << 5) | (paletteRAM[index + 2] & 0x1f)];
         paletteValuesReal[entry] = value;
 
         if (debugModeSpriteHighlight) value &= DEBUG_DIM_ALPHA_MASK;
@@ -529,6 +524,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         if (entry === backdropColor) updateBackdropValue();
     }
+    // var value = ysEnabled && (r & 0x80) ? superImposeValue : 0xff000000        // YS
+    //     | (color5to8bits[paletteRAM[index + 2]]) << 16
+    //     | (color5to8bits[paletteRAM[index + 1]]) << 8
+    //     | color5to8bits[r & 0x1f];
 
     this.setDebugMode = function (mode) {
         debugMode = (mode + 8) % 8;
@@ -947,7 +946,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function paintBackdrop8a(bufferPos) {
-        for (var i = 8; i > 0; --i, ++bufferPos) frameBackBuffer[bufferPos] = backdropValue;
+        for (var i = 8; i > 0; --i) {
+            frameBackBuffer[bufferPos] = backdropValue;
+            ++bufferPos;
+        }
     }
 
     function paintBackdrop16(bufferPos) {
@@ -958,7 +960,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function paintBackdrop16a(bufferPos) {
-        for (var i = 16; i > 0; --i, ++bufferPos) frameBackBuffer[bufferPos] = backdropValue;
+        for (var i = 16; i > 0; --i) {
+            frameBackBuffer[bufferPos] = backdropValue;
+            ++bufferPos;
+        }
     }
 
     function paintBackdrop32(bufferPos) {
@@ -973,7 +978,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function paintBackdrop32a(bufferPos) {
-        for (var i = 32; i > 0; --i, ++bufferPos) frameBackBuffer[bufferPos] = backdropValue;
+        for (var i = 32; i > 0; --i) {
+            frameBackBuffer[bufferPos] = backdropValue;
+            ++bufferPos;
+        }
     }
 
     function paintBackdrop64(bufferPos) {
@@ -1104,8 +1112,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function renderLineTypeSBY(bufferPosition, quantPixels) {
-        for (var b = 0; b < quantPixels; ++b)
-            frameBackBuffer[bufferPosition + b] = standByValue;
+        for (var b = 0; b < quantPixels; ++b) {
+            frameBackBuffer[bufferPosition] = standByValue; ++bufferPosition;
+        }
     }
 
     function renderLineTypePP1(bufferPosition) {
@@ -1124,8 +1133,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             namePosBase = 0x7e000 + ((realLine >> 3) << 6 << 1);
             namePos = scrollX >> 3 << 1;
             pattPosBase = 0x40000 | (lineInPattern << 7);
-            for (var b = (scrollX & 7) ? 33 : 32; b > 0; --b, namePos = (namePos + 2) & 127) {      // 64 names * 2 bytes each
-                name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8);
+            for (var b = (scrollX & 7) ? 33 : 32; b > 0; --b) {      // 64 names * 2 bytes each
+                name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8); namePos = (namePos + 2) & 127;
                 pattPixelPos = pattPosBase + ((name >> 5 << 10) | ((name & 0x1f) << 2));
 
                 v = vram[pattPixelPos]; ++pattPixelPos;
@@ -1155,8 +1164,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             namePosBase = 0x7c000 + ((realLine >> 3) << 6 << 1);
             namePos = scrollX >> 3 << 1;
             pattPosBase = 0x00000 | (lineInPattern << 7);
-            for (b = (scrollX & 7) ? 33 : 32; b > 0; --b, namePos = (namePos + 2) & 127) {          // 64 names * 2 bytes each
-                name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8);
+            for (b = (scrollX & 7) ? 33 : 32; b > 0; --b) {          // 64 names * 2 bytes each
+                name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8); namePos = (namePos + 2) & 127;
                 pattPixelPos = pattPosBase + ((name >> 5 << 10) | ((name & 0x1f) << 2));
 
                 v = vram[pattPixelPos]; ++pattPixelPos;
@@ -1197,8 +1206,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             namePosBase = 0x7c000 + ((realLine >> 3) << 7 << 1);
             namePos = scrollX >> 3 << 1;
             pattPosBase = 0x00000 | (lineInPattern << 8);
-            for (var b = (scrollX & 7) ? 65 : 64; b > 0; --b, namePos = (namePos + 2) & 255) {      // 128 names * 2 bytes each
-                name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8);
+            for (var b = (scrollX & 7) ? 65 : 64; b > 0; --b) {      // 128 names * 2 bytes each
+                name = vram[namePosBase + namePos] | (vram[namePosBase + namePos + 1] << 8); namePos = (namePos + 2) & 255;
                 pattPixelPos = pattPosBase + ((name >> 6 << 11) | ((name & 0x3f) << 2));
 
                 v = vram[pattPixelPos]; ++pattPixelPos;
@@ -1256,8 +1265,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function paintSprite(bufferPosition, x, spritePri, pattPixelPos, palOff) {
         var v = 0, c = 0, p = x + 16;
         var buffPos = bufferPosition + x;
-        for (var i = 8; i > 0; --i, ++pattPixelPos) {
-            v = vram[pattPixelPos];
+        for (var i = 8; i > 0; --i) {
+            v = vram[pattPixelPos]; ++pattPixelPos;
             c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; } ++p; ++buffPos;
             c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; } ++p; ++buffPos;
         }
@@ -1277,14 +1286,15 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         quantBytes = quantPixels << 1;                          // 0.5 ppb
         buffPos = bufferPosition;
 
-        for (var b = quantBytes; b > 0; b -= 2, byteXPos = (byteXPos + 2) & scrollXMaxBytes) {
-            v = vram[byteYBase + byteXPos] | (vram[byteYBase + byteXPos + 1] << 8);
-            frameBackBuffer[buffPos++] = 0xff000000
-                | (color5to8bits[v & 0x1f] << 16)               // B
-                | (color5to8bits[(v >> 10) & 0x1f]) << 8        // G
-                | color5to8bits[(v >> 5) & 0x1f];               // R
+        for (var b = quantBytes; b > 0; b -= 2) {
+            v = vram[byteYBase + byteXPos] | (vram[byteYBase + byteXPos + 1] << 8); byteXPos = (byteXPos + 2) & scrollXMaxBytes;
+            frameBackBuffer[buffPos] = colors64KValues[v]; ++buffPos;
         }
     }
+    // frameBackBuffer[buffPos++] = 0xff000000
+    //     | (color5to8bits[v & 0x1f] << 16)               // B
+    //     | (color5to8bits[(v >> 10) & 0x1f]) << 8        // G
+    //     | color5to8bits[(v >> 5) & 0x1f];               // R
 
     function renderLineTypeBD8(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
@@ -1298,14 +1308,15 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         quantBytes = quantPixels;                               // 1 ppb
         buffPos = bufferPosition;
 
-        for (var b = quantBytes; b > 0; --b, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
-            v = vram[byteYBase + byteXPos];
-            frameBackBuffer[buffPos++] = 0xff000000
-                | (color2to8bits[v & 0x03] << 16)               // B
-                | (color3to8bits[(v >> 5) & 0x07]) << 8         // G
-                | color3to8bits[(v >> 2) & 0x07];               // R
+        for (var b = quantBytes; b > 0; --b) {
+            v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
+            frameBackBuffer[buffPos] = colors256Values[v]; ++buffPos;
         }
     }
+    // frameBackBuffer[buffPos++] = 0xff000000
+    //     | (color2to8bits[v & 0x03] << 16)               // B
+    //     | (color3to8bits[(v >> 5) & 0x07]) << 8         // G
+    //     | color3to8bits[(v >> 2) & 0x07];               // R
 
     function renderLineTypeBP6(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, extraByte;
@@ -1319,9 +1330,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         quantBytes = quantPixels;                               // 1 ppb
         buffPos = bufferPosition;
 
-        for (var b = quantBytes; b > 0; --b, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
-            v = vram[byteYBase + byteXPos];
-            frameBackBuffer[buffPos++] = paletteValues[v & 0x3f];
+        for (var b = quantBytes; b > 0; --b) {
+            v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
+            frameBackBuffer[buffPos] = paletteValues[v & 0x3f]; ++buffPos;
         }
     }
 
@@ -1341,10 +1352,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var palOffsetBEven = quantPixels > 512 ? paletteOffsetB & ~0x20 : paletteOffsetB;
         var palOffsetBOdd  = quantPixels > 512 ? paletteOffsetB | 0x20  : paletteOffsetB;
 
-        for (var b = quantBytes; b > 0; --b, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
-            v = vram[byteYBase + byteXPos];
-            frameBackBuffer[buffPos++] = paletteValues[palOffsetBEven | (v >> 4)];
-            frameBackBuffer[buffPos++] = paletteValues[palOffsetBOdd  | (v & 0x0f)];
+        for (var b = quantBytes; b > 0; --b) {
+            v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
+            frameBackBuffer[buffPos] = paletteValues[palOffsetBEven | (v >> 4)];   ++buffPos;
+            frameBackBuffer[buffPos] = paletteValues[palOffsetBOdd  | (v & 0x0f)]; ++buffPos;
         }
     }
 
@@ -1364,12 +1375,12 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var palOffsetEven = quantPixels > 512 ? paletteOffset & ~0x20 : paletteOffset;
         var palOffsetOdd  = quantPixels > 512 ? paletteOffset | 0x20  : paletteOffset;
 
-        for (var b = quantBytes; b > 0; --b, byteXPos = (byteXPos + 1) & scrollXMaxBytes) {
-            v = vram[byteYBase + byteXPos];
-            frameBackBuffer[buffPos++] = paletteValues[palOffsetEven | (v >> 6)];
-            frameBackBuffer[buffPos++] = paletteValues[palOffsetOdd  | ((v >> 4) & 0x03)];
-            frameBackBuffer[buffPos++] = paletteValues[palOffsetEven | ((v >> 2) & 0x03)];
-            frameBackBuffer[buffPos++] = paletteValues[palOffsetOdd  | (v & 0x03)];
+        for (var b = quantBytes; b > 0; --b) {
+            v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
+            frameBackBuffer[buffPos] = paletteValues[palOffsetEven | (v >> 6)];          ++buffPos;
+            frameBackBuffer[buffPos] = paletteValues[palOffsetOdd  | ((v >> 4) & 0x03)]; ++buffPos;
+            frameBackBuffer[buffPos] = paletteValues[palOffsetEven | ((v >> 2) & 0x03)]; ++buffPos;
+            frameBackBuffer[buffPos] = paletteValues[palOffsetOdd  | (v & 0x03)];        ++buffPos;
         }
     }
 
@@ -1508,9 +1519,24 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function initColorCaches() {
-        // Pre calculate all 256 colors encoded in 8 bits GRB
-        for (var c = 0; c <= 0xff; ++c)
-            colors256Values[c] = 0xff000000 | (color2to8bits[c & 0x3] << 16) | (color3to8bits[c >>> 5] << 8) | color3to8bits[(c >>> 2) & 0x7];
+        // Pre calculate all 256 32-bit ABGR colors encoded in 8 bits GRB. 0 is YS
+        colors256Values[0] = 0x00000000;    // YS, alpha = 0
+        for (var c = 1; c < 256; ++c)
+            colors256Values[c] = 0xff000000 | (color2to8bits[c & 0x3] << 16) | (color3to8bits[c >> 5] << 8) | color3to8bits[(c >> 2) & 0x7];
+
+        // Pre calculate all 64K 32-bit ABGR colors encoded in 16 bits YSGRB, bit 15 is YS
+        for (c = 0; c < 65536; ++c)
+            colors64KValues[c] = ( c < 32768 ? 0xff000000 : 0x00000000) | (color5to8bits[c & 0x1f] << 16) | (color5to8bits[c >> 10] << 8) | color5to8bits[(c >> 5) & 0x1f];
+
+        // Pre calculate all 128K 32-bit ABGR colors encoded in 17 bits YJK and YUV. No YS
+        var signed = [0, 1, 2, 3, 4, 5, 6, 7, -8, -7, -6, -5, -4, -3, -2, -1];
+        function tops(x) { return x > 31 ? 31 : x; }
+        for (c = 0; c < 131072; ++c) {
+            var y = c >> 12, j = signed[(c >> 6) & 0x3f], k = signed[c & 0x3f];
+            var r = tops(y + j), g = tops(y + k), b = tops((y * 5 - (j << 1) - k) >> 2);
+            colorsYJKValues[c] = 0xff000000 | (b << 16) | (g << 8) | r;
+            colorsYUVValues[c] = 0xff000000 | (g << 16) | (b << 8) | r;
+        }
     }
 
     function initDebugPatternTables() {
@@ -1709,7 +1735,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var color2to8bits = [ 0, 90, 172, 255 ];                        // 8 bit B values for 2 bit B colors
     var color3to8bits = [ 0, 32, 74, 106, 148, 180, 222, 255 ];     // 8 bit R,G values for 3 bit R,G colors
     var color5to8bits = [ 0, 8, 16, 24, 32, 41, 49, 57, 65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148, 156, 164, 172, 180, 189, 197, 205, 213, 222, 230, 238, 246, 255 ];    // 8 bit R,G,B values for 5 bit R,G,B colors
-    var colors256Values = new Uint32Array(256);                     // 32 bit ABGR values for 8 bit BGR colors
+    var colors256Values = new Uint32Array(256);                     // 32 bit ABGR values for 8 bit GRB colors. 0 = YS
+    var colors64KValues = new Uint32Array(64 * 1024);               // 32 bit ABGR values for YS + 15 bit GRB colors
+    var colorsYJKValues = new Uint32Array(128 * 1024);              // 32 bit ABGR values for 17 bit YJK colors, no YS
+    var colorsYUVValues = new Uint32Array(128 * 1024);              // 32 bit ABGR values for 17 bit YUV colors, no YS
 
     var paletteValues =      new Uint32Array(64);     // 32 bit ABGR palette values ready to paint with transparency (backdropValue) pre-computed in position 0, dimmed when in debug
     var paletteValuesReal =  new Uint32Array(64);     // 32 bit ABGR palette values ready to paint with real solid palette values, used for Sprites, NEVER dimmed for debug

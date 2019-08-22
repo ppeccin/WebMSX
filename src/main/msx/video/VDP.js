@@ -1376,35 +1376,25 @@ wmsx.VDP = function(machine, cpu) {
         if (leftScroll2Pages && leftScrollChars < 32) pixelsPos &= modeData.evenPageMask; // Start at even page
         var scrollCharJump = leftScrollCharsInPage ? 32 - leftScrollCharsInPage : -1;
 
-        var y1, y2, y3, y4, y, j, k, r, g, b;
+        var v1, v2, v3, v4, chroma;
         var alpha = 0xff000000 & (debugModeSpriteHighlight ? DEBUG_DIM_ALPHA_MASK : 0xff000000);
 
         for (var c = 0; c < 32; ++c) {
             if (c === scrollCharJump) pixelsPos = leftScroll2Pages && leftScrollChars >= 32 ? pixelsPosBase & modeData.evenPageMask : pixelsPosBase;
 
-            y1 = vram[pixelsPos++ & layoutTableAddressMask]; y2 = vram[pixelsPos++ & layoutTableAddressMask]; y3 = vram[pixelsPos++ & layoutTableAddressMask]; y4 = vram[pixelsPos++ & layoutTableAddressMask];
-            j = ((y3 & 7) | ((y4 & 3) << 3)) - ((y4 & 4) << 3);
-            k = ((y1 & 7) | ((y2 & 3) << 3)) - ((y2 & 4) << 3);
-            y = y1 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
-            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
-            y = y2 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
-            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
-            y = y3 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
-            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
-            y = y4 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
-            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+            v1 = vram[pixelsPos++ & layoutTableAddressMask]; v2 = vram[pixelsPos++ & layoutTableAddressMask]; v3 = vram[pixelsPos++ & layoutTableAddressMask]; v4 = vram[pixelsPos++ & layoutTableAddressMask];
+            chroma = ((v4 & 0x07) << 9) | ((v3 & 0x07) << 6) | ((v2 & 0x07) << 3) | (v1 & 0x07);
+            frameBackBuffer[bufferPos++] = colorsYJKValues[((v1 & 0xf8) << 9) | chroma];
+            frameBackBuffer[bufferPos++] = colorsYJKValues[((v2 & 0xf8) << 9) | chroma];
+            frameBackBuffer[bufferPos++] = colorsYJKValues[((v3 & 0xf8) << 9) | chroma];
+            frameBackBuffer[bufferPos++] = colorsYJKValues[((v4 & 0xf8) << 9) | chroma];
 
-            y1 = vram[pixelsPos++ & layoutTableAddressMask]; y2 = vram[pixelsPos++ & layoutTableAddressMask]; y3 = vram[pixelsPos++ & layoutTableAddressMask]; y4 = vram[pixelsPos++ & layoutTableAddressMask];
-            j = ((y3 & 7) | ((y4 & 3) << 3)) - ((y4 & 4) << 3);
-            k = ((y1 & 7) | ((y2 & 3) << 3)) - ((y2 & 4) << 3);
-            y = y1 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
-            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
-            y = y2 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
-            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
-            y = y3 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
-            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
-            y = y4 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
-            frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+            v1 = vram[pixelsPos++ & layoutTableAddressMask]; v2 = vram[pixelsPos++ & layoutTableAddressMask]; v3 = vram[pixelsPos++ & layoutTableAddressMask]; v4 = vram[pixelsPos++ & layoutTableAddressMask];
+            chroma = ((v4 & 0x07) << 9) | ((v3 & 0x07) << 6) | ((v2 & 0x07) << 3) | (v1 & 0x07);
+            frameBackBuffer[bufferPos++] = colorsYJKValues[((v1 & 0xf8) << 9) | chroma];
+            frameBackBuffer[bufferPos++] = colorsYJKValues[((v2 & 0xf8) << 9) | chroma];
+            frameBackBuffer[bufferPos++] = colorsYJKValues[((v3 & 0xf8) << 9) | chroma];
+            frameBackBuffer[bufferPos++] = colorsYJKValues[((v4 & 0xf8) << 9) | chroma];
         }
         bufferPos -= rightScrollPixels + 256;
 
@@ -1416,6 +1406,31 @@ wmsx.VDP = function(machine, cpu) {
 
         bufferPosition = bufferPosition + bufferLineAdvance;
     }
+
+    // Old YJK
+    // y1 = vram[pixelsPos++ & layoutTableAddressMask]; y2 = vram[pixelsPos++ & layoutTableAddressMask]; y3 = vram[pixelsPos++ & layoutTableAddressMask]; y4 = vram[pixelsPos++ & layoutTableAddressMask];
+    // j = ((y3 & 7) | ((y4 & 3) << 3)) - ((y4 & 4) << 3);
+    // k = ((y1 & 7) | ((y2 & 3) << 3)) - ((y2 & 4) << 3);
+    // y = y1 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+    // frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+    // y = y2 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+    // frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+    // y = y3 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+    // frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+    // y = y4 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+    // frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+    //
+    // y1 = vram[pixelsPos++ & layoutTableAddressMask]; y2 = vram[pixelsPos++ & layoutTableAddressMask]; y3 = vram[pixelsPos++ & layoutTableAddressMask]; y4 = vram[pixelsPos++ & layoutTableAddressMask];
+    // j = ((y3 & 7) | ((y4 & 3) << 3)) - ((y4 & 4) << 3);
+    // k = ((y1 & 7) | ((y2 & 3) << 3)) - ((y2 & 4) << 3);
+    // y = y1 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+    // frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+    // y = y2 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+    // frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+    // y = y3 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+    // frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
+    // y = y4 >> 3; r = from5bitsTruncTo8bits(y + j); g = from5bitsTruncTo8bits(y + k); b = from5bitsTruncTo8bits((y * 5 - (j << 1) - k) >> 2);
+    // frameBackBuffer[bufferPos++] = alpha | (b << 16) | (g << 8) | r;
 
     function renderLineModeYAE() {                                          // Bitmap modes in YJK with YAE. Both horizontal resolutions (256, 512)
         paintBackdrop20(bufferPosition); paintBackdrop16(bufferPosition + 256 + 4);
@@ -2265,6 +2280,15 @@ wmsx.VDP = function(machine, cpu) {
             if (c & 1) colors256[c >>> 1] = 0xff000000 | (color2to8bits[(c >>> 1) & 0x3] << 16) | (color3to8bits[c >>> 6] << 8) | color3to8bits[(c >>> 3) & 0x7];
             colors512[c] = 0xff000000 | (color3to8bits[c & 0x7] << 16) | (color3to8bits[c >>> 6] << 8) | color3to8bits[(c >>> 3) & 0x7];
         }
+
+        // Pre calculate all 128K 32-bit ABGR colors encoded in 17 bits YJK
+        function signed(x) { return x > 31 ? x - 64 : x; }
+        function trunc(x)  { return x <= 0 ? 0 : x >= 31 ? 31 : x; }
+        for (c = 0; c < 131072; ++c) {
+            var y = c >> 12, j = signed((c >> 6) & 0x3f), k = signed(c & 0x3f);
+            var r = trunc(y + j), g = trunc(y + k), b = trunc((y * 5 - (j << 1) - k) >> 2);
+            colorsYJKValues[c] = 0xff000000 | (color5to8bits[b] << 16) | (color5to8bits[g] << 8) | color5to8bits[r];
+        }
     }
 
     function initDebugPatternTables() {
@@ -2429,6 +2453,8 @@ wmsx.VDP = function(machine, cpu) {
     var colorPalette =      new Uint32Array(16);     // 32 bit ABGR palette values ready to paint with transparency pre-computed in position 0, dimmed when in debug
     var colorPaletteSolid = new Uint32Array(16);     // 32 bit ABGR palette values ready to paint with real solid palette values, dimmed when in debug
     var colorPaletteReal =  new Uint32Array(16);     // 32 bit ABGR palette values ready to paint with real solid palette values, used for Sprites, NEVER dimmed for debug
+
+    var colorsYJKValues = new Uint32Array(128 * 1024);  // 32 bit ABGR values for 17 bit YJK colors, no YS
 
     var spritePaletteG7 =          new Uint32Array([ 0xff000000, 0xff490000, 0xff00006d, 0xff49006d, 0xff006d00, 0xff496d00, 0xff006d6d, 0xff496d6d, 0xff4992ff, 0xffff0000, 0xff0000ff, 0xffff00ff, 0xff00ff00, 0xffffff00, 0xff00ffff, 0xffffffff ]);
 
