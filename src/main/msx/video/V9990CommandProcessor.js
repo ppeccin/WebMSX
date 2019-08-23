@@ -244,10 +244,10 @@ wmsx.V9990CommandProcessor = function() {
 
         logicalPSET(EDX, DY, sc, LOP, WM);
 
-        CX = CX + 1;
+        ++CX;
         if (CX >= NX) {
             EDX = DX;
-            CX = 0; CY = CY + 1; DY = ((DY - DYP1Off + DIY) & imageHeightMask) + DYP1Off;
+            CX = 0; ++CY; DY = ((DY - DYP1Off + DIY) & imageHeightMask) + DYP1Off;
             if (CY >= NY) {
                 finish();
             }
@@ -339,10 +339,10 @@ wmsx.V9990CommandProcessor = function() {
     function LMCMNextGet() {
         var sc = normalPGET(ESX, SY);
 
-        CX = CX + 1;
+        ++CX;
         if (CX >= NX) {
             ESX = SX;
-            CX = 0; CY = CY + 1; SY = ((SY - SYP1Off + DIY) & imageHeightMask) + SYP1Off;
+            CX = 0; ++CY; SY = ((SY - SYP1Off + DIY) & imageHeightMask) + SYP1Off;
             if (CY >= NY) finish();
         } else {
             ESX = (ESX + DIX) & imageWidthMask;
@@ -426,10 +426,10 @@ wmsx.V9990CommandProcessor = function() {
 
         vram[destPos & VRAM_LIMIT] = co;
 
-        CX = CX + 1;
+        ++CX;
         if (CX >= NX) {
             destPos -= DIX * (NX - 1);
-            CX = 0; CY = CY + 1;
+            CX = 0; ++CY;
             if (CY >= ENY) {
                 finish();
                 // SDSnatcher Melancholia fix: TR not reset when command ends
@@ -470,8 +470,8 @@ wmsx.V9990CommandProcessor = function() {
         var sPos = sy * imageWidthBytes + dx;
         var dPos = dy * imageWidthBytes + dx;
         var yStride = -(dix * nx) + imageWidthBytes * diy;
-        for (var cy = eny; cy > 0; cy = cy - 1) {
-            for (var cx = nx; cx > 0; cx = cx - 1) {
+        for (var cy = eny; cy > 0; --cy) {
+            for (var cx = nx; cx > 0; --cx) {
                 vram[dPos & VRAM_LIMIT] = vram[sPos & VRAM_LIMIT];
                 sPos += dix; dPos += dix;
             }
@@ -518,8 +518,8 @@ wmsx.V9990CommandProcessor = function() {
         var sPos = sy * imageWidthBytes + sx;
         var dPos = dy * imageWidthBytes + dx;
         var yStride = -(dix * nx) + imageWidthBytes * diy;
-        for (var cy = eny; cy > 0; cy = cy - 1) {
-            for (var cx = nx; cx > 0; cx = cx - 1) {
+        for (var cy = eny; cy > 0; --cy) {
+            for (var cx = nx; cx > 0; --cx) {
                 vram[dPos & VRAM_LIMIT] = vram[sPos & VRAM_LIMIT];
                 sPos += dix; dPos += dix;
             }
@@ -564,8 +564,8 @@ wmsx.V9990CommandProcessor = function() {
         // Perform operation
         var pos = dy * imageWidthBytes + dx;
         var yStride = -(dix * nx) + imageWidthBytes * diy;
-        for (var cy = eny; cy > 0; cy = cy - 1) {
-            for (var cx = nx; cx > 0; cx = cx - 1) {
+        for (var cy = eny; cy > 0; --cy) {
+            for (var cx = nx; cx > 0; --cx) {
                 vram[pos & VRAM_LIMIT] = fc;
                 pos += dix;
             }
@@ -605,25 +605,25 @@ wmsx.V9990CommandProcessor = function() {
         // Perform operation
         var e = 0;
         if (maj === 0) {
-            for (var n = 0; n <= nx; n = n + 1) {
+            for (var n = 0; n <= nx; ++n) {
                 logicalPSET(dx, dy, fc, op, 0);
                 dx += dix;
                 if (ny > 0) {
                     e += ny;
                     if ((e << 1) >= nx) {
-                        dy += diy; e -= nx; nMinor = nMinor + 1;
+                        dy += diy; e -= nx; ++nMinor;
                     }
                 }
                 if (dx > maxX || dx < 0 || dy < 0) break;       // No bottom limit
             }
         } else {
-            for (n = 0; n <= nx; n = n + 1) {
+            for (n = 0; n <= nx; ++n) {
                 logicalPSET(dx, dy, fc, op, 0);
                 dy += diy;
                 if (ny > 0) {
                     e += ny;
                     if ((e << 1) >= nx) {
-                        dx += dix; e -= nx; nMinor = nMinor + 1;
+                        dx += dix; e -= nx; ++nMinor;
                     }
                 }
                 if (dx > maxX || dx < 0 || dy < 0) break;       // No bottom limit

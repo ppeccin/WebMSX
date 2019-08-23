@@ -435,14 +435,14 @@ wmsx.Z80 = function() {
     function from_NN_16() {
         var addr = bus.read(pcInc()) | (bus.read(pcInc()) << 8);
         var low = bus.read(addr);
-        addr = addr +  1; if (addr > 0xffff) addr = 0;
+        addr = (addr + 1) & 0xffff;
         return (bus.read(addr) << 8) | low;
     }
 
     function to_NN_16(val) {
         var addr = bus.read(pcInc()) | (bus.read(pcInc()) << 8);
         bus.write(addr, val & 255);
-        addr = addr + 1; if (addr > 0xffff) addr = 0;
+        addr = (addr + 1) & 0xffff;
         bus.write(addr, val >>> 8);
     }
 
@@ -1441,14 +1441,14 @@ wmsx.Z80 = function() {
         prefix = 5;
         ackINT = false;
         preReadIXYd();     // Special case. Pre-reads d before the real opcode
-        R = R - 1;         // Special case. R should not be incremented next opcode fetch so adjust here
+        --R;               // Special case. R should not be incremented next opcode fetch so adjust here
     }
 
     function pSET_FDCB() {
         prefix = 6;
         ackINT = false;
         preReadIXYd();     // Special case. Pre-reads d before the real opcode
-        R = R - 1;         // Special case. R should not be incremented next opcode fetch so adjust here
+        --R;               // Special case. R should not be incremented next opcode fetch so adjust here
     }
 
     function pADT_CYCLES() {

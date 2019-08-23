@@ -194,10 +194,10 @@ wmsx.VDPCommandProcessor = function() {
 
         vram[destPos & VRAM_LIMIT] = co;
 
-        CX = CX + 1;
+        ++CX;
         if (CX >= NX) {
             destPos -= DIX * (NX - 1);
-            CX = 0; CY = CY + 1;
+            CX = 0; ++CY;
             if (CY >= ENY) {
                 finish();
                 // SDSnatcher Melancholia fix: TR not reset when command ends
@@ -238,8 +238,8 @@ wmsx.VDPCommandProcessor = function() {
         var sPos = sy * layoutLineBytes + dx;
         var dPos = dy * layoutLineBytes + dx;
         var yStride = -(dix * nx) + layoutLineBytes * diy;
-        for (var cy = eny; cy > 0; cy = cy - 1) {
-            for (var cx = nx; cx > 0; cx = cx - 1) {
+        for (var cy = eny; cy > 0; --cy) {
+            for (var cx = nx; cx > 0; --cx) {
                 vram[dPos & VRAM_LIMIT] = vram[sPos & VRAM_LIMIT];
                 sPos += dix; dPos += dix;
             }
@@ -286,8 +286,8 @@ wmsx.VDPCommandProcessor = function() {
         var sPos = sy * layoutLineBytes + sx;
         var dPos = dy * layoutLineBytes + dx;
         var yStride = -(dix * nx) + layoutLineBytes * diy;
-        for (var cy = eny; cy > 0; cy = cy - 1) {
-            for (var cx = nx; cx > 0; cx = cx - 1) {
+        for (var cy = eny; cy > 0; --cy) {
+            for (var cx = nx; cx > 0; --cx) {
                 vram[dPos & VRAM_LIMIT] = vram[sPos & VRAM_LIMIT];
                 sPos += dix; dPos += dix;
             }
@@ -332,8 +332,8 @@ wmsx.VDPCommandProcessor = function() {
         // Perform operation
         var pos = dy * layoutLineBytes + dx;
         var yStride = -(dix * nx) + layoutLineBytes * diy;
-        for (var cy = eny; cy > 0; cy = cy - 1) {
-            for (var cx = nx; cx > 0; cx = cx - 1) {
+        for (var cy = eny; cy > 0; --cy) {
+            for (var cx = nx; cx > 0; --cx) {
                 vram[pos & VRAM_LIMIT] = co;
                 pos += dix;
             }
@@ -379,10 +379,10 @@ wmsx.VDPCommandProcessor = function() {
 
         logicalPSET(DX, DY, co, LOP);
 
-        CX = CX + 1;
+        ++CX;
         if (CX >= NX) {
             DX -= DIX * (NX - 1);
-            CX = 0; CY = CY + 1; DY += DIY;
+            CX = 0; ++CY; DY += DIY;
             if (CY >= ENY) {
                 finish();
                 // SDSnatcher Melancholia fix: TR not reset when command ends
@@ -425,10 +425,10 @@ wmsx.VDPCommandProcessor = function() {
     function LMCMNextRead() {
         status[7] = normalPGET(SX, SY);
 
-        CX = CX + 1;
+        ++CX;
         if (CX >= NX) {
             SX -= DIX * (NX - 1);
-            CX = 0; CY = CY + 1; SY += DIY;
+            CX = 0; ++CY; SY += DIY;
             if (CY >= ENY) finish();
         } else {
             SX += DIX;
@@ -466,8 +466,8 @@ wmsx.VDPCommandProcessor = function() {
         var eny = diy === 1 ? ny : min(ny, min(sy, dy) + 1);
 
         // Perform operation
-        for (var cy = eny; cy > 0; cy = cy - 1) {
-            for (var cx = nx; cx > 0; cx = cx - 1) {
+        for (var cy = eny; cy > 0; --cy) {
+            for (var cx = nx; cx > 0; --cx) {
                 logicalPCOPY(dx, dy, sx, sy, op);
                 sx += dix; dx += dix;
             }
@@ -509,8 +509,8 @@ wmsx.VDPCommandProcessor = function() {
         var eny = diy === 1 ? ny : min(ny, dy + 1);
 
         // Perform operation
-        for (var cy = eny; cy > 0; cy = cy - 1) {
-            for (var cx = nx; cx > 0; cx = cx - 1) {
+        for (var cy = eny; cy > 0; --cy) {
+            for (var cx = nx; cx > 0; --cx) {
                 logicalPSET(dx, dy, co, op);
                 dx += dix;
             }
@@ -551,25 +551,25 @@ wmsx.VDPCommandProcessor = function() {
         // Perform operation
         var e = 0;
         if (maj === 0) {
-            for (var n = 0; n <= nx; n = n + 1) {
+            for (var n = 0; n <= nx; ++n) {
                 logicalPSET(dx, dy, co, op);
                 dx += dix;
                 if (ny > 0) {
                     e += ny;
                     if ((e << 1) >= nx) {
-                        dy += diy; e -= nx; nMinor = nMinor + 1;
+                        dy += diy; e -= nx; ++nMinor;
                     }
                 }
                 if (dx > maxX || dx < 0 || dy < 0) break;       // No bottom limit
             }
         } else {
-            for (n = 0; n <= nx; n = n + 1) {
+            for (n = 0; n <= nx; ++n) {
                 logicalPSET(dx, dy, co, op);
                 dy += diy;
                 if (ny > 0) {
                     e += ny;
                     if ((e << 1) >= nx) {
-                        dx += dix; e -= nx; nMinor = nMinor + 1;
+                        dx += dix; e -= nx; ++nMinor;
                     }
                 }
                 if (dx > maxX || dx < 0 || dy < 0) break;       // No bottom limit

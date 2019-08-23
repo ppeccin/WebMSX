@@ -599,7 +599,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     };
 
     this.lineEventEnd = function() {
-        currentScanline = currentScanline + 1;
+        ++currentScanline;
         if (currentScanline >= finishingScanline) finishFrame();
     };
 
@@ -654,9 +654,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var e = 0;
         var o = VRAM_SIZE >> 1;
         var aux = vram.slice(0, o);                 // Only first halt needs to be saved. Verify: Optimize slice?
-        for (var i = 0; i < VRAM_SIZE; i += 2) {
-            vram[i] = aux[e++];
-            vram[i + 1] = vram[o++];
+        for (var i = 0; i < VRAM_SIZE; i += 2, ++e, ++o) {
+            vram[i] = aux[e];
+            vram[i + 1] = vram[o];
         }
         vramInterleaving = true;
 
@@ -670,13 +670,13 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var e = 0;
         var o = h;
         var aux = vram.slice(h);                    // Only last half needs to be saved. Verify: Optimize slice?
-        for (var i = 0; i < h; i += 2) {
-            vram[e++] = vram[i];
-            vram[o++] = vram[i + 1];
+        for (var i = 0; i < h; i += 2, ++e, ++o) {
+            vram[e] = vram[i];
+            vram[o] = vram[i + 1];
         }
-        for (i = 0; i < h; i += 2) {
-            vram[e++] = aux[i];
-            vram[o++] = aux[i + 1];
+        for (i = 0; i < h; i += 2, ++e, ++o) {
+            vram[e] = aux[i];
+            vram[o] = aux[i + 1];
         }
         vramInterleaving = false;
 
@@ -1547,7 +1547,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         refreshWidth = renderWidth;
         refreshHeight = renderHeight;
         frameContext.putImageData(frameImageData, 0, -1, 0, 1, refreshWidth, refreshHeight);     // from line 1 of backBuffer
-        frame = frame + 1;
+        ++frame;
 
         //logInfo("Finish Frame");
 
