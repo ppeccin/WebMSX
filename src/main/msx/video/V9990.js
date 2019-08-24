@@ -93,9 +93,13 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         // if (softResetON) Hang machine?
 
         var res = vramReadData;
+
+        // logInfo("VRAM Read " + vramPointerRead.toString(16) + " = " + res);
+
         vramReadData = vram[vramPointerRead];
         if (vramPointerReadInc)
             if (++vramPointerRead > VRAM_LIMIT) vramPointerRead &= VRAM_LIMIT;
+
         return res;
     };
 
@@ -111,6 +115,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     // Palette Data Read
     this.input61 = function() {
         if (softResetON) return paletteRAM[0];
+
+        // logInfo("Palette Read " + palettePointer.toString(16) + " = " + paletteRAM[palettePointer]);
 
         if ((palettePointer & 0x03) === 3) {
             if (palettePointerReadInc) palettePointer &= 0xfc;                                  // Dummy read and stay at same RGB entry
@@ -132,6 +138,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         // console.error("PaletteWrite " + palettePointer.toString(16) + ": " + val.toString(16));
 
         if (softResetON) return paletteRAMWrite(0, 0);
+
+        // logInfo("Palette Write " + palettePointer.toString(16) + " = " + val);
 
         if ((palettePointer & 0x03) === 3) return palettePointer &= ~0x03;                  // Ignore write and stay at same RGB entry
 
@@ -646,8 +654,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function triggerHorizontalInterrupt() {
-        return;
-
         if (interruptFlags & 0x02) return;          // HI already == 1 ?
         interruptFlags |= 0x02;                     // HI = 1
         updateIRQ();
