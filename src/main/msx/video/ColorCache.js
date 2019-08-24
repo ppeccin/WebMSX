@@ -33,7 +33,7 @@ wmsx.ColorCache = new function() {
         if (!colors9bit9938Values) {
             colors9bit9938Values = new Uint32Array(512);
             for (var c = 1; c < 512; ++c)
-                colors9bit9938Values[c] = 0xff000000 | (color3to8bits9938[c & 0x7] << 16) | (color3to8bits9938[c >>> 6] << 8) | color3to8bits9938[(c >>> 3) & 0x7];
+                colors9bit9938Values[c] = 0xff000000 | (color3to8bits9938[c & 0x7] << 16) | (color3to8bits9938[c >> 6] << 8) | color3to8bits9938[(c >>> 3) & 0x7];
         }
         return colors9bit9938Values;
     };
@@ -52,7 +52,7 @@ wmsx.ColorCache = new function() {
         if (!colors16bitValues) {
             colors16bitValues = new Uint32Array(65536);
             for (var c = 0; c < 65536; ++c)
-                colors16bitValues[c] = (c < 32768 ? 0xff000000 : 0x00000000) | (color5to8bits[c & 0x1f] << 16) | (color5to8bits[c >> 10] << 8) | color5to8bits[(c >> 5) & 0x1f];
+                colors16bitValues[c] = (c < 32768 ? 0xff000000 : 0x00000000) | (color5to8bits[c & 0x1f] << 16) | (color5to8bits[(c >> 10) & 0x1f] << 8) | color5to8bits[(c >> 5) & 0x1f];
         }
         return colors16bitValues;
     };

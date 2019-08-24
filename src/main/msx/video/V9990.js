@@ -90,16 +90,18 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     // VRAM Data Read
     this.input60 = function() {
+        // if (softResetON) Hang machine?
+
         var res = vramReadData;
+        vramReadData = vram[vramPointerRead];
         if (vramPointerReadInc)
             if (++vramPointerRead > VRAM_LIMIT) vramPointerRead &= VRAM_LIMIT;
-        vramReadData = vram[vramPointerRead];
         return res;
     };
 
     // VRAM Data Write
     this.output60 = function(val) {
-        //if (vramPointerWrite >= 0x7c000) logInfo("VRAM " + vramPointerWrite.toString(16) + ": " + val.toString(16));
+        if (softResetON) return;    // Hang machine?
 
         vram[vramPointerWrite] = val;
         if (vramPointerWriteInc)
@@ -108,33 +110,34 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     // Palette Data Read
     this.input61 = function() {
+        if (softResetON) return paletteRAM[0];
+
         if ((palettePointer & 0x03) === 3) {
-            // Dummy read and stay at same RGB entry
-            if (palettePointerReadInc) palettePointer &= 0xfc;
+            if (palettePointerReadInc) palettePointer &= 0xfc;                                  // Dummy read and stay at same RGB entry
             return 0;
         }
+
         var res = paletteRAM[palettePointer];
+
         if (palettePointerReadInc) {
             if ((palettePointer & 0x03) === 2) palettePointer = (palettePointer + 2) & 0xff;    // Jump one byte to the next RGB entry
             else ++palettePointer;
         }
+
         return res;
     };
 
     // Palette Data Write
     this.output61 = function(val) {
-        //logInfo("PaletteWrite " + palettePointer.toString(16) + ": " + val.toString(16));
+        // console.error("PaletteWrite " + palettePointer.toString(16) + ": " + val.toString(16));
 
-        if ((palettePointer & 0x03) === 3) {
-            // Ignore write and stay at same RGB entry
-            palettePointer &= ~0x03;
-            return;
-        }
+        if (softResetON) return paletteRAMWrite(0, 0);
+
+        if ((palettePointer & 0x03) === 3) return palettePointer &= ~0x03;                  // Ignore write and stay at same RGB entry
+
         val &= (palettePointer & 0x03) === 0 ? 0x9f : 0x1f;                                 // 5 bits R/G/B, YS bit for R only
-        if (val !== paletteRAM[palettePointer]) {
-            paletteRAM[palettePointer] = val;
-            updatePaletteValue(palettePointer >> 2);
-        }
+        paletteRAMWrite(palettePointer, val);
+
         if ((palettePointer & 0x03) === 2) palettePointer = (palettePointer + 2) & 0xff;    // Jump one byte to the next RGB entry
         else ++palettePointer;
     };
@@ -153,24 +156,28 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     this.input63 = function() {
         var res = register[registerSelect] | REG_READ_OR[registerSelect];
 
-        // if (registerSelect === 17 || registerSelect === 18) logInfo("Reg READ " + registerSelect + " = " + res.toString(16));
+        // logInfo("Reg READ " + registerSelect + " = " + res.toString(16));
 
         if (registerSelectReadInc)
             if (++registerSelect > 0x3f) registerSelect &= 0x3f;
+
         return res;
     };
 
     // Register Data Write
     this.output63 = function(val) {
-        // if (registerSelect === 17 || registerSelect === 18) logInfo("Reg Write " + registerSelect + " : " + val.toString(16));
+        //  logInfo("Reg Write " + registerSelect + " : " + val.toString(16));
 
-        registerWrite(registerSelect, val);
+        if (!softResetON) registerWrite(registerSelect, val);
+
         if (registerSelectWriteInc)
             if (++registerSelect > 0x3f) registerSelect &= 0x3f;
     };
 
     // Register Select Write
     this.output64 = function(val) {
+        if (softResetON) val = 0;
+
         registerSelect = val & 0x3f;
         registerSelectWriteInc = (val & 0x80) === 0;
         registerSelectReadInc =  (val & 0x40) === 0;
@@ -209,11 +216,14 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var mod = systemControl ^ val;
         systemControl = val;
 
-        if (mod & 0x02) {                              // SRS
-            logInfo("SOFT RESET: " + ((systemControl & 0x02) ? "ON" : "OFF"));
-            if ((systemControl & 0x02) !== 0) self.reset();
+        if (mod & 0x02) {
+            softResetON = (systemControl & 0x02) !== 0;   // SRS
+
+            logInfo("SOFT RESET: " + (softResetON ? "ON" : "OFF"));
+
+            if (softResetON) softReset();
         }
-        if (mod & 0x01) {                              // MCS
+        if (mod & 0x01) {                                // MCS
             status = (status & ~0x04) | ((systemControl & 0x01) << 2);
             updateMode();
         }
@@ -233,39 +243,47 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     };
 
     this.reset = function() {
+        systemControl = 0; status = 0; softResetON = false;
         registerSelect = 0; registerSelectReadInc = true; registerSelectWriteInc = true;
+
+        initRAMs();
+        initColorPalette();
+
+        softReset();
+
+        frame = cycles = lastBUSCyclesComputed = 0;
+        frameVideoStandard = videoStandard; framePulldown = pulldown;
+        currentScanline = -1;
+
+        beginFrame();
+    };
+
+    function softReset () {
+        interruptFlags = 0;
         vramPointerRead = 0; vramPointerWrite = 0; vramPointerReadInc = true; vramPointerWriteInc = true; vramReadData = 0;
         palettePointer = 0; palettePointerReadInc = true;
         paletteOffsetA = 0; paletteOffsetB = 0; paletteOffset = 0;
         ysEnabled = false;
-        scrollXOffset = 0; scrollYOffset = 0; scrollXBOffset = 0; scrollYBOffset = 0; scrollYMax = 0;
+        scrollXOffset = 0; scrollYOffset = 0; scrollYOffsetFrame = 0; scrollXBOffset = 0; scrollYBOffset = 0; scrollYBOffsetFrame = 0; scrollYMax = 0;
+        scrollYUpdatePending = false; scrollYBUpdatePending = false;
         planeAEnabled = true; planeBEnabled = true;
         vramEOLineShift = 0; vramEOLineAdd = 0;
-
-        frame = cycles = lastBUSCyclesComputed = 0;
         verticalAdjust = horizontalAdjust = 0;
-        backdropColor = 0; backdropValue = solidBlackValue; backdropCacheUpdatePending = true;
-        dispEnabled = false; dispChangePending = false; spritesEnabled = true;
+        dispEnabled = false; dispAndSpritesUpdatePending = false; spritesEnabled = true;
         horizontalIntLine = 0;
         vramInterleaving = false;
-        renderMetricsChangePending = false;
-        refreshWidth = refreshHeight = 0;
-        frameVideoStandard = videoStandard; framePulldown = pulldown;
-        currentScanline = -1;
+        renderMetricsUpdatePending = false;
 
-        initVRAM();
-        initRegisters();
-        initColorPalette();
         commandProcessor.reset();
+
+        initRegisters();
         updateSignalMetrics(true);
         updateIRQ();
         updateMode();
         updateBackdropColor();
         updateSynchronization();
         commandProcessor.setV9990DisplayAndSpritesEnabled(dispEnabled, spritesEnabled);
-
-        beginFrame();
-    };
+    }
 
     this.updateCycles = function() {
         return vdp.updateCycles();
@@ -293,7 +311,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function updateVRAMReadPointer() {
         vramPointerRead = ((register[5] << 16) | (register[4] << 8) | register[3]) & VRAM_LIMIT;
         vramPointerReadInc = (register[5] & 0x80) === 0;
-        vramReadData = vram[vramPointerRead];
     }
 
     function updateVRAMWritePointer() {
@@ -322,6 +339,13 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         // for (var e = 63; e >= 0; --e) updatePaletteValue(e);
     }
 
+    function paletteRAMWrite(entry, val) {
+        if (val === paletteRAM[entry]) return;
+
+        paletteRAM[entry] = val;
+        updatePaletteValue(entry >> 2);
+    }
+
     function registerWrite(reg, val) {
         var add;
         var mod = register[reg] ^ val;
@@ -333,8 +357,12 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             case 0: case 1: case 2:
                 updateVRAMWritePointer();
                 break;
-            case 3: case 4: case 5:
+            case 3: case 4:
                 updateVRAMReadPointer();
+                break;
+            case 5:
+                updateVRAMReadPointer();
+                self.input60();                                 // pre-read now
                 break;
             case 6:
                 if (mod & 0xf0) updateMode();                   // DSPM, DCKM (will also update Type)
@@ -347,11 +375,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 else if (mod & 0x02) updateRenderMetrics();     // IL
                 break;
             case 8:
-                if (mod & 0x80) {                               // DISP
-                    dispChangePending = true;                   // only detected at VBLANK
-                    //logInfo("Blanking: " + !!(val & 0x40));
-                }
-                if (mod & 0x40) updateSpritesEnabled();         // SPD
+                if (mod & 0xc0)                                 // DISP, SPD. Only at display start
+                    dispAndSpritesUpdatePending = true;
                 if (mod & 0x20) updateYSEnabled();              // YSE
                 break;
             case 9:
@@ -376,17 +401,23 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                     updateSignalMetrics(false);
                 }
                 break;
+            case 17:
+                updateScrollYMidFrame();
+                break;
             case 18:
-                if (mod & 0xc0) updateScrollYMax();             // R512, R256
-                // fall through
-            case 17: case 19: case 20:
-                updateScroll();
+                if (mod & 0xc7) scrollYUpdatePending = true;    // Only at frame start
+                break;
+            case 19: case 20:
+                if (mod) updateScrollX();
+                break;
+            case 21:
+                updateScrollYBMidFrame();
                 break;
             case 22:
-                if (mod & 0xc0) updatePlanesEnabled();          // *SDA, *SDB
-                // fall through
-            case 21: case 23: case 24:
-                updateScrollB();
+                if (mod & 0xc1) scrollYBUpdatePending = true;   // Only at frame start
+                break;
+            case 23: case 24:
+                if (mod) updateScrollXB();
                 break;
             case 25:
                 updateSpritePattAddress();
@@ -396,19 +427,14 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 break;
         }
 
-
         return;
+
 
         switch (reg) {
 
             case 1:
                 //if (mod) logInfo("Register1: " + val.toString(16));
 
-                if (mod & 0x40) {                                        // BL
-                    dispChangePending = true;      // only at next line
-
-                    //logInfo("Blanking: " + !!(val & 0x40));
-                }
                 // if (mod & 0x18) updateMode();                            // Mx
                 // if (mod & 0x04) updateBlinking();                        // CDR  (Undocumented, changes reg 13 timing to lines instead of frames)
                 // if (mod & 0x03) updateSpritesConfig();                   // SI, MAG
@@ -768,24 +794,52 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         commandProcessor.setV9990ModeData(modeData, typeData, imageWidth, imageHeight);
     }
 
-    function updateScroll() {
-        scrollXOffset = register[19] | (register[20] << 3);
-        scrollYOffset = register[17] | ((register[18] & 0x1f) << 8);
+    function updateScrollYMidFrame() {
+        // Update only SCAY7-0 bits. Make scanline 0 restart drawing at current scanline???
+        scrollYOffset = (scrollYOffset & ~0xff) | register[17];
+        scrollYOffsetFrame = scrollYOffset;
+        // scrollYOffsetFrame = currentScanline > frameStartingActiveScanline ? scrollYOffset - (currentScanline - frameStartingActiveScanline) : scrollYOffset;
+        scrollYUpdatePending = true;
+
+        // logInfo("updateScrollYMidFrame: " + scrollYOffset);
     }
 
-    function updateScrollB() {
-        scrollXBOffset = register[23] | (register[24] << 3);
-        scrollYBOffset = register[21] | (register[22] << 8);
+    function updateScrollYFrameStart() {
+        scrollYOffset = scrollYOffsetFrame = ((register[18] & 0x1f) << 8) | register[17];
+        updateScrollYMax();
+        scrollYUpdatePending = false;
+    }
+
+    function updateScrollX() {
+        scrollXOffset = register[19] | (register[20] << 3);
     }
 
     function updateScrollYMax() {
-        scrollYMax = (register[18] & 0x80) ? 511 : (register[18] & 0x40) ? 255
+        scrollYMax = (register[18] & 0x80) ? 511 : (register[18] & 0x40) ? 255                // R512, R256
             : modeData === modes.P1 || modeData === modes.P2 ? 511 : imageHeight - 1;
     }
 
+    function updateScrollYBMidFrame() {
+        // Update only SCBY7-0 bits. Make scanline 0 restart drawing at current scanline???
+        scrollYBOffset = (scrollYBOffset & ~0xff) | register[21];
+        scrollYBOffsetFrame = scrollYBOffset;
+        // scrollYBOffsetFrame = currentScanline > frameStartingActiveScanline ? scrollYBOffset - (currentScanline - frameStartingActiveScanline) : scrollYBOffset;
+        scrollYBUpdatePending = true;
+    }
+
+    function updateScrollYBFrameStart() {
+        scrollYBOffset = scrollYBOffsetFrame = ((register[22] & 0x01) << 8) | register[21];
+        updatePlanesEnabled();
+        scrollYBUpdatePending = false;
+    }
+
+    function updateScrollXB() {
+        scrollXBOffset = register[23] | (register[24] << 3);
+    }
+
     function updatePlanesEnabled() {
-        planeAEnabled = (register[22] & 0x80) === 0;
-        planeBEnabled = (register[22] & 0x40) === 0;
+        planeAEnabled = (register[22] & 0x80) === 0;    // *SDA
+        planeBEnabled = (register[22] & 0x40) === 0;    // *SDB
     }
 
     function updateSpritePattAddress() {
@@ -828,7 +882,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         newPixelHeight = 2 >> (pixelHeightDiv - 1);
         newRenderHeight = (modeData.height + modeData.hasBorders * 8 * 2) * pixelHeightDiv;
 
-        renderMetricsChangePending = false;
+        renderMetricsUpdatePending = false;
 
         if (newRenderWidth === renderWidth && newRenderHeight === renderHeight) return;
 
@@ -838,7 +892,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 renderWidth = newRenderWidth;
                 changed = true;
             } else
-                renderMetricsChangePending = true;
+                renderMetricsUpdatePending = true;
         }
 
         // Only change height if forced (loadState and beginFrame)
@@ -848,7 +902,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 renderHeight = newRenderHeight;
                 changed = true;
             } else
-                renderMetricsChangePending = true;
+                renderMetricsUpdatePending = true;
         }
 
         if (changed) videoSignal.setPixelMetrics(newPixelWidth, newPixelHeight);
@@ -858,7 +912,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function enterActiveDisplay() {
         status &= ~0x40;                                                                    // VR = 0
-        if (dispChangePending) updateDispEnabled();
+        if (dispAndSpritesUpdatePending) updateDispAndSpritesEnabled();
         setActiveDisplay();
     }
 
@@ -876,20 +930,12 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         renderLine = renderLineBackdrop;
     }
 
-    function updateDispEnabled() {
-        if (dispEnabled !== ((register[8] & 0x80) !== 0)) {
-            dispEnabled = !dispEnabled;
-            updateLineActiveType();
-            commandProcessor.setV9990DisplayAndSpritesEnabled(dispEnabled, spritesEnabled);
-        }
-        dispChangePending = false;
-    }
-
-    function updateSpritesEnabled() {
-        if (spritesEnabled !== ((register[8] & 0x40) === 0)) {
-            spritesEnabled = !spritesEnabled;
-            commandProcessor.setV9990DisplayAndSpritesEnabled(dispEnabled, spritesEnabled);
-        }
+    function updateDispAndSpritesEnabled() {
+        dispEnabled = (register[8] & 0x80) !== 0;
+        spritesEnabled = (register[8] & 0x40) === 0;
+        updateLineActiveType();
+        commandProcessor.setV9990DisplayAndSpritesEnabled(dispEnabled, spritesEnabled);
+        dispAndSpritesUpdatePending = false;
     }
 
     function updateLineActiveType() {
@@ -921,7 +967,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         backdropValue = value;
         backdropCacheUpdatePending = true;
 
-        //logInfo("Backdrop Value: " + backdropValue.toString(16));
+        // console.error("Backdrop Color: " + backdropColor + ", value: " + backdropValue.toString(16));
     }
 
     function updateBackdropLineCache() {
@@ -1127,7 +1173,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (planeBEnabled) {
             scrollX = scrollXBOffset & 511;                                                         // Image max X = 511
             buffPos = bufferPosition - (scrollX & 7);
-            realLine = (currentScanline - frameStartingActiveScanline + scrollYBOffset) & scrollYMax;
+            realLine = (currentScanline - frameStartingActiveScanline + scrollYBOffsetFrame) & scrollYMax;
             lineInPattern = realLine & 7;
             namePosBase = 0x7e000 + ((realLine >> 3) << 6 << 1);
             namePos = scrollX >> 3 << 1;
@@ -1158,7 +1204,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (planeAEnabled) {
             scrollX = scrollXOffset & 511;                                                          // Image max X = 511
             buffPos = bufferPosition - (scrollX & 7);
-            realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+            realLine = (currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) & scrollYMax;
             lineInPattern = realLine & 7;
             namePosBase = 0x7c000 + ((realLine >> 3) << 6 << 1);
             namePos = scrollX >> 3 << 1;
@@ -1200,7 +1246,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (planeAEnabled) {
             scrollX = scrollXOffset & 1023;                                                         // Image max X = 1023
             buffPos = bufferPosition - (scrollX & 7);
-            realLine = (currentScanline - frameStartingActiveScanline + scrollYOffset) & scrollYMax;
+            realLine = (currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) & scrollYMax;
             lineInPattern = realLine & 7;
             namePosBase = 0x7c000 + ((realLine >> 3) << 7 << 1);
             namePos = scrollX >> 3 << 1;
@@ -1295,7 +1341,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v1, v2, v3, v4, chroma;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = (scrollXOffset & ~0x03) & scrollXMaxBytes;   // 4 pixel blocks
@@ -1321,7 +1367,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v1, v2, v3, v4, chroma;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = (scrollXOffset & ~0x03) & scrollXMaxBytes;   // 4 pixel blocks
@@ -1351,7 +1397,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes;
         var byteYBase, byteXPos, v;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * (imageWidth << 1);               // 0.5 ppb (16 bpp)
         scrollXMaxBytes = (imageWidth << 1) - 1;                // 0.5 ppb
         byteXPos = modeData.width > 256
@@ -1377,7 +1423,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         if (!colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values();
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
@@ -1399,7 +1445,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes;
         var byteYBase, byteXPos, v;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
@@ -1417,7 +1463,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * (imageWidth >> 1);               // 2 ppb
         scrollXMaxBytes = (imageWidth >> 1) - 1;                // 2 ppb
         byteXPos = (scrollXOffset >> 1) & scrollXMaxBytes;      // 2 ppb
@@ -1441,7 +1487,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffset) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * (imageWidth >> 2);               // 4 ppb
         scrollXMaxBytes = (imageWidth >> 2) - 1;                // 4 ppb
         byteXPos = (scrollXOffset >> 2) & scrollXMaxBytes;      // 4 ppb
@@ -1507,8 +1553,12 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             updateSignalMetrics(false);
         }
 
-        if (renderMetricsChangePending) updateRenderMetrics(true);
+        if (renderMetricsUpdatePending) updateRenderMetrics(true);
         // else cleanFrameBuffer();
+
+        // ScrollY high bits updates
+        if (scrollYUpdatePending)  updateScrollYFrameStart();
+        if (scrollYBUpdatePending) updateScrollYBFrameStart();
 
         // Field alternance
         status ^= 0x02;                    // Invert EO (Second Field Status flag)
@@ -1554,17 +1604,16 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         beginFrame();
     }
 
-    function initVRAM() {
+    function initRAMs() {
         for(var i = 0; i < VRAM_SIZE; i += 1024) {
             wmsx.Util.arrayFill(vram, 0x00, i, i + 512);
             wmsx.Util.arrayFill(vram, 0xff, i + 512, i + 1024);
         }
+        wmsx.Util.arrayFill(paletteRAM, 0);
     }
 
     function initRegisters() {
-        status = 0; interruptFlags = 0; systemControl = 0;
         wmsx.Util.arrayFill(register, 0);
-        wmsx.Util.arrayFill(paletteRAM, 0);
         register[7] = videoStandard === wmsx.VideoStandard.PAL ? 0x08 : 0;      // PAL mode bit
     }
 
@@ -1656,7 +1705,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         0xff, 0xff,                                         // 13 - 14  Palette Control/Pointer
         0xff,                                               // 15       Backdrop Color                  *15 (0x3f)
         0xff,                                               // 16       Display Adjust
-        0xff, 0xdf, 0x07, 0xff, 0xff, 0xc1, 0x07, 0x3f,     // 17 - 24  Scroll Control                  *22  0x01)
+        0xff, 0xdf, 0x07, 0xff, 0xff, 0xc1, 0x07, 0x3f,     // 17 - 24  Scroll Control                  *22 (0x01)
         0xcf,                                               // 25       Sprite Pat Generator Address    *25 (0x0f)
         0xff,                                               // 26       LCD Control                     *26 (0x1f)
         0xff,                                               // 27       Priority Control                *27 (0x0f)
@@ -1722,7 +1771,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     var oldStatus = wmsx.Util.arrayFill(new Array(10), 0);
 
-    var status = 0, interruptFlags = 0, systemControl = 0;
+    var status = 0, interruptFlags = 0, systemControl = 0, softResetON = false;
     var registerSelect = 0, registerSelectReadInc = true, registerSelectWriteInc = true;
     var vramPointerRead = 0, vramPointerWrite = 0, vramPointerReadInc = true, vramPointerWriteInc = true, vramReadData = 0;
     var palettePointer = 0, palettePointerReadInc = true;
@@ -1738,7 +1787,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var backdropCacheUpdatePending = true;
 
     var imageWidth = 0, imageHeight = 0;
-    var scrollXOffset = 0, scrollYOffset = 0, scrollXBOffset = 0, scrollYBOffset = 0, scrollYMax = 0;
+    var scrollXOffset = 0, scrollYOffset = 0, scrollYOffsetFrame = 0, scrollXBOffset = 0, scrollYBOffset = 0, scrollYBOffsetFrame = 0, scrollYMax = 0;
+    var scrollYUpdatePending = false, scrollYBUpdatePending = false;
     var planeAEnabled = true, planeBEnabled = true;
 
     var verticalAdjust = 0, horizontalAdjust = 0;
@@ -1747,8 +1797,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var spritesGlobalPriority = SPRITE_MAX_PRIORITY;        // Decreasing value for priority control. Never resets and lasts for years!
     var spritesLinePriorities = wmsx.Util.arrayFill(new Array(512 + 16 + 16 + 8), SPRITE_MAX_PRIORITY);     // Max P2 res + 16 for Left-overflow + 16 for Right-overflow + 8 slack
 
-    var dispChangePending = false, dispEnabled = false, spritesEnabled = true;
-    var renderMetricsChangePending = false, renderWidth = 0, renderHeight = 0;
+    var dispAndSpritesUpdatePending = false, dispEnabled = false, spritesEnabled = true;
+    var renderMetricsUpdatePending = false, renderWidth = 0, renderHeight = 0;
     var refreshWidth = 0, refreshHeight = 0;
 
     var vramEOLineShift = 0, vramEOLineAdd = 0;
