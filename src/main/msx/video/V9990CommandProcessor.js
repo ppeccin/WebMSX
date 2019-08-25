@@ -27,6 +27,14 @@ wmsx.V9990CommandProcessor = function() {
                 LMCM(); break;
             case 0x40:
                 LMMM(); break;
+            case 0xc0:
+                SRCH(); break;
+            case 0xd0:
+                POINT(); break;
+            case 0xe0:
+                PSET(); break;
+            case 0xf0:
+                ADVN(); break;
             // case 0xf0:
             //     HMMC(); break;
             // case 0xe0:
@@ -37,12 +45,6 @@ wmsx.V9990CommandProcessor = function() {
             //     HMMV(); break;
             // case 0x70:
             //     LINE(); break;
-            // case 0x60:
-            //     SRCH(); break;
-            // case 0x50:
-            //     PSET(); break;
-            // case 0x40:
-            //     POINT(); break;
             default:
                 console.log(">>>> V9990 Command: " + val.toString(16) + ". DispSprites: " + dispAndSpritesMode);
             //    wmsx.Util.error("Unsupported V9938 Command: " + val.toString(16));
@@ -108,6 +110,9 @@ wmsx.V9990CommandProcessor = function() {
             ? (((register[33] & 0x01) << 8) | register[32]) & imageWidthMask    // Only 9 bits in P1 mode
             : (((register[33] & 0x07) << 8) | register[32]) & imageWidthMask;
     }
+    function setSX(val) {
+        register[33] = (val >> 8) & 0x0f; register[32] = val & 0xff;
+    }
 
     function getSY() {
         return (((register[35] & 0x0f) << 8) | register[34]) & imageHeightMask;
@@ -120,11 +125,13 @@ wmsx.V9990CommandProcessor = function() {
         return isP1 && (register[33] & 0x02) ? 2048 : 0;        // SX9 bit in P1 mode -> start at Plane B
     }
 
-
     function getDX() {
         return isP1
             ? (((register[37] & 0x01) << 8) | register[36]) & imageWidthMask    // Only 9 bits in P1 mode
             : (((register[37] & 0x07) << 8) | register[36]) & imageWidthMask;
+    }
+    function setDX(val) {
+        register[37] = (val >> 8) & 0x07; register[36] = val & 0xff;
     }
 
     function getDY() {
@@ -144,9 +151,6 @@ wmsx.V9990CommandProcessor = function() {
 
     function getNY() {
         return ((((((register[43] & 0x0f) << 8) | register[42]) || 4096) - 1) & imageHeightMask) + 1;
-    }
-    function setNY(val) {
-        register[43] = (val >> 8) & 0x0f; register[42] = val & 0xff;
     }
 
     function getDIX() {
@@ -183,13 +187,19 @@ wmsx.V9990CommandProcessor = function() {
         return (register[49] << 8) | register[48];
     }
     function setFC(val) {
-        register[48] = val & 255;
-        register[49] = val >> 8;
+        register[49] = val >> 8; register[48] = val & 255;
     }
 
     function setBX(val) {
-        register[53] = val & 255;
-        register[54] = val >> 8;
+        register[54] = val >> 8; register[53] = val & 255;
+    }
+
+    function getAYME() {
+        return (register[52] >> 2) & 0x03;
+    }
+
+    function getAXME() {
+        return register[52] & 0x03;
     }
 
     function LMMC() {
@@ -237,6 +247,10 @@ wmsx.V9990CommandProcessor = function() {
                 if (CE) LMMCNextPut(cd & 0x03);
                 break;
         }
+
+        // Set visible changed register state
+        // setDY(DY);
+        // setNY(NY - CY);
     }
 
     function LMMCNextPut(sc) {
@@ -254,10 +268,6 @@ wmsx.V9990CommandProcessor = function() {
         } else {
             EDX = (EDX + DIX) & imageWidthMask;
         }
-
-        // Set visible changed register state
-        // setDY(DY);
-        // setNY(NY - CY);
     }
 
     function LMMV() {
@@ -324,16 +334,20 @@ wmsx.V9990CommandProcessor = function() {
                 readData = LMCMNextGet();
                 break;
             case 4:
-                readData = LMCMNextGet() << 4;
-                if (CE) readData |= LMCMNextGet();
+                readData = (readData & 0x0f) | (LMCMNextGet() << 4);
+                if (CE) readData = (readData & 0xf0) | LMCMNextGet();
                 break;
             case 2:
-                readData = LMCMNextGet() << 6;
-                if (CE) readData |= LMCMNextGet() << 4;
-                if (CE) readData |= LMCMNextGet() << 2;
-                if (CE) readData |= LMCMNextGet();
+                readData = (readData & 0x3f) | (LMCMNextGet() << 6);
+                if (CE) readData = (readData & 0xcf) | (LMCMNextGet() << 4);
+                if (CE) readData = (readData & 0xf3) | (LMCMNextGet() << 2);
+                if (CE) readData = (readData & 0xfc) | LMCMNextGet();
                 break;
         }
+
+        // Set visible changed register state
+        // setSY(SY);
+        // setNY(NY - CY);
     }
 
     function LMCMNextGet() {
@@ -347,10 +361,6 @@ wmsx.V9990CommandProcessor = function() {
         } else {
             ESX = (ESX + DIX) & imageWidthMask;
         }
-
-        // Set visible changed register state
-        // setSY(SY);
-        // setNY(NY - CY);
 
         return sc;
     }
@@ -383,11 +393,140 @@ wmsx.V9990CommandProcessor = function() {
         }
 
         // Final registers state
-        // setSY(sy);
-        // setDY(dy);
-        // setNY(0);
+        //setSX(esx);
+        //setSY(sy);
+        //setDX(edx);
+        //setDY(dy);
 
         start(LMMMTiming, nx * ny, ny);
+    }
+
+    function SRCH() {
+        // Collect parameters
+        var sx = getSX();
+        var sy = getSY();
+        var fc = getFC();
+        var dix = getDIX();
+        var neq = getNEQ();
+
+        //console.log("SRCH sx: " + sx + ", sy: " + sy + ", fc: " + fc + ", neq: " + neq + ", dix: " + dix);
+
+        // Search boundary X
+        var stopX = dix === 1 ? imageWidth : -1;
+
+        // Perform operation
+        var x = sx, found = false;
+        if (neq) {
+            do {
+                if (normalPGET(x, sy) !== fc) {
+                    found = true;
+                    break;
+                }
+                x = x + dix;
+            } while (x !== stopX);
+        } else {
+            do {
+                if (normalPGET(x, sy) === fc) {
+                    found = true;
+                    break;
+                }
+                x = x + dix;
+            } while (x !== stopX);
+        }
+
+        var sxRes = (((register[33] & 0x07) << 8) | register[32]) & ~imageWidthMask;    // SX only multiple of width
+        var finalX = found
+            ? sxRes | x
+            : neq ? 0x07ff : (sxRes + x) & 0x7ff;
+
+        //setSX(finalX);
+        setBX(finalX);
+        v9990.setStatusBD(found);
+
+        start(null, Math.abs(x - sx) + 1, 1);
+    }
+
+    function POINT() {
+        // Collect parameters
+        var SX = getSX();
+        var SY = getSY();
+
+        //console.log("POINT sx: " + SX + ", sy: " + SY);
+
+        readStart(POINTNextRead);
+    }
+
+    function POINTNextRead() {
+        switch (typeBPP) {
+            case 16:
+                if (readDataPending === null) {
+                    readDataPending = normalPGET(SX, SY);
+                    readData = readDataPending & 0xff;
+                } else {
+                    readData = readDataPending >> 8;
+                    readDataPending = null;
+                }
+                break;
+            case 8:
+                readData = normalPGET(SX, SY);
+                break;
+            case 4:
+                readData = (readData & 0x0f) | (normalPGET(SX, SY) << 4);
+                break;
+            case 2:
+                readData = (readData & 0x3f) | (normalPGET(SX, SY) << 6);
+                break;
+        }
+        finish();
+    }
+
+    function PSET() {
+        // Collect parameters
+        var dx = getDX();
+        var dy = getDY();
+        var fc = getFC();
+        var op = getLOP();
+        var wm = getWM();
+        var axme = getAXME();
+        var ayme = getAYME();
+
+        //console.log("PSET dx: " + dx + ", dy: " + dy);
+
+        logicalPSET(dx, dy, fc, op, wm);
+
+        var incX = axme === 1 ? 1 : axme === 3 ? -1 : 0;
+        var incY = ayme === 1 ? 1 : ayme === 3 ? -1 : 0;
+
+        setDX((dx + incX) & imageWidthMask);
+        setDY((dy + incY) & imageHeightMask);
+
+        start(null, 1, 1);
+    }
+
+    function ADVN() {
+        // Collect parameters
+        var dx = getDX();
+        var dy = getDY();
+        var axme = getAXME();
+        var ayme = getAYME();
+
+        //console.log("ADVN dx: " + dx + ", dy: " + dy);
+
+        var incX = axme === 1 ? 1 : axme === 3 ? -1 : 0;
+        var incY = ayme === 1 ? 1 : ayme === 3 ? -1 : 0;
+
+        setDX(dx + incX);
+        setDY(dy + incY);
+
+        start(null, 1, 1);
+    }
+
+    function STOP() {
+
+        // console.log("STOP: " + (writeHandler && writeHandler.name));
+
+        finish(true);
+        // SDSnatcher Melancholia fix: TR not reset when command ends
     }
 
     function HMMC() {
@@ -636,91 +775,6 @@ wmsx.V9990CommandProcessor = function() {
         start(null, n, nMinor);      // 88R 24W   32L
     }
 
-    function SRCH() {
-        // Collect parameters
-        var sx = getSX();
-        var sy = getSY();
-        var fc = getFC();
-        var dix = getDIX();
-        var eq = !getNEQ();
-
-        //console.log("SRCH sx: " + sx + ", sy: " + sy + ", fc: " + fc + ", eq: " + eq + ", dix: " + dix);
-
-        // Horizontal limits
-        if (sx >= imageWidth) sx &= imageWidth - 1;
-
-        // Search boundary X
-        var stopX = dix === 1 ? imageWidth : -1;
-
-        // Perform operation
-        var x = sx, found = false;
-        if (eq)
-            do {
-                if (normalPGET(x, sy) === fc) {
-                    found = true; break;
-                }
-                x = x + dix;
-            } while (x !== stopX);
-        else
-            do {
-                if (normalPGET(x, sy) !== fc) {
-                    found = true; break;
-                }
-                x = x + dix;
-            } while (x !== stopX);
-
-        v9990.setStatusBD(found);
-        setBX(x);
-
-        // No registers changed
-
-        start(null, Math.abs(x - sx) + 1, 1);      // 86R  50L estimated
-    }
-
-    function PSET() {
-        // Collect parameters
-        var dx = getDX();
-        var dy = getDY();
-        var fc = getFC();
-        var op = getLOP();
-
-        //console.log("PSET dx: " + dx + ", dy: " + dy);
-
-        // Horizontal limits
-        if (dx >= imageWidth) dx &= imageWidth - 1;
-
-        logicalPSET(dx, dy, fc, op, 0);
-
-        // No registers changed
-
-        start(null, 0, 1);      // 40 total estimated
-    }
-
-    function POINT() {
-        // Collect parameters
-        var sx = getSX();
-        var sy = getSY();
-
-        //console.log("POINT sx: " + sx + ", sy: " + sy);
-
-        // Horizontal limits
-        if (sx >= imageWidth) sx &= imageWidth - 1;
-
-        var cd = normalPGET(sx, sy);
-
-        // Final registers state
-        readData = cd;
-
-        start(null, 0, 1);      // 40 total estimated
-    }
-
-    function STOP() {
-
-        // console.log("STOP: " + (writeHandler && writeHandler.name));
-
-        finish(true);
-        // SDSnatcher Melancholia fix: TR not reset when command ends
-    }
 
     function normalPGET(sx, sy) {
         var sShift, mask;
