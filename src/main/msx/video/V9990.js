@@ -1824,18 +1824,18 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     };
 
     var types = {
-        SBY:   { name: "SBY",   bpp:  8, ppb: 1, renderLine: renderLineTypeSBY   },
-        PP1:   { name: "PP1",   bpp:  4, ppb: 2, renderLine: renderLineTypePP1   },
-        PP2:   { name: "PP2",   bpp:  4, ppb: 2, renderLine: renderLineTypePP2   },
-        BYUV:  { name: "BYUV",  bpp:  8, ppb: 1, renderLine: renderLineTypeBYUV  },
-        BYUVP: { name: "BYUVP", bpp:  8, ppb: 1, renderLine: renderLineTypeBYUVP },
-        BYJK:  { name: "BYJK",  bpp:  8, ppb: 1, renderLine: renderLineTypeBYJK  },
-        BYJKP: { name: "BYJKP", bpp:  8, ppb: 1, renderLine: renderLineTypeBYJKP },
-        BD16:  { name: "BD16",  bpp: 16, ppb: 0, renderLine: renderLineTypeBD16  },
-        BD8:   { name: "BD8",   bpp:  8, ppb: 1, renderLine: renderLineTypeBD8   },
-        BP6:   { name: "BP6",   bpp:  8, ppb: 1, renderLine: renderLineTypeBP6   },
-        BP4:   { name: "BP4",   bpp:  4, ppb: 2, renderLine: renderLineTypeBP4   },
-        BP2:   { name: "BP2",   bpp:  2, ppb: 4, renderLine: renderLineTypeBP2   }
+        SBY:   { name: "SBY",   bpp:  8, ppB: 1, renderLine: renderLineTypeSBY   },
+        PP1:   { name: "PP1",   bpp:  4, ppB: 2, renderLine: renderLineTypePP1   },
+        PP2:   { name: "PP2",   bpp:  4, ppB: 2, renderLine: renderLineTypePP2   },
+        BYUV:  { name: "BYUV",  bpp:  8, ppB: 1, renderLine: renderLineTypeBYUV  },
+        BYUVP: { name: "BYUVP", bpp:  8, ppB: 1, renderLine: renderLineTypeBYUVP },
+        BYJK:  { name: "BYJK",  bpp:  8, ppB: 1, renderLine: renderLineTypeBYJK  },
+        BYJKP: { name: "BYJKP", bpp:  8, ppB: 1, renderLine: renderLineTypeBYJKP },
+        BD16:  { name: "BD16",  bpp: 16, ppB: 0, renderLine: renderLineTypeBD16  },
+        BD8:   { name: "BD8",   bpp:  8, ppB: 1, renderLine: renderLineTypeBD8   },
+        BP6:   { name: "BP6",   bpp:  8, ppB: 1, renderLine: renderLineTypeBP6   },
+        BP4:   { name: "BP4",   bpp:  4, ppB: 2, renderLine: renderLineTypeBP4   },
+        BP2:   { name: "BP2",   bpp:  2, ppB: 4, renderLine: renderLineTypeBP2   }
     };
 
     var renderLine, renderLineActive;           // Update functions for current mode

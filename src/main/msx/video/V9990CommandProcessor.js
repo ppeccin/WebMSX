@@ -78,7 +78,7 @@ wmsx.V9990CommandProcessor = function() {
         isP1 = pModeData.name === "P1";
 
         // ???
-        colosPPBShift = typeData.ppb >> 1;
+        colosPPBShift = typeData.ppB >> 1;
         colorPPBMask = ~0 << colosPPBShift;
     };
 
@@ -458,7 +458,7 @@ wmsx.V9990CommandProcessor = function() {
         setDX(dx);
         setDY(dy);
 
-        start(null, n, nMinor);
+        start(LMMVTiming, n, nMinor);
     }
 
     function SRCH() {
@@ -469,7 +469,7 @@ wmsx.V9990CommandProcessor = function() {
         var neq = getNEQ();
         var fc = getFC();
 
-        // console.log("SRCH sx: " + sx + ", sy: " + sy + ", fc: " + fc + ", neq: " + neq + ", dix: " + dix);
+        // console.log("SRCH sx: " + sx + ", sy: " + sy + ", fc: " + fc.toString(16) + ", neq: " + neq + ", dix: " + dix);
 
         // Search boundary X
         var stopX = dix === 1 ? imageWidth : -1;
@@ -477,12 +477,12 @@ wmsx.V9990CommandProcessor = function() {
         // Perform operation
         var x = sx, fcCompare = 0, found = false;
         var fcBits = typeBPP === 16 ? 0xffff : typeBPP === 4 ? 0xf000 : typeBPP === 2 ? 0xc000 : 0xff00;        // default = 8
-        var m = (modeData.ppb << 1) - 1; if (m < 0) m = 0;
-        var s = modeData.bpp;
+        var m = (typeData.ppB << 1) - 1; if (m < 0) m = 0;
+        var s = typeData.bpp;
 
         if (neq) {
             do {
-                fcCompare = fcBits >> ((x & m) * s);
+                fcCompare = fc & (fcBits >> ((x & m) * s));
                 if (normalPGET(x, sy, x) !== fcCompare) {
                     found = true;
                     break;
@@ -491,7 +491,7 @@ wmsx.V9990CommandProcessor = function() {
             } while (x !== stopX);
         } else {
             do {
-                fcCompare = fcBits >> ((x & m) * s);
+                fcCompare = fc & (fcBits >> ((x & m) * s));
                 if (normalPGET(x, sy, x) === fcCompare) {
                     found = true;
                     break;
@@ -503,14 +503,16 @@ wmsx.V9990CommandProcessor = function() {
         var sxRes = (((register[33] & 0x07) << 8) | register[32]) & ~imageWidthMask;    // SX only multiple of width
         var finalX = found
             ? sxRes | x
-            : neq ? 0x07ff : (sxRes + x) & 0x7ff;
+            : dix === 1 ? (sxRes + x) & 0x07ff : 0x07ff;
 
         // Set changed register state after finishing
         setSX(finalX);
         setBX(finalX);
         v9990.setStatusBD(found);
 
-        start(null, Math.abs(x - sx) + 1, 1);
+        // console.log(found, finalX, fcCompare.toString(16));
+
+        start(LMMVTiming, Math.abs(x - sx) + 1, 1);
     }
 
     function POINT() {
@@ -571,7 +573,7 @@ wmsx.V9990CommandProcessor = function() {
         setDX(dx + incX);
         setDY(dy + incY);
 
-        start(null, 1, 1);
+        start(LMMVTiming, 1, 1);
     }
 
     function ADVN() {
@@ -589,7 +591,7 @@ wmsx.V9990CommandProcessor = function() {
         setDX(dx + incX);
         setDY(dy + incY);
 
-        start(null, 1, 1);
+        start(LMMVTiming, 1, 1);
     }
 
     function STOP() {
@@ -849,8 +851,8 @@ wmsx.V9990CommandProcessor = function() {
             finish();
         } else {
             var bppInfo = timing[modeData.cmdTiming][dispAndSpritesMode];
-            var pixelsPerFrame = bppInfo[typeBPP] || bppInfo;
-            var cyclesPerPixel = BASE_CLOCK / 50 / 256 / pixelsPerFrame;                                                // / 50 / 256 because timing is for 256 pixel blocks per PAL frame
+            var blocksPerFrame = bppInfo[typeBPP] || bppInfo;
+            var cyclesPerPixel = BASE_CLOCK / 50 / 256 / blocksPerFrame;                                                // / 50 / 256 because timing is for 256 pixel blocks per PAL frame
             var duration = ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR) / turboClockMulti) | 0;       // no cycles per line info available
             finishingCycle = v9990.updateCycles() + duration;
 
@@ -962,11 +964,7 @@ wmsx.V9990CommandProcessor = function() {
     // Therefore => Cycles Per Pixel = BaseClock / 50 / 256 / value
 
     var LMMVTiming = [
-        /* Normal Bitmap  */  [
-                /* DISP off SPD --- */  { 2: 0x02d3, 4: 0x0219, 8: 0x0190, 16: 0x00c8 },
-                /* DISP on  SPD off */  { 2: 0x02d0, 4: 0x020e, 8: 0x018a, 16: 0x00c7 },
-                /* DISP on  SPD on  */  { 2: 0x02ab, 4: 0x01f6, 8: 0x0174, 16: 0x00bc }
-        ],
+        /* Normal Bitmap  */  [ /* DISP off SPD --- */  { 2: 0x02d3, 4: 0x0219, 8: 0x0190, 16: 0x00c8 }, /* DISP on  SPD off */ { 2: 0x02d0, 4: 0x020e, 8: 0x018a, 16: 0x00c7 }, /* DISP on  SPD on  */ { 2: 0x02ab, 4: 0x01f6, 8: 0x0174, 16: 0x00bc }],
         /* Oversan Bitmap */  [ { 2: 0x01e1, 4: 0x0160, 8: 0x0106, 16: 0x0083 }, { 2: 0x01de, 4: 0x015d, 8: 0x0102, 16: 0x0081 }, { 2: 0x01b9, 4: 0x013b, 8: 0x00e8, 16: 0x0074 } ],
         /* P1 Pattern     */  [ 0x0189, 0x00da, 0x00a7 ],
         /* P2 Pattern     */  [ 0x0210, 0x0140, 0x00fb ]
