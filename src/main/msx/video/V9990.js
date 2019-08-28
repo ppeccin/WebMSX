@@ -414,6 +414,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 break;
             case 18:
                 if (mod & 0xc7) scrollYUpdatePending = true;    // Only at frame start
+                // updateScrollYFrameStart();
                 break;
             case 19: case 20:
                 if (mod) updateScrollX();
@@ -423,6 +424,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 break;
             case 22:
                 if (mod & 0xc1) scrollYBUpdatePending = true;   // Only at frame start
+                // updateScrollYBFrameStart();
                 break;
             case 23: case 24:
                 if (mod) updateScrollXB();
@@ -811,7 +813,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function updateScrollYFrameStart() {
-        scrollYOffset = scrollYOffsetFrame = ((register[18] & 0x1f) << 8) | register[17];
+        scrollYOffsetFrame = scrollYOffset = ((register[18] & 0x1f) << 8) | register[17];
         updateScrollYMax();
         scrollYUpdatePending = false;
     }
@@ -834,7 +836,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function updateScrollYBFrameStart() {
-        scrollYBOffset = scrollYBOffsetFrame = ((register[22] & 0x01) << 8) | register[21];
+        scrollYBOffsetFrame = scrollYBOffset = ((register[22] & 0x01) << 8) | register[21];
         updatePlanesEnabled();
         scrollYBUpdatePending = false;
     }
@@ -919,6 +921,11 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function enterActiveDisplay() {
         status &= ~0x40;                                                                    // VR = 0
         if (dispAndSpritesUpdatePending) updateDispAndSpritesEnabled();
+
+        // ScrollY high bits updates
+        if (scrollYUpdatePending)  updateScrollYFrameStart();
+        if (scrollYBUpdatePending) updateScrollYBFrameStart();
+
         setActiveDisplay();
     }
 
@@ -1562,9 +1569,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (renderMetricsUpdatePending) updateRenderMetrics(true);
         // else cleanFrameBuffer();
 
-        // ScrollY high bits updates
-        if (scrollYUpdatePending)  updateScrollYFrameStart();
-        if (scrollYBUpdatePending) updateScrollYBFrameStart();
+        // // ScrollY high bits updates
+        // if (scrollYUpdatePending)  updateScrollYFrameStart();
+        // if (scrollYBUpdatePending) updateScrollYBFrameStart();
 
         // Field alternance
         status ^= 0x02;                    // Invert EO (Second Field Status flag)
