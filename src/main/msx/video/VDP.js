@@ -130,6 +130,9 @@ wmsx.VDP = function(machine, cpu) {
                 break;
             case 2:
                 commandProcessor.updateStatus();
+
+                // if (self.TEST) return status[2] & ~0x40;
+
                 res = status[2];
 
                 // var deb = cpu.DEBUG;
@@ -139,6 +142,8 @@ wmsx.VDP = function(machine, cpu) {
                 // if (deb && (register[46] & 0xf0) === 0xb0 && (res & 0x81) === 0x01) console.log("Reading Command Status PROGRESS and Transfer NOT READY");
                 // if (deb &&                                   (res & 0x81) === 0x00) console.log("Reading Command Status IDLE and Transfer NOT READY");
                 // if (deb &&                                   (res & 0x81) === 0x80) console.log("Reading Command Status IDLE and Transfer READY");
+
+                // logInfo("VDP Status2 Read : " + res.toString(16));
 
                 break;
             case 3: case 4: case 6:
@@ -2545,6 +2550,8 @@ wmsx.VDP = function(machine, cpu) {
     this.eval = function(str) {
         return eval(str);
     };
+
+    window.VDP = this;
 
 };
 

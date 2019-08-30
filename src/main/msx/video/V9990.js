@@ -199,6 +199,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         // if (self.TEST) logInfo("Status READ = " + status.toString(16));
 
+        // if (self.TEST) return status & ~0xfe;
+
         return status;
     };
 
@@ -227,7 +229,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (mod & 0x02) {
             softResetON = (systemControl & 0x02) !== 0;   // SRS
 
-            logInfo("SOFT RESET: " + (softResetON ? "ON" : "OFF"));
+            // logInfo("SOFT RESET: " + (softResetON ? "ON" : "OFF"));
 
             if (softResetON) softReset();
         }
@@ -410,21 +412,23 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 }
                 break;
             case 17:
-                updateScrollYMidFrame();
+                updateScrollYLow();
                 break;
             case 18:
                 if (mod & 0xc7) scrollYUpdatePending = true;    // Only at frame start
-                // updateScrollYFrameStart();
+                // updateScrollYFull();
+
+                // logInfo("Register ScrollY HI: " + val);
                 break;
             case 19: case 20:
                 if (mod) updateScrollX();
                 break;
             case 21:
-                updateScrollYBMidFrame();
+                updateScrollYBLow();
                 break;
             case 22:
                 if (mod & 0xc1) scrollYBUpdatePending = true;   // Only at frame start
-                // updateScrollYBFrameStart();
+                // updateScrollYBFull();
                 break;
             case 23: case 24:
                 if (mod) updateScrollXB();
@@ -754,7 +758,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         updateSignalMetrics(false);
         updateRenderMetrics(false);
 
-        logInfo("Update Mode: " + modeData.name);
+        // logInfo("Update Mode: " + modeData.name);
     }
 
     function updateType() {
@@ -787,7 +791,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         updateImageSize();
 
-        logInfo("Update Type: " + typeData.name);
+        // logInfo("Update Type: " + typeData.name);
     }
 
     function updateImageSize() {
@@ -802,20 +806,22 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         commandProcessor.setV9990ModeData(modeData, typeData, imageWidth, imageHeight);
     }
 
-    function updateScrollYMidFrame() {
+    function updateScrollYLow() {
         // Update only SCAY7-0 bits. Make scanline 0 restart drawing at current scanline???
         scrollYOffset = (scrollYOffset & ~0xff) | register[17];
         scrollYOffsetFrame = scrollYOffset;
         // scrollYOffsetFrame = currentScanline > frameStartingActiveScanline ? scrollYOffset - (currentScanline - frameStartingActiveScanline) : scrollYOffset;
         scrollYUpdatePending = true;
 
-        // logInfo("updateScrollYMidFrame: " + scrollYOffset);
+        // logInfo("updateScrollYLow: " + scrollYOffset);
     }
 
-    function updateScrollYFrameStart() {
+    function updateScrollYFull() {
         scrollYOffsetFrame = scrollYOffset = ((register[18] & 0x1f) << 8) | register[17];
         updateScrollYMax();
         scrollYUpdatePending = false;
+
+        // logInfo("updateScrollYFull: " + scrollYOffset);
     }
 
     function updateScrollX() {
@@ -827,7 +833,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             : modeData === modes.P1 || modeData === modes.P2 ? 511 : imageHeight - 1;
     }
 
-    function updateScrollYBMidFrame() {
+    function updateScrollYBLow() {
         // Update only SCBY7-0 bits. Make scanline 0 restart drawing at current scanline???
         scrollYBOffset = (scrollYBOffset & ~0xff) | register[21];
         scrollYBOffsetFrame = scrollYBOffset;
@@ -835,7 +841,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         scrollYBUpdatePending = true;
     }
 
-    function updateScrollYBFrameStart() {
+    function updateScrollYBFull() {
         scrollYBOffsetFrame = scrollYBOffset = ((register[22] & 0x01) << 8) | register[21];
         updatePlanesEnabled();
         scrollYBUpdatePending = false;
@@ -923,8 +929,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (dispAndSpritesUpdatePending) updateDispAndSpritesEnabled();
 
         // ScrollY high bits updates
-        if (scrollYUpdatePending)  updateScrollYFrameStart();
-        if (scrollYBUpdatePending) updateScrollYBFrameStart();
+        if (scrollYUpdatePending)  updateScrollYFull();
+        if (scrollYBUpdatePending) updateScrollYBFull();
 
         setActiveDisplay();
     }
@@ -935,8 +941,13 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function enterBorderDisplay() {
         status |= 0x40;                                                                     // VR = 1
-        setBorderDisplay();
         triggerVerticalInterrupt();
+
+        // ScrollY high bits updates
+        // if (scrollYUpdatePending)  updateScrollYFull();
+        // if (scrollYBUpdatePending) updateScrollYBFull();
+
+        setBorderDisplay();
     }
 
     function setBorderDisplay() {
@@ -1570,8 +1581,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         // else cleanFrameBuffer();
 
         // // ScrollY high bits updates
-        // if (scrollYUpdatePending)  updateScrollYFrameStart();
-        // if (scrollYBUpdatePending) updateScrollYBFrameStart();
+        // if (scrollYUpdatePending)  updateScrollYFull();
+        // if (scrollYBUpdatePending) updateScrollYBFull();
 
         // Field alternance
         status ^= 0x02;                    // Invert EO (Second Field Status flag)

@@ -7,6 +7,8 @@
 wmsx.V9990CommandProcessor = function() {
 "use strict";
 
+    var self = this;
+
     this.connectV9990 = function(pV9990, pVRAM, pRegister) {
         v9990 = pV9990;
         vram = pVRAM;
@@ -853,7 +855,7 @@ wmsx.V9990CommandProcessor = function() {
             var bppInfo = timing[modeData.cmdTiming][dispAndSpritesMode];
             var blocksPerFrame = bppInfo[typeBPP] || bppInfo;
             var cyclesPerPixel = BASE_CLOCK / 50 / 256 / blocksPerFrame;                                                // / 50 / 256 because timing is for 256 pixel blocks per PAL frame
-            var duration = ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR) / turboClockMulti) | 0;       // no cycles per line info available
+            var duration = ((pixels * cyclesPerPixel * self.COMMAND_PER_PIXEL_DURATION_FACTOR) / turboClockMulti) | 0;       // no cycles per line info available
             finishingCycle = v9990.updateCycles() + duration;
 
             // Instantaneous
@@ -900,7 +902,8 @@ wmsx.V9990CommandProcessor = function() {
 
     var VRAM_LIMIT = wmsx.V9990.VRAM_LIMIT;
     var COMMAND_HANDLERS = { LMMCNextWrite: LMMCNextWrite, LMCMNextRead: LMCMNextRead, POINTNextRead: POINTNextRead };      // Used for savestates
-    var COMMAND_PER_PIXEL_DURATION_FACTOR = 1;
+
+    self.COMMAND_PER_PIXEL_DURATION_FACTOR = 0.99;
 
     var LOGICAL_OPERATIONS = [
         lopNULL,           // 0000
@@ -1023,6 +1026,8 @@ wmsx.V9990CommandProcessor = function() {
     this.eval = function(str) {
         return eval(str);
     };
+
+    window.V9990CMD = this;
 
 };
 
