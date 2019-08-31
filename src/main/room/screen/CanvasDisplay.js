@@ -3,6 +3,7 @@
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
+// TODO Bug when loading states and already in Scanlines modes
 
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";

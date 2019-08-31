@@ -31,6 +31,10 @@ wmsx.V9990CommandProcessor = function() {
                 LMCM(); break;
             case 0x40:
                 LMMM(); break;
+            case 0x80:
+                BMXL(); break;
+            case 0x90:
+                BMLX(); break;
             case 0xb0:
                 LINE(); break;
             case 0xc0:
@@ -118,6 +122,15 @@ wmsx.V9990CommandProcessor = function() {
         return isP1 && (register[33] & 0x02) ? 2048 : 0;        // SX9 bit in P1 mode -> start at Plane B
     }
 
+    function getSA() {
+        var val = (((register[35] & 0x07) << 16) | (register[34] << 8) | register[32]) & imageWidthMask;
+        if (typeBPP === 16) val &= ~1;                          // Align address to 2 bytes when in 16bpp modes
+        return val;
+    }
+    function setSA(val) {
+        register[35] = (val >> 16) & 0x07; register[34] = (val >> 8) & 0xff; register[32] = val & 0xff;
+    }
+
     function getDX() {
         return (((register[37] & 0x07) << 8) | register[36]) & imageWidthMask;
     }
@@ -136,6 +149,13 @@ wmsx.V9990CommandProcessor = function() {
 
     function getDYP1Offset() {
         return isP1 && (register[37] & 0x02) ? 2048 : 0;        // DX9 bit in P1 mode -> start at Plane B
+    }
+
+    function getDA() {
+        return (((register[39] & 0x07) << 16) | (register[38] << 8) | register[36]) & imageWidthMask;
+    }
+    function setDA(val) {
+        register[39] = (val >> 16) & 0x07; register[38] = (val >> 8) & 0xff; register[36] = val & 0xff;
     }
 
     function getNX() {
@@ -406,6 +426,78 @@ wmsx.V9990CommandProcessor = function() {
         start(LMMMTiming, nx * ny, ny);
     }
 
+    function BMXL() {
+        // Collect parameters
+        var sa = getSA();
+        var dx = getDX();
+        var dyP1Off = getDYP1Offset();
+        var dy = getDY();
+        var nx = getNX();
+        var ny = getNY();
+        var dix = getDIX();
+        var diy = getDIY();
+        var op = getLOP();
+        var wm = getWM();
+
+        // console.log("BMXL sa: " + sa.toString(16) + ", dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+
+        // Perform operation
+        var sc = 0;
+        var sx = 0, cb = 0;                 // cb counts bits per pixel
+        for (var cy = ny; cy > 0; --cy) {
+            var edx = dx;
+            for (var cx = 0; cx < nx; ++cx) {
+                // Only read when new BYTE(s) needed
+                if ((cb & 0x07) === 0) {
+                    if (typeData === 16) { sc = (vram[sa] << 8) | vram[sa + 1]; sa = (sa + 2) & VRAM_LIMIT; }
+                    else                 { sc = vram[sa]; sc |= sc << 8;        sa = (sa + 1) & VRAM_LIMIT; }
+                }
+                logicalPSET(edx, dy + dyP1Off, sx, sc, op, wm);
+                edx = (edx + dix) & imageWidthMask; ++sx; cb += typeBPP;
+            }
+            dy = (dy + diy) & imageHeightMask;
+        }
+
+        // Set changed register state after finishing
+        setSA(sa);
+        setDY(dy);
+
+        start(BMXLTiming, nx * ny, ny);
+    }
+
+    function BMLX() {
+        // Collect parameters
+        var sx = getSX();
+        var syP1Off = getSYP1Offset();
+        var sy = getSY();
+        var da = getDA();
+        var nx = getNX();
+        var ny = getNY();
+        var dix = getDIX();
+        var diy = getDIY();
+        var op = getLOP();
+        var wm = getWM();
+
+        // console.log("BMLX sx: " + sx + ", sy: " + sy + " + " + syP1Off + ", da: " + da.toString(16) + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
+
+        // Perform operation
+        var dx = 0, cb = 0;                     // cb counts bits per pixel
+        for (var cy = ny; cy > 0; --cy) {
+            var esx = sx;
+            for (var cx = nx; cx > 0; --cx) {
+                logicalPCOPYLinear((da + (cb >> 3)) & VRAM_LIMIT, dx, esx, sy + syP1Off, op, wm);
+                esx = (esx + dix) & imageWidthMask; ++dx; cb += typeBPP;
+            }
+            sy = (sy + diy) & imageHeightMask;
+        }
+
+        // Set changed register state after finishing
+        setSY(sy);
+        setDA(da);
+
+        start(BMLXTiming, nx * ny, ny);
+    }
+
     function LINE() {
         // Collect parameters
         var dx = getDX();
@@ -604,6 +696,7 @@ wmsx.V9990CommandProcessor = function() {
         // SDSnatcher Melancholia fix: TR not reset when command ends
     }
 
+    // TODO V9990 "rx" uses are right????
     function normalPGET(sx, sy, rx) {       // returned SC is 16 bits, pixel color follows FC rules
         var sShift, rShift, mask;
         switch (typeBPP) {
@@ -696,6 +789,40 @@ wmsx.V9990CommandProcessor = function() {
         dPos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
         sc = ((vram[sPos] >> sShift) & mask) << dShift;
         vram[dPos] = op(vram[dPos], sc, (mask << dShift) & getWMPos(wm, dPos));
+    }
+
+    function logicalPCOPYLinear(da, dx, sx, sy, op, wm) {
+        var sShift, dShift, mask;
+        switch (typeBPP) {
+            case 16:
+                sx <<= 1;
+                // Perform operation
+                var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
+                var sc = (vram[sPos] << 8) | vram[sPos + 1];    // WM has H/L bytes swapped, so we also swap SC and DC
+                var dc = (vram[da] << 8) | vram[da + 1];
+                var wc = op(dc, sc, wm);
+                vram[da] = wc >> 8;                             // WC has H/L bytes swapped
+                vram[da + 1] = wc & 0xff;
+                return;
+            case 8:
+                sShift = dShift = 0;
+                mask = 0xff;
+                break;
+            case 4:
+                sShift = (1 - (sx & 0x1)) << 2; dShift = (1 - (dx & 0x1)) << 2;
+                sx >>>= 1; mask = 0x0f;
+                break;
+            case 2:
+                sShift = (3 - (sx & 0x3)) << 1; dShift = (3 - (dx & 0x3)) << 1;
+                sx >>>= 2; mask = 0x03;
+                break;
+        }
+
+
+        // Perform operation
+        sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
+        sc = ((vram[sPos] >> sShift) & mask) << dShift;
+        vram[da] = op(vram[da], sc, (mask << dShift) & getWMPos(wm, da));
     }
 
 

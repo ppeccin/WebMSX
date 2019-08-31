@@ -697,7 +697,7 @@ wmsx.VDP = function(machine, cpu) {
     function updateIRQ() {
         if ((verticalIntReached && (register[1] & 0x20))            // Like F == 1 and IE0 == 1
             || ((status[1] & 0x01) && (register[0] & 0x10))) {      // FH == 1 and IE1 == 1
-            cpu.setINTChannel(0, 0);    // VDP uses channel 0
+            cpu.setINTChannel(0, 0);                                // VDP uses fixed channel 0
         } else {
             cpu.setINTChannel(0, 1);
         }

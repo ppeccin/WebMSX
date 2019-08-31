@@ -669,7 +669,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function updateIRQ() {
         if (register[9] & interruptFlags) {         // (IEV == 1 & VI == 1) || (IEH == 1 & HI == 1) || (IECE == 1 & CE == 1) all bits aligned
-            cpu.setINTChannel(1, 0);                // V9990 using fixed channel 1. TODO V9990: INT if multiple V9990s connected?
+            cpu.setINTChannel(1, 0);                // V9990 using fixed channel 1
 
             // logInfo(">>>  INT ON");
         } else {
@@ -889,11 +889,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function updateRenderMetrics(force) {
         var newRenderWidth, newRenderHeight, newPixelWidth, newPixelHeight, pixelHeightDiv, changed = false;
 
-        newPixelWidth = 2 >> (modeData.pixelWidthDiv - 1);
         newRenderWidth = modeData.width + modeData.hasBorders * 8 * 2 * modeData.pixelWidthDiv;
 
         pixelHeightDiv = modeData.allowIL && (register[7] & 0x02) ? 2 : 1;            // IL
-        newPixelHeight = 2 >> (pixelHeightDiv - 1);
         newRenderHeight = (modeData.height + modeData.hasBorders * 8 * 2) * pixelHeightDiv;
 
         renderMetricsUpdatePending = false;
@@ -919,16 +917,20 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 renderMetricsUpdatePending = true;
         }
 
-        if (changed) videoSignal.setPixelMetrics(newPixelWidth, newPixelHeight);
+        if (changed) {
+            newPixelWidth = 2 >> (modeData.pixelWidthDiv - 1);
+            newPixelHeight = 2 >> (pixelHeightDiv - 1);
+            videoSignal.setPixelMetrics(newPixelWidth || 1, newPixelHeight || 1);
+        }
 
         //logInfo("Update Render Metrics. " + force + " Asked: " + newRenderWidth + "x" + newRenderHeight + ", set: " + renderWidth + "x" + renderHeight);
     }
 
     function enterActiveDisplay() {
         status &= ~0x40;                                                                    // VR = 0
-        if (dispAndSpritesUpdatePending) updateDispAndSpritesEnabled();
 
-        // ScrollY high bits updates
+        // Vertical pending updates
+        if (dispAndSpritesUpdatePending) updateDispAndSpritesEnabled();
         if (scrollYUpdatePending)  updateScrollYFull();
         if (scrollYBUpdatePending) updateScrollYBFull();
 
@@ -942,11 +944,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     function enterBorderDisplay() {
         status |= 0x40;                                                                     // VR = 1
         triggerVerticalInterrupt();
-
-        // ScrollY high bits updates
-        // if (scrollYUpdatePending)  updateScrollYFull();
-        // if (scrollYBUpdatePending) updateScrollYBFull();
-
         setBorderDisplay();
     }
 
@@ -1578,11 +1575,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         }
 
         if (renderMetricsUpdatePending) updateRenderMetrics(true);
-        // else cleanFrameBuffer();
-
-        // // ScrollY high bits updates
-        // if (scrollYUpdatePending)  updateScrollYFull();
-        // if (scrollYBUpdatePending) updateScrollYBFull();
 
         // Field alternance
         status ^= 0x02;                    // Invert EO (Second Field Status flag)
@@ -1609,7 +1601,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         currentScanline = 0;
         frameStartingActiveScanline = startingActiveScanline;
 
-        if (currentScanline >= frameStartingActiveScanline) enterActiveDisplay();
+        if (currentScanline >= frameStartingActiveScanline) enterActiveDisplay();   // Overscan modes with vertical adjust can make frameStartingActiveScanline < 0
     }
 
     function finishFrame() {
@@ -1647,7 +1639,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         frameContextUsingAlpha = !!useAlpha;
         frameCanvas = document.createElement('canvas');
         // Maximum V9990 resolution including borders and extra space for painting
-        frameCanvas.width = PAINT_WIDTH;                            // 32 pixels for Right-overflow
+        frameCanvas.width = PAINT_WIDTH;                            // with 64 pixels for Right-overflow
         frameCanvas.height = wmsx.V9990.SIGNAL_MAX_HEIGHT + 1;      // +1 extra line at the top for Left-overflow
         frameContext = frameCanvas.getContext("2d", { alpha: frameContextUsingAlpha, antialias: false });
 
@@ -1705,7 +1697,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
 
     var LINE_WIDTH = wmsx.V9990.SIGNAL_MAX_WIDTH;
-    var PAINT_WIDTH = LINE_WIDTH + 32;                      // 32 additional pixels for Right-overflow during painting
+    var PAINT_WIDTH = LINE_WIDTH + 64;                      // 64 additional pixels for Right-overflow during painting
 
     var SPRITE_MAX_PRIORITY = 9000000000000000;    // 0x3fffffff;   (v8 sint?)
     var DEBUG_DIM_ALPHA_MASK = 0x40ffffff;
@@ -1974,7 +1966,7 @@ wmsx.V9990.VRAM_LIMIT = 0x7ffff;      // 512K
 // wmsx.V9990.SIGNAL_MAX_WIDTH = 512 + 16 * 2;
 // wmsx.V9990.SIGNAL_MAX_HEIGHT = (212 + 8 * 2) * 2;
 
-wmsx.V9990.SIGNAL_MAX_WIDTH =  1024 + 32 * 2;        // B7 mode, 0.5 pixel width
-wmsx.V9990.SIGNAL_MAX_HEIGHT = 480 + 16 * 2;         // B6 mode, 1 pixel height
+wmsx.V9990.SIGNAL_MAX_WIDTH =  1024 + 8 * 4 * 2;     // B7 mode + borders, 0.5 pixel width (* 4)
+wmsx.V9990.SIGNAL_MAX_HEIGHT = 480;                  // B6 mode no border, 1 pixel height
 
 wmsx.V9990.BASE_CLOCK = wmsx.VDP.BASE_CLOCK;      // 21504960 Hz
