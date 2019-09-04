@@ -199,7 +199,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         // if (self.TEST) logInfo("Status READ = " + status.toString(16));
 
-        // if (self.TEST) return status & ~0xfe;
+        // if (self.TEST) return status & ~0xbf;  // No VR
 
         return status;
     };
@@ -239,8 +239,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         }
     };
 
-    this.setVDPTurboMulti = function(multi) {
-        commandProcessor.setVDPTurboMulti(multi);
+    this.setTurboMulti = function(multi) {
+        commandProcessor.setTurboMulti(multi);
     };
 
     this.getVDPTurboMulti = function() {

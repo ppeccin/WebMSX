@@ -50,6 +50,12 @@ wmsx.TurboDriver = function() {
 
     function patchBIOS() {
         var bytes = bios.bytes;
+
+        // Fake TurboR ID
+        if (WMSX.FAKE_TR) bytes[0x002d] = 3;    // tR ID
+
+        // CHGCPU/GETCPU Routines
+
         if (bytes[0x190] === 0xed) return;      // already patched
 
         // CHGCPU routine JUMP

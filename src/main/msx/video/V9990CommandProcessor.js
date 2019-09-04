@@ -97,7 +97,7 @@ wmsx.V9990CommandProcessor = function() {
         dispAndSpritesMode = disp ? sprites ? 2 : 1 : 0;
     };
 
-    this.setV9990TurboMulti = function(multi) {
+    this.setTurboMulti = function(multi) {
         // console.log("SET V9990 MULTI:" + multi);
 
         turboClockMulti = multi < 0 || multi > 8 ? 0 : multi;   // 0..8
