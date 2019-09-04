@@ -392,6 +392,12 @@ wmsx.V9990 = function(machine, vdp, cpu) {
             case 9:
                 if (mod & 0x07) updateIRQ();                    // IECE, IEH, IEV
                 break;
+            case 10:
+                if (mod) updateHorizontalIntLine();
+                break;
+            case 11:
+                if (mod & 0x03) updateHorizontalIntLine();
+                break;
             case 13:
                 if (mod & 0xe0) updateType();                   // PLTM, YAE (will also update ImageSize)
                 if (mod & 0x10) updatePalettePointerReadInc();  // PLTAIH
@@ -487,17 +493,17 @@ wmsx.V9990 = function(machine, vdp, cpu) {
                 // if (mod & 0x3f) updateSpritePatternTableAddress();
                 break;
             case 7:
-                if (mod & (modeData.bdPaletted ? 0x0f : 0xff)) updateBackdropColor();  // BD
+                // if (mod & (modeData.bdPaletted ? 0x0f : 0xff)) updateBackdropColor();  // BD
                 break;
             case 8:
                 //if (mod & 0x20) updateTransparency();                    // TP
                 // if (mod & 0x02) updateSpritesConfig();                   // SPD
                 break;
             case 9:
-                if (mod & 0x80) updateSignalMetrics(false);              // LN
-                if (mod & 0x08) updateRenderMetrics(false);              // IL
+                // if (mod & 0x80) updateSignalMetrics(false);              // LN
+                // if (mod & 0x08) updateRenderMetrics(false);              // IL
                 // if (mod & 0x04) updateLayoutTableAddressMask();          // EO
-                if (mod & 0x02) updateVideoStandardSoft();               // NT
+                // if (mod & 0x02) updateVideoStandardSoft();               // NT
                 break;
             case 13:
                 //updateBlinking();                                        // Always, even with no change
@@ -509,20 +515,20 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
                 break;
             case 18:
-                if (mod & 0x0f) horizontalAdjust = -7 + ((val & 0x0f) ^ 0x07);
-                if (mod & 0xf0) {
-                    verticalAdjust = -7 + ((val >>> 4) ^ 0x07);
-                    updateSignalMetrics(false);
-                }
+                // if (mod & 0x0f) horizontalAdjust = -7 + ((val & 0x0f) ^ 0x07);
+                // if (mod & 0xf0) {
+                //     verticalAdjust = -7 + ((val >>> 4) ^ 0x07);
+                //     updateSignalMetrics(false);
+                // }
                 break;
             case 19:
-                horizontalIntLine = (val - register[23]) & 255;
+                // horizontalIntLine = (val - register[23]) & 255;
 
                 // logInfo("Line Interrupt set: " + val + ", reg23: " + register[23]);
 
                 break;
             case 23:
-                horizontalIntLine = (register[19] - val) & 255;
+                // horizontalIntLine = (register[19] - val) & 255;
 
                 //logInfo("Vertical offset set: " + val);
 
@@ -618,7 +624,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     this.lineEventStartActiveDisplay = function() {
         status &= ~0x20;                                                                        // HR = 0
 
-        // Verify and change sections of the screen
+        if (currentScanline - frameStartingActiveScanline === horizontalIntLine)
+            triggerHorizontalInterrupt();
+
         if (currentScanline === frameStartingActiveScanline)
             enterActiveDisplay();
     };
@@ -630,9 +638,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     this.lineEventEndActiveDisplay = function() {
         status |= 0x20;                                                                         // HR = 1
-
-        if (currentScanline - frameStartingActiveScanline === horizontalIntLine)
-            triggerHorizontalInterrupt();
 
         if (currentScanline - frameStartingActiveScanline === signalActiveHeight - 1)
             enterBorderDisplay();
@@ -858,6 +863,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function updateSpritePattAddress() {
         spritePattAddress = modeData === modes.P1 ? (register[25] & 0x0e) << 14 : (register[25] & 0x0f) << 15;
+    }
+
+    function updateHorizontalIntLine() {
+        horizontalIntLine = ((register[11] & 0x03) << 8) | register[10];
     }
 
     function updateVideoStandardSoft() {

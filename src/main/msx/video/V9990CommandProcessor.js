@@ -2,7 +2,7 @@
 
 // Commands perform all operation instantaneously at the first cycle. Duration is estimated
 // All color values and write mask, i.e. FC, BC and WM (also SC, DC, WC) are processed as BIG-ENDIAN (high byte first). So FC, BC and WM are read from registers and get H/L bytes swapped
-// This is done so universally FC can be consumed L byte first then H byte in painting commands, associating higher bits of FC with lower X positions directly
+// This is done so universally FC bytes H/L can be aligned with VRAM bytes X mapping
 // Could be improved a lot if we actually perform all operations in 16 bits...
 
 wmsx.V9990CommandProcessor = function() {
@@ -21,6 +21,9 @@ wmsx.V9990CommandProcessor = function() {
     };
 
     this.startCommand = function(val) {
+
+        // console.log(">>>> V9990 Command: " + val.toString(16) + ". DispSprites: " + dispAndSpritesMode);
+
         switch (val & 0xf0) {
             case 0x00:
                 STOP(); break;
@@ -49,7 +52,6 @@ wmsx.V9990CommandProcessor = function() {
             case 0xf0:
                 ADVN(); break;
             default:
-                // console.log(">>>> V9990 Command: " + val.toString(16) + ". DispSprites: " + dispAndSpritesMode);
                 // wmsx.Util.error("Unsupported V9938 Command: " + val.toString(16));
         }
     };
@@ -419,7 +421,7 @@ wmsx.V9990CommandProcessor = function() {
         var op = getLOP();
         var wm = getWM(dyP1Off);
 
-        // console.log("LMMM sx: " + sx + ", sy: " + sy + " + " + syP1Off + ", dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
+        // v9990.logInfo("LMMM sx: " + sx + ", sy: " + sy + " + " + syP1Off + ", dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
 
         // Perform operation
         for (var cy = ny; cy > 0; --cy) {
@@ -987,16 +989,6 @@ wmsx.V9990CommandProcessor = function() {
         return src === 0 ? dest : dest | mask;
     }
 
-
-
-    function min(a, b) {
-        return a < b ? a : b;
-    }
-
-    function max(a, b) {
-        return a > b ? a : b;
-    }
-
     function start(timing, pixels, lines, infinite) {
         CE = 1;
         v9990.setStatusCE(CE);
@@ -1065,6 +1057,25 @@ wmsx.V9990CommandProcessor = function() {
 
     self.COMMAND_PER_PIXEL_DURATION_FACTOR = 0.99;
 
+    // Main V9990 connections
+    var v9990, vram, register;
+
+    var CE = 0;
+    var SX = 0, SY = 0, SYP1Off = 0, DX = 0, DY = 0, DYP1Off = 0, NX = 0, NY = 0, ENY = 0, EDX = 0, ESX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, WM = 0, destPos = 0, LOP;
+    var readData = 0, writeDataPending = null, readDataPending = null, writeHandler = null, readHandler = null;
+    var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
+
+    var modeData, typeData, isP1 = false;
+
+    var dispAndSpritesMode = 0;  // 0: DISP off, 1: DISP on SPD off, 2: DISP on SPD on
+
+    var typeBPP = 8, colosPPBShift = 0, colorPPBMask = 0;
+    var imageWidth = 0, imageHeight = 0, imageWidthMask = 0, imageHeightMask = 0;
+    var imageWidthBytes = 0;
+
+    var turboClockMulti = 1;
+
+
     var LOGICAL_OPERATIONS = [
         lopNULL,           // 0000
         lopNOR,            // 0001
@@ -1100,31 +1111,12 @@ wmsx.V9990CommandProcessor = function() {
         lopTID             // 1111 + T
     ];
 
-    // Turbo
-    var turboClockMulti = 1;
-
-    // Main V9990 connections
-    var v9990, vram, register;
-
-    var CE = 0;
-    var SX = 0, SY = 0, SYP1Off = 0, DX = 0, DY = 0, DYP1Off = 0, NX = 0, NY = 0, ENY = 0, EDX = 0, ESX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, WM = 0, destPos = 0, LOP;
-    var readData = 0, writeDataPending = null, readDataPending = null, writeHandler = null, readHandler = null;
-    var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
-
-    var modeData, typeData, isP1 = false;
-
-    var dispAndSpritesMode = 0;  // 0: DISP off, 1: DISP on SPD off, 2: DISP on SPD on
-
-    var typeBPP = 8, colosPPBShift = 0, colorPPBMask = 0;
-    var imageWidth = 0, imageHeight = 0, imageWidthMask = 0, imageHeightMask = 0;
-    var imageWidthBytes = 0;
-
-
 
     // Timing data for default Base Clock 21MHz (XTAL)
     // Number of 256 pixel blocks transferable in 1 PAL frame for each Mode/Type, BPP, and Sprites ON / Sprites OFF / Display OFF
     // No information available about additional cycles per line. Only per pixel average will be used
     // Therefore => Cycles Per Pixel = BaseClock / 50 / 256 / value
+    // No info for LINE, PSET, SRCH. Using LMMV timing or those
 
     var LMMVTiming = [
         /* Normal Bitmap  */  [ /* DISP off SPD --- */  { 2: 0x02d3, 4: 0x0219, 8: 0x0190, 16: 0x00c8 }, /* DISP on  SPD off */ { 2: 0x02d0, 4: 0x020e, 8: 0x018a, 16: 0x00c7 }, /* DISP on  SPD on  */ { 2: 0x02ab, 4: 0x01f6, 8: 0x0174, 16: 0x00bc }],
