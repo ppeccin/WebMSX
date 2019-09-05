@@ -165,6 +165,7 @@ wmsx.Configurator = {
         WMSX.CPU_SOFT_TURBO_MULTI = isNaN(turboMulti) ? 2 : Number.parseFloat(turboMulti.toFixed(2));
         WMSX.VDP_TURBO_MODE |= 0;
         WMSX.VDP_SOFT_TURBO_MULTI |= 0;
+        WMSX.CPU_SOFT_TURBO_AUTO_ON |= 0;
         WMSX.DEBUG_MODE |= 0;
         WMSX.SPRITES_DEBUG_MODE |= 0;
         WMSX.BOOT_KEYS_FRAMES |= 0;
@@ -178,6 +179,8 @@ wmsx.Configurator = {
         WMSX.VOL = Number(WMSX.VOL) || 1;
         WMSX.HARDDISK_MIN_SIZE_KB |= 0;
         WMSX.MEGARAM_SIZE |= 0;
+        WMSX.FAKE_PANA |= 0;
+        WMSX.FAKE_TR |= 0;
 
         // Boolean parameters (only single parameters known)
         WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED === "true";

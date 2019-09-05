@@ -13,6 +13,7 @@ wmsx.SlotBIOS = function(rom) {
         topAddress = bytes.length;
         self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? wmsx.VideoStandard.NTSC : wmsx.VideoStandard.PAL;
         cassetteDriver.patchBIOS(bytes);
+        turboDriver.patchNewBIOSForFakes(bytes);
     }
 
     this.connect = function(machine) {
@@ -24,6 +25,7 @@ wmsx.SlotBIOS = function(rom) {
 
     this.disconnect = function(machine) {
         if (cassetteDriver) cassetteDriver.disconnect(this, machine);
+        if (turboDriver) turboDriver.disconnect(this, machine);
         machine.setBIOS(null);
     };
 

@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // BUS interface. Controls 4 Primary Slots and I/O Device Ports
+// I/O ports addressing limited to 8 bits (lower 8 bits of Z80 I/O address)
 
 wmsx.BUS = function(machine, cpu) {
 "use strict";
@@ -12,6 +13,7 @@ wmsx.BUS = function(machine, cpu) {
     }
 
     this.powerOn = function() {
+        switchedDevices.reset();
         this.setPrimarySlotConfig(0);
         for (var i = 0; i < 5; i++) slots[i].powerOn();
     };
@@ -21,6 +23,7 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     this.reset = function() {
+        switchedDevices.reset();
         this.setPrimarySlotConfig(0);
         for (var i = 0; i < 5; i++) slots[i].reset();
     };
@@ -155,6 +158,14 @@ wmsx.BUS = function(machine, cpu) {
         if (writeMonitor) this.write = this.writeWithBusMonitor;
     };
 
+    this.connectSwitchedDevice = function(port, device) {
+        switchedDevices.connectSwitchedDevice(port, device);
+    };
+
+    this.disconnectSwitchedDevice = function(port, device) {
+        switchedDevices.disconnectSwitchedDevice(port, device);
+    };
+
     function create() {
         // Slots
         slot0 = slot1 = slot2 = slot3 = slotModules = slotEmpty;
@@ -163,6 +174,10 @@ wmsx.BUS = function(machine, cpu) {
         // Devices
         devicesInputPorts =  wmsx.Util.arrayFill(new Array(256), deviceInputMissing);
         devicesOutputPorts = wmsx.Util.arrayFill(new Array(256), deviceOutputMissing);
+
+        // Switched IP Ports
+        switchedDevices = new wmsx.SwitchedDevices();
+        switchedDevices.connect(self);
 
         // Debug
         self.slots = slots;
@@ -182,6 +197,8 @@ wmsx.BUS = function(machine, cpu) {
 
     var devicesInputPorts;
     var devicesOutputPorts;
+
+    var switchedDevices;
 
     var writeMonitor;
 

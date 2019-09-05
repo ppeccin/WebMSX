@@ -1,6 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Turbo Control Driver. Implements BIOS public calls using the CPU extension protocol
+// Turbo Control Driver
+// Implements BIOS routines CHGCPU/GETCPU using the CPU extension protocol and the Panasonic MSX2+ Switched I/O Port for 1.5x CPU Turbo
+
 wmsx.TurboDriver = function() {
 "use strict";
 
@@ -13,20 +15,38 @@ wmsx.TurboDriver = function() {
         this.turboModesUpdate();
     };
 
+    this.disconnect = function(pBios, machine) {
+        machine.bus.disconnectSwitchedDevice(0x08, this);
+    };
+
     this.reset = function() {
-        chgCpuValue = 0;
-        if (!softTurboON) return;
-        softTurboON = false;
+        if (WMSX.CPU_SOFT_TURBO_AUTO_ON) {
+            chgCpuValue = 0x82;
+            softTurboON = true;
+        } else {
+            chgCpuValue = 0;
+            softTurboON = false;
+        }
         this.turboModesUpdate();
     };
 
+    this.patchNewBIOSForFakes = function(bytes) {
+        // Fake TurboR ID
+        if (WMSX.FAKE_TR) bytes[0x002d] = 3;
+    };
+
     this.turboModesUpdate = function() {
-        var softTurbo = machine.machineType >= 2;         // auto: Only for MSX2 or better, CHGCPU active
+        var softTurbo = machine.machineType >= 2 & (WMSX.FAKE_TR || WMSX.FAKE_PANA);         // Only for MSX2 or better, CHGCPU active
         var cpuMode = machine.getCPUTurboMode();
         var vdpMode = machine.getVDPTurboMode();
 
-        if (cpuMode < 0 || !softTurbo) unPatchBIOS();
-        else patchBIOS();
+        if (cpuMode < 0 || !softTurbo) {
+            unPatchBIOS();
+            machine.bus.disconnectSwitchedDevice(0x08, this);
+        } else {
+            if (WMSX.FAKE_TR) patchBIOS();
+            if (WMSX.FAKE_PANA) machine.bus.connectSwitchedDevice(0x08, this);
+        }
 
         machine.cpu.setCPUTurboMulti(cpuMode === 0 && softTurbo && softTurboON ? WMSX.CPU_SOFT_TURBO_MULTI : cpuMode <= 0 ? 1 : cpuMode);
         machine.vdp.setVDPTurboMulti(vdpMode === 0 && softTurbo && softTurboON ? WMSX.VDP_SOFT_TURBO_MULTI : vdpMode > 1 ? vdpMode : 1);
@@ -35,7 +55,7 @@ wmsx.TurboDriver = function() {
     };
 
     this.cpuExtensionBegin = function(s) {
-        if (machine.machineType <= 1) return;           // Only for MSX2 or better, safety
+        if (machine.machineType <= 1) return;           // Only for >= MSX2. Defensive
         switch (s.extNum) {
             case 0xe8:
                 return CHGCPU(s.A);
@@ -50,9 +70,6 @@ wmsx.TurboDriver = function() {
 
     function patchBIOS() {
         var bytes = bios.bytes;
-
-        // Fake TurboR ID
-        if (WMSX.FAKE_TR) bytes[0x002d] = 3;    // tR ID
 
         // CHGCPU/GETCPU Routines
 
@@ -91,7 +108,7 @@ wmsx.TurboDriver = function() {
     }
 
     function CHGCPU(A) {
-        // console.log("CHGCPU: " + A);
+        // console.log("CHGCPU: " + A.toString(16));
 
         chgCpuValue = A & 0x83;
         var newSoftON = (chgCpuValue & 0x03) > 0;
@@ -107,10 +124,28 @@ wmsx.TurboDriver = function() {
     }
 
     function GETCPU() {
-        // console.log("GETCPU");
+        // console.log("GETCPU : " + chgCpuValue.toString(16));
 
         return { A: chgCpuValue };
     }
+
+    this.switchedPortInput = function (port) {
+        if (port !== 0x41) return 0xff;     // Only Panasonic MSX2+ Turbo port
+
+        var res = softTurboON ? 0x00 : 0x01;
+
+        // console.log("PANA Turbo read: " + res.toString(16));
+
+        return res;
+    };
+
+    this.switchedPortOutput = function (val, port) {
+        if (port !== 0x41) return;          // Only Panasonic MSX2+ Turbo port
+
+        // console.log("PANA Turbo write: " + val.toString(16));
+
+        CHGCPU((val & 0x01) === 0 ? 0x81 : 0x00);
+    };
 
 
     // Savestate  -------------------------------------------

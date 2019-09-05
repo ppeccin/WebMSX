@@ -16,3 +16,6 @@
 
 * Baltak demo freezes. At different position when coming from savestates of different machine type???
 * Text on touch buttons is a little down on Android
+
+
+poke &he000, &h3e : poke &he001, &h82 : poke &he002, &hcd : poke &he003, &h80 : poke &he004, &h01 : poke &he005, &hc9 : defusr 0 = &he000 : print usr(0)

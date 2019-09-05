@@ -1091,7 +1091,7 @@ wmsx.Machine = function() {
                 case controls.CPU_TURBO_MODE:
                     var multi = cpu.getCPUTurboMulti();
                     var desc = cpuTurboMode < 0 ? "OFF" : cpuTurboMode === 0 ? "Auto" + (multi !== 1 ? " " + multi + "x" : "") : "" + multi + "x" ;
-                    return { label: desc, active: multi > 1 };
+                    return { label: desc, active: multi !== 1 };
                 case controls.VDP_TURBO_MODE:
                     multi = vdp.getVDPTurboMulti();
                     return { label: self.getVDPTurboModeDesc(), active: multi !== 1 };
