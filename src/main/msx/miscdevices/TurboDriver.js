@@ -36,7 +36,7 @@ wmsx.TurboDriver = function() {
     };
 
     this.turboModesUpdate = function() {
-        var softTurbo = machine.machineType >= 2 & (WMSX.FAKE_TR || WMSX.FAKE_PANA);         // Only for MSX2 or better, CHGCPU active
+        var softTurbo = machine.machineType >= 2 && (WMSX.FAKE_TR || WMSX.FAKE_PANA);         // Only for MSX2 or better, CHGCPU active
         var cpuMode = machine.getCPUTurboMode();
         var vdpMode = machine.getVDPTurboMode();
 

@@ -932,7 +932,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function updateBlinking() {
-        blinkPerLine = (register[1] & 0x04) !== 0;               // Ser blinking speed per line instead od per frame, based on undocumented CDR but
+        blinkPerLine = (register[1] & 0x04) !== 0;               // Set tlinking speed per line instead of frame, based on undocumented CDR bit
         if ((register[13] >>> 4) === 0) {
             blinkEvenPage = false; blinkPageDuration = 0;        // Force page to be fixed on the Odd page
         } else if ((register[13] & 0x0f) === 0) {
