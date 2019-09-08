@@ -102,7 +102,10 @@ wmsx.TurboDriver = function() {
         var bytes = bios.bytes;
         if (bytes[0x190] !== 0xed) return;      // already un-patched
 
-        bytes[0x0180] = bytes[0x0183] = bytes[0x018d] = bytes[0x0190] = 0xc9;
+        bytes[0x0180] = bytes[0x0181] = bytes[0x0182] =
+        bytes[0x0183] = bytes[0x0184] = bytes[0x0185] =
+        bytes[0x018d] = bytes[0x018e] = bytes[0x018f] =
+        bytes[0x0190] = bytes[0x0191] = bytes[0x0192] = 0xc9;
 
         // console.log("BIOS UN-Patched");
     }
@@ -124,9 +127,11 @@ wmsx.TurboDriver = function() {
     }
 
     function GETCPU() {
-        // console.log("GETCPU : " + chgCpuValue.toString(16));
+        var res = chgCpuValue & 0x03;
 
-        return { A: chgCpuValue };
+        // console.log("GETCPU : " + res.toString(16));
+
+        return { A: res };
     }
 
     this.switchedPortInput = function (port) {
