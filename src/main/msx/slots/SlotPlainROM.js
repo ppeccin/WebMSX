@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Any ROM Content. Used for Unknown ROMs while testing
+// Any Undetectable Plain ROM Content
 
 wmsx.SlotPlainROM = function(rom) {
 "use strict";
@@ -34,6 +34,7 @@ wmsx.SlotPlainROM = function(rom) {
 
     this.saveState = function() {
         return {
+            f: this.format.name,
             r: this.rom.saveState(),
             b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             ba: baseAddress
