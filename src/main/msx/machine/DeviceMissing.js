@@ -3,13 +3,13 @@
 wmsx.DeviceMissing = {
 
     inputPort: function (port) {
-        // if (self.debugMode && !wmsx.DeviceMissing.IGNORED_PORTS.has(port & 255))
+        // if (!wmsx.DeviceMissing.IGNORED_PORTS.has(port & 255))
         //    wmsx.Util.log("Missing IN " + (port & 255).toString(16));
         return 0xff;
     },
 
     outputPort: function (val, port) {
-        // if (self.debugMode && !wmsx.DeviceMissing.IGNORED_PORTS.has(port & 255))
+        // if (!wmsx.DeviceMissing.IGNORED_PORTS.has(port & 255))
         //    wmsx.Util.log("Missing OUT " + (port & 255).toString(16) + ", " + val.toString(16));
     },
 
@@ -45,14 +45,17 @@ wmsx.DeviceMissing = {
         // 0xc4, 0xc5, 0xc6, 0xc7,          // MoonSound FM
 
         0xc8, 0xc9, 0xca, 0xcb,             // MSX-INTERFACE
-        0xcc, 0xcd, 0xce, 0xcf
+        0xcc, 0xcd, 0xce, 0xcf,
+
+        0xa4, 0xa5,                         // Internal PCM
+
+        0xe8, 0xe9, 0xea, 0xeb,             // Internal MSX-MIDI
+        0xec, 0xed, 0xee, 0xef
 
     ]),
 
     setDebugMode: function(mode) {
-        self.debugMode = mode;
-    },
-
-    debugMode: 0
+        // Nothing here
+    }
 
 };

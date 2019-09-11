@@ -85,7 +85,7 @@ wmsx.SlotFormats = {
 
     "MSX2BIOSExt": {
         name: "MSX2BIOSExt",
-        desc: "MSX2/2+ BIOS Extension",
+        desc: "MSX2/2+/tR BIOS Extension",
         priority: 202,
         internal: true,
         priorityForRom: function (rom) {
@@ -134,6 +134,22 @@ wmsx.SlotFormats = {
         },
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.SlotRAMMapper.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "PlainROM": {
+        name: "PlainROM",
+        desc: "Plain ROM",
+        priority: 1013,
+        priorityForRom: function (rom) {
+            // Any > 0 & <= 4M content. Must be selected via info format hint
+            return rom.content.length > 0 && rom.content.length <= 4194304 ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.SlotPlainROM(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.SlotPlainROM.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -902,6 +918,23 @@ wmsx.SlotFormats = {
             return wmsx.CartridgeDOS2.recreateFromSaveState(state, previousSlot);
         }
     }
+
+    // "MSXDOS2TRDiskPatch": {
+    //     name: "MSXDOS2TRDiskPatch",
+    //     desc: "MSX-DOS 2 + Patched Disk BIOS",
+    //     priority: 1511,
+    //     priorityForRom: function (rom) {
+    //         // Only 64K content. Must be selected via info format hint
+    //         return (rom.content.length === 65536) ? this.priority : null;
+    //     },
+    //     createFromROM: function (rom) {
+    //         return new wmsx.CartridgeDOS2TRDiskPatched(rom);
+    //     },
+    //     recreateFromSaveState: function (state, previousSlot) {
+    //         return wmsx.CartridgeDOS2TRDiskPatched.recreateFromSaveState(state, previousSlot);
+    //     }
+    // }
+
 };
 
 // Temporary approximations for formats not yet supported/verified

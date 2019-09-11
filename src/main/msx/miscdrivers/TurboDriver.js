@@ -95,7 +95,7 @@ wmsx.TurboDriver = function() {
         bytes[0x0191] = 0xe9;
         bytes[0x0192] = 0xc9;
 
-        // console.log("BIOS Patched");
+        // console.log("Turbo BIOS Patched");
     }
 
     function unPatchBIOS() {
@@ -107,7 +107,7 @@ wmsx.TurboDriver = function() {
         bytes[0x018d] = bytes[0x018e] = bytes[0x018f] =
         bytes[0x0190] = bytes[0x0191] = bytes[0x0192] = 0xc9;
 
-        // console.log("BIOS UN-Patched");
+        // console.log("Turbo BIOS UN-Patched");
     }
 
     function CHGCPU(A) {

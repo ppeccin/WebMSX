@@ -87,7 +87,7 @@ WMSX = {
     TOUCH_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
     CPU_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); (0..8]: CPU clock multiplier; 1: 2x multiplier (backward compatibility)
     VDP_TURBO_MODE:                 0,                          // -1: off; 0: auto (software activation); 2..8: VDP Command Engine clock multiplier; 9: instantaneous
-    CPU_SOFT_TURBO_MULTI:           2,                          // 1..8 CPU clock multiplier when in AUTO mode and activated by software or CPU_SOFT_TURBO_AUTO_ON
+    CPU_SOFT_TURBO_MULTI:           1,                          // 1..8 CPU clock multiplier when in AUTO mode and activated by software or CPU_SOFT_TURBO_AUTO_ON
     VDP_SOFT_TURBO_MULTI:           1,                          // 1..9 VDP Command Engine clock multiplier when in AUTO mode and activated by software or CPU_SOFT_TURBO_AUTO_ON
     CPU_SOFT_TURBO_AUTO_ON:         0,
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
@@ -98,7 +98,7 @@ WMSX = {
     MEGARAM_SIZE:                   2048,                       // 256, 512, 1024, 2048: MegaRAM size in KB
     DISK_ROM_START_PAGE:            0,                          // 0..1: Change starting page for ROMs > 16KB when format is DiskPatch
     LIGHT_STATES:                   true,
-    FAKE_PANA:                      1,
+    FAKE_PANA:                      0,
     FAKE_TR:                        0,
 
     PSG_VOL:                        "f",                        // 0..f (hex digit):       PSG Volume adjust. Set globally or for each channel (4 values)
@@ -260,8 +260,6 @@ WMSX.PRESETS_CONFIG = {
     _MSX2PPBASE: {
         _INCLUDE:           "HARDDISK",
         CPU_SOFT_TURBO_MULTI:   3,
-        VDP_SOFT_TURBO_MULTI:   3,
-        CPU_SOFT_TURBO_AUTO_ON: 1,
         FAKE_PANA:              0,
         FAKE_TR:                1
     },
@@ -287,7 +285,9 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PBASE: {
-        _INCLUDE:           "_MSX2BASE"
+        _INCLUDE:           "_MSX2BASE",
+        CPU_SOFT_TURBO_MULTI:  1.5,
+        FAKE_PANA:             1
     },
 
     // MSX2 Machine Presets. Do not use directly
@@ -349,10 +349,10 @@ WMSX.PRESETS_CONFIG = {
     },
 
     _BASE: {
-        CPU_SOFT_TURBO_MULTI:   2,
+        CPU_SOFT_TURBO_MULTI:   1,
         VDP_SOFT_TURBO_MULTI:   1,
         CPU_SOFT_TURBO_AUTO_ON: 0,
-        FAKE_PANA:              1,
+        FAKE_PANA:              0,
         FAKE_TR:                0,
         VDP_TYPE:              -1,
         RTC_ACTIVE:            -1

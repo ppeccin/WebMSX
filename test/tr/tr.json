@@ -1,0 +1,27 @@
+
+{
+
+    "MACHINES_CONFIG": {
+        "_clear": true,
+
+        "turboR": { "DESC": "MSX turbo R", "TYPE": 5, "PRESETS": "_TR", "LANG": "ja", "CODE_LABEL": "KANA" }
+    },
+
+    "EXTENSIONS_CONFIG": {
+    },
+
+    "PRESETS_CONFIG": {
+        "_TR": {
+            "_INCLUDE":       "RAMMAPPER, HARDDISK, DISK, MSXMUSIC, KANJI",
+            "SLOT00_URL":     "tr/MSXTR_JAP.bios",
+            "SLOT03_URL":     "tr/MSXTROPEN.bios", "SLOT03_FORMAT": "PlainROM",
+            "SLOT31_URL":     "tr/MSXTREXT_JAP.bios | tr/KanjiBasicTR.bios",
+            "RAMMAPPER_SIZE": 512,
+            "VDP_TYPE": 3
+        }
+    }
+
+}
+
+
+

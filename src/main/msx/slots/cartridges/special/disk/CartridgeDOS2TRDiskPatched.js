@@ -1,11 +1,10 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Patched Disk ROM content >= 16K & <= 64K, starting at 0x0000 or 0x4000. Can be bundled with other BIOS/ROMs
-// Disk ROM will be patched at 0x4000, depending on DISK_ROM_START parameter
-// Multiple format, used for all Disk ROM manufacturers. Accesses and commands the Disk Drive
-// 0x0000 - ????, 0x4000 - ????
+// Patched DOS2 + Disk ROM content = 64K, starting at 0x4000
+// Disk ROM will be patched at 0xC000
+// 0x4000 - 0x7FFF
 
-wmsx.CartridgeDiskPatched = function(rom) {
+wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
 "use strict";
 
     function init(self) {
@@ -13,19 +12,27 @@ wmsx.CartridgeDiskPatched = function(rom) {
         bytes = new Array(rom.content.length + 0x100);      // Additional 0x100 bytes for CHOICE string
         wmsx.Util.arrayCopy(rom.content, 0, bytes);
         self.bytes = bytes;
-        baseAddress = rom.content.length === 0x4000 ? 0x4000 : (WMSX.DISK_ROM_START_PAGE || 0) * 0x4000;
-        topAddress = baseAddress + bytes.length;
-        driver.patchDiskBIOS(bytes, baseAddress === 0x4000 ? 0 : 0x4000);
+        driver.patchDiskBIOS(bytes, 0xc0000);
     }
 
     this.connect = function(machine) {
         driver.connect(this, machine);
         machine.getDiskDriveSocket().diskInterfaceConnected(this);
+        machine.getDiskDriveSocket().dos2ROMConnected(this);
     };
 
     this.disconnect = function(machine) {
         driver.disconnect(this, machine);
         machine.getDiskDriveSocket().diskInterfaceDisconnected(this);
+        machine.getDiskDriveSocket().dos2ROMDisconnected(this);
+    };
+
+    this.powerOn = function() {
+        this.reset();
+    };
+
+    this.reset = function() {
+        bankOffset = -0x4000;
     };
 
     this.powerOff = function() {
@@ -33,9 +40,14 @@ wmsx.CartridgeDiskPatched = function(rom) {
     };
 
     this.read = function(address) {
-        if (address >= baseAddress && address < topAddress)
-            return bytes[address - baseAddress];
+        if (address >= 0x4000 && address < 0x8000)      // page 1 only
+            return bytes[bankOffset + address];
         return 0xff;
+    };
+
+    this.write = function(address, value) {
+        if (address === 0x7ffd)
+            bankOffset = ((value & 0x03) << 14) - 0x4000;
     };
 
     this.cpuExtensionBegin = function(s) {
@@ -52,12 +64,14 @@ wmsx.CartridgeDiskPatched = function(rom) {
     var bytes;
     this.bytes = null;
 
-    var baseAddress, topAddress;
+    var baseAddress = 0x4000, topAddress = 0x8000;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.DiskPatch;
+    this.format = wmsx.SlotFormats.MSXDOS2TRDiskPatch;
 
     var driver = new wmsx.ImageDiskDriver();
+
+    var bankOffset;
 
 
     // Savestate  -------------------------------------------
@@ -66,15 +80,14 @@ wmsx.CartridgeDiskPatched = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            b: /* this.lightState() ? null : */ wmsx.Util.compressInt8BitArrayToStringBase64(bytes),        // Not Embedded!
             d: driver.saveState(),
-            ba: baseAddress
+            b1: bankOffset
         };
     };
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        baseAddress = s.ba !== undefined ? s.ba : 0x4000;     // backward compatibility
         if (s.b)
             bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         else {
@@ -82,10 +95,10 @@ wmsx.CartridgeDiskPatched = function(rom) {
             var len = this.rom.content.length + 0x100;
             if (!bytes || bytes.length !== len) bytes = new Array(len);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
-            driver.patchDiskBIOS(bytes, baseAddress === 0x4000 ? 0 : 0x4000);
+            driver.patchDiskBIOS(bytes, 0xc000);
         }
         this.bytes = bytes;
-        topAddress = baseAddress + bytes.length;
+        bankOffset = s.b1;
         driver.loadState(s.d);
     };
 
@@ -94,10 +107,10 @@ wmsx.CartridgeDiskPatched = function(rom) {
 
 };
 
-wmsx.CartridgeDiskPatched.prototype = wmsx.Slot.base;
+wmsx.CartridgeDOS2TRDiskPatched.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeDiskPatched.recreateFromSaveState = function(state, previousSlot) {
-    var cart = previousSlot || new wmsx.CartridgeDiskPatched(null);
+wmsx.CartridgeDOS2TRDiskPatched.recreateFromSaveState = function(state, previousSlot) {
+    var cart = previousSlot || new wmsx.CartridgeDOS2TRDiskPatched(null);
     cart.loadState(state);
     return cart;
 };

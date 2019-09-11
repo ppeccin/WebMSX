@@ -52,6 +52,10 @@ wmsx.SlotBIOS = function(rom) {
             return 0xff;
     };
 
+    // this.write = function(address, value) {
+    //     wmsx.Util.log ("BIOS write: " + address.toString(16) + ", " + value.toString(16) + ". SlotConf: " + WMSX.room.machine.bus.getPrimarySlotConfig().toString(16));
+    // };
+
     this.cpuExtensionBegin = function(s) {
         // Receive all CPU Extensions and pass to the Cassette Driver or Turbo Driver
         return s.extNum < 0xe8 ? cassetteDriver.cpuExtensionBegin(s) : turboDriver.cpuExtensionBegin(s);

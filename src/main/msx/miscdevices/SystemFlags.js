@@ -6,7 +6,8 @@ wmsx.SystemFlags = function() {
 "use strict";
 
     this.setMachineType = function(type) {
-        active = type >= 3;     // auto: Only for MSX2+ or better
+        // Ports F3/F4 active for >= MSX2+, port A7 active for >= turboR
+        machineType = type;
     };
 
     this.connectBus = function(bus) {
@@ -14,13 +15,17 @@ wmsx.SystemFlags = function() {
         bus.connectOutputDevice(0xf3, this.outputF3);
         bus.connectInputDevice( 0xf4, this.inputF4);                            // System Boot flags (2+ only)
         bus.connectOutputDevice(0xf4, this.outputF4);
-        bus.connectInputDevice( 0xf5, wmsx.DeviceMissing.outputPortIgnored);    // System Control flags
+
+        bus.connectInputDevice( 0xa7, this.inputA7);
+        bus.connectOutputDevice(0xa7, this.outputA7);
+
+        bus.connectInputDevice( 0xf5, wmsx.DeviceMissing.outputPortIgnored);    // System Control flags, unsupported
         bus.connectOutputDevice(0xf5, wmsx.DeviceMissing.outputPortIgnored);
-        bus.connectInputDevice( 0xf6, wmsx.DeviceMissing.inputPortIgnored);     // Color Bus
+        bus.connectInputDevice( 0xf6, wmsx.DeviceMissing.inputPortIgnored);     // Color Bus, unsupported
         bus.connectOutputDevice(0xf6, wmsx.DeviceMissing.outputPortIgnored);
-        bus.connectInputDevice( 0xf7, wmsx.DeviceMissing.inputPortIgnored);     // AV Control
+        bus.connectInputDevice( 0xf7, wmsx.DeviceMissing.inputPortIgnored);     // AV Control, unsupported
         bus.connectOutputDevice(0xf7, wmsx.DeviceMissing.outputPortIgnored);
-        bus.connectInputDevice( 0xf8, wmsx.DeviceMissing.inputPortIgnored);     // Optional AV Control (PAL)
+        bus.connectInputDevice( 0xf8, wmsx.DeviceMissing.inputPortIgnored);     // Optional AV Control (PAL), unsupported
         bus.connectOutputDevice(0xf8, wmsx.DeviceMissing.outputPortIgnored);
     };
 
@@ -32,50 +37,62 @@ wmsx.SystemFlags = function() {
     };
 
     this.reset = function() {
-        bootFlags = BOOT_FLAGS_POWERON;
-        vdpFlags = VDP_FLAGS_POWERON;
+        bootFlags = machineType >= MSXTR ? 0x00 : 0xff;     // Normal for turboR, inverted for MSX2+
+        vdpFlags = 0x00;
+        pauseFlag = 0x00;
     };
 
     this.inputF3 = function() {
-        return active ? vdpFlags : 0xff;
+        return machineType >= MSX2P ? vdpFlags : 0xff;
     };
 
     this.outputF3 = function(val) {
-        if (active) vdpFlags = val;
+        if (machineType >= MSX2P) vdpFlags = val;
     };
 
     this.inputF4 = function() {
-        return active ? bootFlags : 0xff;
+        return machineType >= MSX2P ? bootFlags : 0xff;
     };
 
     this.outputF4 = function(val) {
-        if (active) bootFlags = val;
+        if (machineType >= MSX2P) bootFlags = val;
+    };
+
+    this.inputA7 = function() {
+        return machineType >= MSXTR ? pauseFlag : 0xff;
+    };
+
+    this.outputA7 = function(val) {
+        if (machineType >= MSXTR) pauseFlag = val;
     };
 
 
+    var MSX1 = wmsx.Machine.MACHINE_TYPE.MSX1;
+    var MSX2P = wmsx.Machine.MACHINE_TYPE.MSX2P;
+    var MSXTR = wmsx.Machine.MACHINE_TYPE.MSXTR;
+
+    var machineType = 1;
     var active;
 
-    var BOOT_FLAGS_POWERON = 0xff;
-    var VDP_FLAGS_POWERON = 0x00;
-
-    var bootFlags;
-    var vdpFlags;
+    var bootFlags = 0;
+    var vdpFlags = 0;
+    var pauseFlag = 0;
 
 
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
-            a: active,
             bf: bootFlags,
-            vf: vdpFlags
+            vf: vdpFlags,
+            mt: machineType
         };
     };
 
     this.loadState = function(s) {
-        active = s.a !== undefined ? s.a : s.m2p;    // Backward compatibility
         bootFlags = s.bf;
         vdpFlags = s.vf;
+        machineType = s.mt !== undefined ? s.mt : (s.a !== undefined ? s.a : s.m2p) ? MSX2P : MSX1;    // Backward compatibility
     };
 
 };

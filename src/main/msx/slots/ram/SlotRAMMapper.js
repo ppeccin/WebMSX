@@ -84,7 +84,8 @@ wmsx.SlotRAMMapper = function(rom) {
     };
 
     this.read = function(address) {
-        //wmsx.Util.log ("RAM Mapper read: " + address.toString(16) + ", " + bytes[address].toString(16));
+        // wmsx.Util.log ("RAM Mapper read: " + address.toString(16) + ", " + bytes[address].toString(16) + ". SlotConf: " + WMSX.room.machine.bus.getPrimarySlotConfig().toString(16));
+
         switch (address & 0xc000) {
             case 0x0000: return bytes[address + page0Offset];
             case 0x4000: return bytes[address + page1Offset];
@@ -94,7 +95,8 @@ wmsx.SlotRAMMapper = function(rom) {
     };
 
     this.write = function(address, value) {
-        //wmsx.Util.log ("RAM Mapper write: " + address.toString(16) + ", " + value.toString(16));
+        // wmsx.Util.log ("RAM Mapper write: " + address.toString(16) + ", " + value.toString(16) + ". SlotConf: " + WMSX.room.machine.bus.getPrimarySlotConfig().toString(16));
+
         switch (address & 0xc000) {
             case 0x0000: bytes[address + page0Offset] = value; return;
             case 0x4000: bytes[address + page1Offset] = value; return;
