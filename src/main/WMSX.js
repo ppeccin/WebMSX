@@ -268,19 +268,19 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX2PA: {
         _INCLUDE:           "_MSX2PBASE",
-        SLOT0_URL:          "@MSX2P_NTSC.bios",
+        SLOT0P_URL:         "@MSX2P_NTSC.bios",
         SLOT31_URL:         "@MSX2PEXT_NTSC.bios | @KanjiBasic.bios",
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PE: {
         _INCLUDE:           "_MSX2PBASE",
-        SLOT0_URL:          "@MSX2P_PAL.bios",
+        SLOT0P_URL:         "@MSX2P_PAL.bios",
         SLOT31_URL:         "@MSX2PEXT_PAL.bios | @KanjiBasic_PAL.bios",
         BOOT_DURATION_AUTO: 395
     },
     _MSX2PJ: {
         _INCLUDE:           "_MSX2PBASE, KANJI",
-        SLOT0_URL:          "@MSX2P_JAP.bios",
+        SLOT0P_URL:         "@MSX2P_JAP.bios",
         SLOT31_URL:         "@MSX2PEXT_JAP.bios | @KanjiBasic.bios",
         BOOT_DURATION_AUTO: 380
     },
@@ -294,19 +294,19 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX2A: {
         _INCLUDE:           "_MSX2BASE",
-        SLOT0_URL:          "@MSX2_NTSC.bios",
+        SLOT0P_URL:         "@MSX2_NTSC.bios",
         SLOT31_URL:         "@MSX2EXT_NTSC.bios",
         BOOT_DURATION_AUTO: 385
     },
     _MSX2E: {
         _INCLUDE:           "_MSX2BASE",
-        SLOT0_URL:          "@MSX2_PAL.bios",
+        SLOT0P_URL:         "@MSX2_PAL.bios",
         SLOT31_URL:         "@MSX2EXT_PAL.bios",
         BOOT_DURATION_AUTO: 400
     },
     _MSX2J: {
         _INCLUDE:           "_MSX2BASE, KANJI",
-        SLOT0_URL:          "@MSX2_JAP.bios",
+        SLOT0P_URL:         "@MSX2_JAP.bios",
         SLOT31_URL:         "@MSX2EXT_JAP.bios | @KanjiBasic.bios",
         BOOT_DURATION_AUTO: 360
     },
@@ -318,17 +318,17 @@ WMSX.PRESETS_CONFIG = {
 
     _MSX1A: {
         _INCLUDE:           "_MSX1BASE",
-        SLOT0_URL:          "@MSX1_NTSC.bios",
+        SLOT0P_URL:         "@MSX1_NTSC.bios",
         BOOT_DURATION_AUTO: 375
     },
     _MSX1E: {
         _INCLUDE:           "_MSX1BASE",
-        SLOT0_URL:          "@MSX1_PAL.bios",
+        SLOT0P_URL:         "@MSX1_PAL.bios",
         BOOT_DURATION_AUTO: 375
     },
     _MSX1J: {
         _INCLUDE:           "_MSX1BASE",
-        SLOT0_URL:          "@MSX1_JAP.bios",
+        SLOT0P_URL:         "@MSX1_JAP.bios",
         BOOT_DURATION_AUTO: 230
     },
     _MSX1BASE: {

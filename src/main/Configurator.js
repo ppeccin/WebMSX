@@ -225,18 +225,23 @@ wmsx.Configurator = {
                             var formatParam = "SLOT" + nums[0] + (nums[1] || "") + "_FORMAT";
                             var format = url ? WMSX[formatParam] : null;
                             delete WMSX[formatParam];
-                            addSpec(url || "@[Empty].rom", pos, format);
+
+                            var startAddrParam = "SLOT" + nums[0] + (nums[1] || "") + "_START";
+                            var startAddr = url ? WMSX[startAddrParam] : null;
+                            delete WMSX[startAddrParam];
+
+                            addSpec(url || "@[Empty].rom", pos, format, startAddr);
                         }
                     }
                 }
             }
         }
 
-        function addSpec(url, pos, format) {
+        function addSpec(url, pos, format, startAddr) {
             urlSpecs[urlSpecs.length] = {
                 url: url,
                 onSuccess: function (res) {
-                    WMSX.room.fileLoader.loadFromContentAsSlot(res.url, res.content, pos, true, format, true);      // internal
+                    WMSX.room.fileLoader.loadFromContentAsSlot(res.url, res.content, pos, true, format, startAddr, true);      // internal
                 }
             };
         }

@@ -14,7 +14,7 @@
         "_TR": {
             "_INCLUDE":       "RAMMAPPER, HARDDISK, DISK, MSXMUSIC, KANJI",
             "SLOT00_URL":     "tr/MSXTR_JAP.bios",
-            "SLOT03_URL":     "tr/MSXTROPEN.bios", "SLOT03_FORMAT": "PlainROM",
+            "SLOT03_URL":     "tr/MSXTROPEN.bios", "SLOT03_FORMAT": "PlainROM", "SLOT03_START": "0x4000",
             "SLOT31_URL":     "tr/MSXTREXT_JAP.bios | tr/KanjiBasicTR.bios",
             "RAMMAPPER_SIZE": 512,
             "VDP_TYPE": 3

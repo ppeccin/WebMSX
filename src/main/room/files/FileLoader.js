@@ -189,18 +189,18 @@ wmsx.FileLoader = function(room) {
         }
     };
 
-    this.loadFromContentAsSlot = function (name, content, slotPos, altPower, format, internal) {
+    this.loadFromContentAsSlot = function (name, content, slotPos, altPower, format, startAddr, internal) {
         var zip = wmsx.Util.checkContentIsZIP(content);
         if (zip) {
             try {
                 var files = wmsx.Util.getZIPFilesSorted(zip);
                 for (var i = 0; i < files.length; i++)
-                    if (tyrLoadContentAsSingleSlot(name, files[i].asUint8Array(), slotPos, altPower, format, internal)) return;
+                    if (tyrLoadContentAsSingleSlot(name, files[i].asUint8Array(), slotPos, altPower, format, startAddr, internal)) return;
             } catch (ez) {
                 // Error decompressing files. Abort
             }
         } else {
-            if (tyrLoadContentAsSingleSlot(name, content, slotPos, altPower, format, internal)) return;
+            if (tyrLoadContentAsSingleSlot(name, content, slotPos, altPower, format, startAddr, internal)) return;
         }
         showError("Unsupported ROM file!");
     };
@@ -276,8 +276,8 @@ wmsx.FileLoader = function(room) {
         return false;
     }
 
-    function tyrLoadContentAsSingleSlot(name, content, slotPos, altPower, format, internal) {
-        var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content, null, format));
+    function tyrLoadContentAsSingleSlot(name, content, slotPos, altPower, format, startAddr, internal) {
+        var slot = wmsx.SlotCreator.createFromROM(new wmsx.ROM(name, content, null, format, startAddr));
         if (!slot) return false;
         slotSocket.insertSlot(slot, slotPos, altPower, internal);
         return true;

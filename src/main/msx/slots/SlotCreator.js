@@ -49,7 +49,7 @@ wmsx.SlotCreator = function () {
         return formatOptions;
     };
 
-    this.produceInfo = function(rom, formatHint) {
+    this.produceInfo = function(rom, formatHint, startAddress) {
         // Preserve original length as MD5 computation may increase it
         var origLen = rom.content.length;
 
@@ -70,7 +70,7 @@ wmsx.SlotCreator = function () {
             if (!silent) wmsx.Util.log("ROM: " + (origLen > 0 ? "Unknown content" : "No content") + ", " + info.n + (info.f ? ", format: " + info.f : "") + (hash ? " (" + hash + ")" : " (no hash computed)"));
         }
 
-        finishInfo(info, rom.source, hash, formatHint);
+        finishInfo(info, rom.source, hash, formatHint, startAddress);
         return info;
     };
 
@@ -106,7 +106,7 @@ wmsx.SlotCreator = function () {
     };
 
     // Fill absent information based on ROM name
-    var finishInfo = function(info, romSource, hash, formatHint) {
+    var finishInfo = function(info, romSource, hash, formatHint, startAddress) {
         // Saves the hash on the info
         info.h = hash;
         // Adjust Format information if hint passed
@@ -129,6 +129,8 @@ wmsx.SlotCreator = function () {
                     break;
                 }
         }
+        // Adjust Starting Address information
+        if (startAddress !== undefined && startAddress !== null) info.s = parseInt(startAddress) | 0;
         // Compute label based on other info
         // Label not being used yet. if (!info.l) info.l = produceCartridgeLabel(info);
     };

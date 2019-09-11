@@ -2,19 +2,20 @@
 
 // Any ROM Content. Used for Unknown ROMs while testing
 
-wmsx.SlotPlainROM = function(rom, format) {
+wmsx.SlotPlainROM = function(rom) {
 "use strict";
 
     function init(self) {
         self.rom = rom;
         bytes = wmsx.Util.asNormalArray(rom.content);
         self.bytes = bytes;
-        size = bytes.length;
+        baseAddress = rom.info.s !== undefined ? rom.info.s : 0;
+        topAddress = baseAddress + bytes.length;
     }
 
     this.read = function(address) {
-        if (address < size)
-            return bytes[address];
+        if (address >= baseAddress && address < topAddress)
+            return bytes[address - baseAddress];
 
         return 0xff;
     };
@@ -23,7 +24,7 @@ wmsx.SlotPlainROM = function(rom, format) {
     var bytes;
     this.bytes = null;
 
-    var size;
+    var topAddress, baseAddress;
 
     this.rom = null;
     this.format = wmsx.SlotFormats.PlainROM;
@@ -34,7 +35,8 @@ wmsx.SlotPlainROM = function(rom, format) {
     this.saveState = function() {
         return {
             r: this.rom.saveState(),
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes)
+            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            ba: baseAddress
         };
     };
 
@@ -42,7 +44,8 @@ wmsx.SlotPlainROM = function(rom, format) {
         this.rom = wmsx.ROM.loadState(s.r);
         bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
-        size = bytes.length;
+        baseAddress = s.ba;
+        topAddress = baseAddress + bytes.length;
     };
 
 
