@@ -38,7 +38,7 @@ wmsx.CartridgeV9990 = function(rom) {
 
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.MoonSound;
+    this.format = wmsx.SlotFormats.V9990;
 
     var v9990;
     this.v9990 = v9990;

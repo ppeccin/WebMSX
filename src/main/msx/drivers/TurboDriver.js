@@ -57,9 +57,9 @@ wmsx.TurboDriver = function() {
     this.cpuExtensionBegin = function(s) {
         if (machine.machineType <= 1) return;           // Only for >= MSX2. Defensive
         switch (s.extNum) {
-            case 0xe8:
+            case 0xee:
                 return CHGCPU(s.A);
-            case 0xe9:
+            case 0xef:
                 return GETCPU();
         }
     };
@@ -85,14 +85,14 @@ wmsx.TurboDriver = function() {
         bytes[0x0184] = 0x90;
         bytes[0x0185] = 0x01;
 
-        // CHGCPU routine (EXT 8)
+        // CHGCPU routine (EXT e)
         bytes[0x018d] = 0xed;
-        bytes[0x018e] = 0xe8;
+        bytes[0x018e] = 0xee;
         bytes[0x018f] = 0xc9;
 
-        // GETCPU routine (EXT 9)
+        // GETCPU routine (EXT f)
         bytes[0x0190] = 0xed;
-        bytes[0x0191] = 0xe9;
+        bytes[0x0191] = 0xef;
         bytes[0x0192] = 0xc9;
 
         // console.log("Turbo BIOS Patched");
@@ -153,7 +153,7 @@ wmsx.TurboDriver = function() {
     };
 
 
-    // Savestate  -------------------------------------------
+    // TODO Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {

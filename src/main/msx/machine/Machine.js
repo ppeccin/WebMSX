@@ -25,6 +25,7 @@ wmsx.Machine = function() {
         vdp.setMachineType(this.machineType);
         rtc.setMachineType(this.machineType);
         syf.setMachineType(this.machineType);
+        trd.setMachineType(this.machineType);
         cpuTurboMode = WMSX.CPU_TURBO_MODE === 1 ? 2 : WMSX.CPU_TURBO_MODE;    // backward compatibility
         vdpTurboMode = WMSX.VDP_TURBO_MODE;
         biosSocket.turboDriverTurboModesUpdate();
@@ -39,6 +40,7 @@ wmsx.Machine = function() {
     this.powerOn = function(fromState) {
         if (this.powerIsOn) this.powerOff();
         bus.powerOn();
+        trd.powerOn();
         syf.powerOn();
         rtc.powerOn();
         ppi.powerOn();
@@ -57,6 +59,7 @@ wmsx.Machine = function() {
         ppi.powerOff();
         rtc.powerOff();
         syf.powerOff();
+        trd.powerOff();
         bus.powerOff();
         controllersSocket.resetControllers();
         this.powerIsOn = false;
@@ -68,6 +71,7 @@ wmsx.Machine = function() {
         videoStandardSoft = null;
         if (videoStandardIsAuto) setVideoStandardAuto();
         controllersSocket.resetControllers();
+        trd.reset();
         syf.reset();
         rtc.reset();
         ppi.reset();
@@ -407,6 +411,7 @@ wmsx.Machine = function() {
             b:  bus.saveState(),
             rc: rtc.saveState(),
             sf: syf.saveState(),
+            td: trd.saveState(),
             pp: ppi.saveState(),
             ps: psg.saveState(),
             vd: vdp.saveState(extended),
@@ -459,6 +464,7 @@ wmsx.Machine = function() {
         ppi.loadState(s.pp);
         rtc.loadState(s.rc);
         syf.loadState(s.sf);
+        trd.loadState(s.td);        // s.td may be undefined. Treated correctly by trd.loadState()
         bus.loadState(s.b);
         diskDriveSocket.getDrive().loadState(s.dd);
         cassetteSocket.getDeck().loadState(s.ct);
@@ -491,6 +497,7 @@ wmsx.Machine = function() {
         self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel(), controllersSocket, ledsSocket);
         self.rtc = rtc = new wmsx.RTC(videoClockSocket);
         self.syf = syf = new wmsx.SystemFlags();
+        self.trd = trd = new wmsx.TurboRDevices();
         self.bus = bus = new wmsx.BUS(self, cpu);
         cpu.connectBus(bus);
         ppi.connectBus(bus);
@@ -499,6 +506,7 @@ wmsx.Machine = function() {
         psg.connectBus(bus);
         rtc.connectBus(bus);
         syf.connectBus(bus);
+        trd.connectBus(bus);
     }
 
     function socketsCreate() {
@@ -558,6 +566,7 @@ wmsx.Machine = function() {
     var psg;
     var rtc;
     var syf;
+    var trd;
 
     var userPaused = false;
     var userPauseMoreFrames = 0;

@@ -41,17 +41,17 @@ wmsx.ImageCassetteDriver = function() {
         switch (s.extNum) {
             case 0xe0:
                 return TAPION(s.F);
-            case 0xe1:
-                return TAPIN(s.F);
             case 0xe2:
-                return TAPIOF();
-            case 0xe3:
-                return TAPOON(s.A, s.F);
+                return TAPIN(s.F);
             case 0xe4:
-                return TAPOUT(s.A, s.F);
+                return TAPIOF();
             case 0xe5:
-                return TAPOOF();
+                return TAPOON(s.A, s.F);
             case 0xe6:
+                return TAPOUT(s.A, s.F);
+            case 0xe7:
+                return TAPOOF();
+            case 0xe8:
                 return STMOTR(s.A);
         }
     };
@@ -66,34 +66,34 @@ wmsx.ImageCassetteDriver = function() {
         bytes[0x00e2] = 0xe0;
         bytes[0x00e3] = 0xc9;
 
-        // TAPIN routine (EXT 1)
+        // TAPIN routine (EXT 2)
         bytes[0x00e4] = 0xed;
-        bytes[0x00e5] = 0xe1;
+        bytes[0x00e5] = 0xe2;
         bytes[0x00e6] = 0xc9;
 
-        // TAPIOF routine (EXT 2)
+        // TAPIOF routine (EXT 4)
         bytes[0x00e7] = 0xed;
-        bytes[0x00e8] = 0xe2;
+        bytes[0x00e8] = 0xe4;
         bytes[0x00e9] = 0xc9;
 
-        // TAPOON routine (EXT 3)
+        // TAPOON routine (EXT 5)
         bytes[0x00ea] = 0xed;
-        bytes[0x00eb] = 0xe3;
+        bytes[0x00eb] = 0xe5;
         bytes[0x00ec] = 0xc9;
 
-        // TAPOUT routine (EXT 4)
+        // TAPOUT routine (EXT 6)
         bytes[0x00ed] = 0xed;
-        bytes[0x00ee] = 0xe4;
+        bytes[0x00ee] = 0xe6;
         bytes[0x00ef] = 0xc9;
 
-        // TAPOOF routine (EXT 5)
+        // TAPOOF routine (EXT 7)
         bytes[0x00f0] = 0xed;
-        bytes[0x00f1] = 0xe5;
+        bytes[0x00f1] = 0xe7;
         bytes[0x00f2] = 0xc9;
 
-        // STMOTR routine (EXT 6)
+        // STMOTR routine (EXT 8)
         bytes[0x00f3] = 0xed;
-        bytes[0x00f4] = 0xe6;
+        bytes[0x00f4] = 0xe8;
         bytes[0x00f5] = 0xc9;
     };
 

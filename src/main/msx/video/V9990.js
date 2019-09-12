@@ -1893,7 +1893,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var commandProcessor;
 
 
-    // Savestate  -------------------------------------------
+    // TODO Savestate  -------------------------------------------
 
     this.saveState = function(extended) {
         var s = {

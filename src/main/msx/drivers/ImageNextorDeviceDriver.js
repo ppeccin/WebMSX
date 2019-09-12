@@ -28,15 +28,15 @@ wmsx.ImageNextorDeviceDriver = function() {
             // Nextor Device Driver
             case 0xe0:
                 return DRV_VERSION();
-            case 0xe1:
+            case 0xe2:
                 return DRV_INIT(s.A, s.B, s.HL);
-            case 0xe8:
+            case 0xe4:
                 return DEV_RW(s.F, s.A, s.B, s.C, s.DE, s.HL);
-            case 0xe9:
+            case 0xe5:
                 return DEV_INFO(s.A, s.B, s.HL);
-            case 0xea:
+            case 0xe6:
                 return DEV_STATUS(s.A, s.B);
-            case 0xeb:
+            case 0xe7:
                 return LUN_INFO(s.A, s.B, s.HL);
 
             // SymbOS HD Driver
@@ -78,9 +78,9 @@ wmsx.ImageNextorDeviceDriver = function() {
         bytes[0x1c134] = 0xe0;
         bytes[0x1c135] = 0xc9;
 
-        // DRV_INIT routine (EXT 1)
+        // DRV_INIT routine (EXT 2)
         bytes[0x1c136] = 0xed;
-        bytes[0x1c137] = 0xe1;
+        bytes[0x1c137] = 0xe2;
         bytes[0x1c138] = 0xc9;
 
         // DRV_BASSTAT routine (just set carry)
@@ -104,24 +104,24 @@ wmsx.ImageNextorDeviceDriver = function() {
 
         // Routines for device-based driver   ---------------------------------
 
-        // DEV_RW routine (EXT 8)
+        // DEV_RW routine (EXT 4)
         bytes[0x1c160] = 0xed;
-        bytes[0x1c161] = 0xe8;
+        bytes[0x1c161] = 0xe4;
         bytes[0x1c162] = 0xc9;
 
-        // DEV_INFO routine (EXT 9)
+        // DEV_INFO routine (EXT 5)
         bytes[0x1c163] = 0xed;
-        bytes[0x1c164] = 0xe9;
+        bytes[0x1c164] = 0xe5;
         bytes[0x1c165] = 0xc9;
 
-        // DEV_STATUS routine (EXT A)
+        // DEV_STATUS routine (EXT 6)
         bytes[0x1c166] = 0xed;
-        bytes[0x1c167] = 0xea;
+        bytes[0x1c167] = 0xe6;
         bytes[0x1c168] = 0xc9;
 
-        // LUN_INFO routine (EXT B)
+        // LUN_INFO routine (EXT 7)
         bytes[0x1c169] = 0xed;
-        bytes[0x1c16a] = 0xeb;
+        bytes[0x1c16a] = 0xe7;
         bytes[0x1c16b] = 0xc9;
     };
 

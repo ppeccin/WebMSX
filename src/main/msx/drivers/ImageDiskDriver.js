@@ -8,17 +8,17 @@ wmsx.ImageDiskDriver = function() {
         drive = machine.getDiskDriveSocket().getDrive();
         bus = machine.bus;
         // SymbOS FD Driver
-        bus.setCpuExtensionHandler(0xf3, this);
         bus.setCpuExtensionHandler(0xf4, this);
         bus.setCpuExtensionHandler(0xf5, this);
+        bus.setCpuExtensionHandler(0xf6, this);
     };
 
     this.disconnect = function(diskBIOS, machine) {
         drive.allMotorsOff();
         // SymbOS FD Driver
-        bus.setCpuExtensionHandler(0xf3, undefined);
         bus.setCpuExtensionHandler(0xf4, undefined);
         bus.setCpuExtensionHandler(0xf5, undefined);
+        bus.setCpuExtensionHandler(0xf6, undefined);
     };
 
     this.powerOff = function() {
@@ -28,29 +28,29 @@ wmsx.ImageDiskDriver = function() {
     this.cpuExtensionBegin = function(s) {
         switch (s.extNum) {
             // Normal Floppy Disk Driver
-            case 0xe8:
+            case 0xe0:
                 return INIHRD();
-            case 0xe9:
+            case 0xe2:
                 return DRIVES(s.F, s.HL);
-            case 0xea:
+            case 0xe4:
                 return DSKIO(s.F, s.A, s.B, s.C, s.DE, s.HL);
-            case 0xeb:
+            case 0xe5:
                 return DSKCHG(s.F, s.A, s.B, s.C, s.HL);
-            case 0xec:
+            case 0xe6:
                 return GETDPB(s.A, s.B, s.C, s.HL);
-            case 0xed:
+            case 0xe7:
                 return CHOICE();
-            case 0xee:
+            case 0xe8:
                 return DSKFMT(s.F, s.A, s.DE);
-            case 0xef:
+            case 0xea:
                 return MTOFF();
 
             // SymbOS FD Driver
-            case 0xf3:
-                return SYMBOS_FD_DRVINP(s.F, s.C, s.B, s.HL, s.IX, s.IY);
             case 0xf4:
-                return SYMBOS_FD_DRVOUT(s.F, s.C, s.B, s.HL, s.IX, s.IY);
+                return SYMBOS_FD_DRVINP(s.F, s.C, s.B, s.HL, s.IX, s.IY);
             case 0xf5:
+                return SYMBOS_FD_DRVOUT(s.F, s.C, s.B, s.HL, s.IX, s.IY);
+            case 0xf6:
                 return SYMBOS_FD_DRVACT(s.F, s.C, s.HL);
         }
     };
@@ -62,40 +62,40 @@ wmsx.ImageDiskDriver = function() {
     this.patchDiskBIOS = function(bytes, startAddress) {
         // DOS kernel places where Driver routines with no jump table are called
 
-        // INIHRD routine (EXT 8)
+        // INIHRD routine (EXT 0)
         bytes[startAddress + 0x176F] = 0xed;
-        bytes[startAddress + 0x1770] = 0xe8;
+        bytes[startAddress + 0x1770] = 0xe0;
         bytes[startAddress + 0x1771] = 0x00;   // NOP
-        // DRIVES routine (EXT 9)
+        // DRIVES routine (EXT 2)
         bytes[startAddress + 0x1850] = 0xed;
-        bytes[startAddress + 0x1851] = 0xe9;
+        bytes[startAddress + 0x1851] = 0xe2;
         bytes[startAddress + 0x1852] = 0x00;   // NOP
 
         // DOS Kernel jump table for Driver routines
 
-        // DSKIO routine (EXT A)
+        // DSKIO routine (EXT 4)
         bytes[startAddress + 0x0010] = 0xed;
-        bytes[startAddress + 0x0011] = 0xea;
+        bytes[startAddress + 0x0011] = 0xe4;
         bytes[startAddress + 0x0012] = 0xc9;
-        // DSKCHG routine (EXT B)
+        // DSKCHG routine (EXT 5)
         bytes[startAddress + 0x0013] = 0xed;
-        bytes[startAddress + 0x0014] = 0xeb;
+        bytes[startAddress + 0x0014] = 0xe5;
         bytes[startAddress + 0x0015] = 0xc9;
-        // GETDPB routine (EXT C)
+        // GETDPB routine (EXT 6)
         bytes[startAddress + 0x0016] = 0xed;
-        bytes[startAddress + 0x0017] = 0xec;
+        bytes[startAddress + 0x0017] = 0xe6;
         bytes[startAddress + 0x0018] = 0xc9;
-        // CHOICE routine (EXT D)
+        // CHOICE routine (EXT 7)
         bytes[startAddress + 0x0019] = 0xed;
-        bytes[startAddress + 0x001a] = 0xed;
+        bytes[startAddress + 0x001a] = 0xe7;
         bytes[startAddress + 0x001b] = 0xc9;
-        // DSKFMT routine (EXT E)
+        // DSKFMT routine (EXT 8)
         bytes[startAddress + 0x001c] = 0xed;
-        bytes[startAddress + 0x001d] = 0xee;
+        bytes[startAddress + 0x001d] = 0xe8;
         bytes[startAddress + 0x001e] = 0xc9;
-        // MTOFF routine (EXT F)
+        // MTOFF routine (EXT a)
         bytes[startAddress + 0x001f] = 0xed;
-        bytes[startAddress + 0x0020] = 0xef;
+        bytes[startAddress + 0x0020] = 0xea;
         bytes[startAddress + 0x0021] = 0xc9;
 
         // It seems the Disk BIOS routines just assume the CHOICE message will reside in the same slot as the Disk BIOS itself.

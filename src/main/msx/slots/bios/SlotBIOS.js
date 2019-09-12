@@ -58,7 +58,7 @@ wmsx.SlotBIOS = function(rom) {
 
     this.cpuExtensionBegin = function(s) {
         // Receive all CPU Extensions and pass to the Cassette Driver or Turbo Driver
-        return s.extNum < 0xe8 ? cassetteDriver.cpuExtensionBegin(s) : turboDriver.cpuExtensionBegin(s);
+        return s.extNum < 0xe9 ? cassetteDriver.cpuExtensionBegin(s) : turboDriver.cpuExtensionBegin(s);
     };
 
     this.cpuExtensionFinish = function(s) {

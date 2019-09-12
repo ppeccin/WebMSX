@@ -119,8 +119,9 @@ wmsx.BUS = function(machine, cpu) {
         return primarySlotConfig;
     };
 
+    // Receive all CPU Extensions and pass to slot at instruction for E0 - EF exts and to set handlers for F0 - FF exts
+    // WARNING: Extensions 0xe1, 0xe3, 0xe9, 0xf3, 0xf9 CANNOT be used, as they are valid opcodes for the R800 CPU
     this.cpuExtensionBegin = function(s) {
-        // Receive all CPU Extensions and pass to slot at instruction for E0 - EF exts and to set handlers for F0 - FF exts
         if (s.extNum < 0xf0) return getSlotForAddress(s.extPC).cpuExtensionBegin(s);
         var handler = cpuExtensionHandlers[s.extNum];
         if (handler) return handler.cpuExtensionBegin(s);
@@ -133,6 +134,8 @@ wmsx.BUS = function(machine, cpu) {
         if (handler) return handler.cpuExtensionFinish(s);
     };
 
+    // Register handler for F0 - FF extensions
+    // WARNING: Extensions 0xf3, 0xf9 CANNOT be used, as they are valid opcodes for the R800 CPU
     this.setCpuExtensionHandler = function(num, handler) {
         cpuExtensionHandlers[num] = handler;
     };
