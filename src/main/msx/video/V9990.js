@@ -256,7 +256,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         systemControl = 0; status = 0; softResetON = false;
         registerSelect = 0; registerSelectReadInc = true; registerSelectWriteInc = true;
 
-        initRAMs();
+        initRAMs();     // TODO On reset or only at powerOn?
         initColorPalette();
 
         softReset();

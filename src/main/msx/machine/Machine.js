@@ -497,7 +497,7 @@ wmsx.Machine = function() {
         self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel(), controllersSocket, ledsSocket);
         self.rtc = rtc = new wmsx.RTC(videoClockSocket);
         self.syf = syf = new wmsx.SystemFlags();
-        self.trd = trd = new wmsx.TurboRDevices();
+        self.trd = trd = new wmsx.TurboRDevices(cpu);
         self.bus = bus = new wmsx.BUS(self, cpu);
         cpu.connectBus(bus);
         ppi.connectBus(bus);

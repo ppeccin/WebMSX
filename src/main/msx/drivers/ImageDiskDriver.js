@@ -71,6 +71,18 @@ wmsx.ImageDiskDriver = function() {
         bytes[startAddress + 0x1851] = 0xe2;
         bytes[startAddress + 0x1852] = 0x00;   // NOP
 
+        // // TR DOS2.3 + Drive Interface
+        //
+        // // INIHRD routine (EXT 0)
+        // bytes[startAddress + 0x07d6] = 0xed;            // 0x07d6  ->  0x36f1
+        // bytes[startAddress + 0x07d7] = 0xe0;
+        // bytes[startAddress + 0x07d8] = 0x00;   // NOP
+        // // DRIVES routine (EXT 2)
+        // bytes[startAddress + 0x08c6] = 0xed;            // 0x08c6  ->  0x3747
+        // bytes[startAddress + 0x08c7] = 0xe2;
+        // bytes[startAddress + 0x08c8] = 0x00;   // NOP
+
+
         // DOS Kernel jump table for Driver routines
 
         // DSKIO routine (EXT 4)
@@ -97,6 +109,36 @@ wmsx.ImageDiskDriver = function() {
         bytes[startAddress + 0x001f] = 0xed;
         bytes[startAddress + 0x0020] = 0xea;
         bytes[startAddress + 0x0021] = 0xc9;
+
+        // // TR DOS2.3 + Drive Interface
+        //
+        // // DSKIO routine (EXT 4)                    // DSKIO routine (EXT 4)
+        // bytes[startAddress + 0x3459] = 0xed;        bytes[startAddress + 0xf495] = 0xed;
+        // bytes[startAddress + 0x345a] = 0xe4;        bytes[startAddress + 0xf496] = 0xe4;
+        // bytes[startAddress + 0x345b] = 0xc9;        bytes[startAddress + 0xf497] = 0xc9;
+        // // DSKCHG routine (EXT 5)                   // DSKCHG routine (EXT 5)
+        // bytes[startAddress + 0x379d] = 0xed;        bytes[startAddress + 0xf7cb] = 0xed;
+        // bytes[startAddress + 0x379e] = 0xe5;        bytes[startAddress + 0xf7cc] = 0xe5;
+        // bytes[startAddress + 0x379f] = 0xc9;        bytes[startAddress + 0xf7cd] = 0xc9;
+        // // GETDPB routine (EXT 6)                   // GETDPB routine (EXT 6)
+        // bytes[startAddress + 0x37f9] = 0xed;        bytes[startAddress + 0xf80b] = 0xed;
+        // bytes[startAddress + 0x37fa] = 0xe6;        bytes[startAddress + 0xf80c] = 0xe6;
+        // bytes[startAddress + 0x37fb] = 0xc9;        bytes[startAddress + 0xf80d] = 0xc9;
+        // // CHOICE routine (EXT 7)                   // CHOICE routine (EXT 7)
+        // bytes[startAddress + 0x381a] = 0xed;        bytes[startAddress + 0xf826] = 0xed;
+        // bytes[startAddress + 0x381b] = 0xe7;        bytes[startAddress + 0xf827] = 0xe7;
+        // bytes[startAddress + 0x381c] = 0xc9;        bytes[startAddress + 0xf828] = 0xc9;
+        // // DSKFMT routine (EXT 8)                   // DSKFMT routine (EXT 8)
+        // bytes[startAddress + 0x3c52] = 0xed;        bytes[startAddress + 0xfc58] = 0xed;
+        // bytes[startAddress + 0x3c53] = 0xe8;        bytes[startAddress + 0xfc59] = 0xe8;
+        // bytes[startAddress + 0x3c54] = 0xc9;        bytes[startAddress + 0xfc5a] = 0xc9;
+        // // MTOFF routine (EXT a)                    // MTOFF routine (EXT a)
+        // bytes[startAddress + 0x3713] = 0xed;        bytes[startAddress + 0xf747] = 0xed;
+        // bytes[startAddress + 0x3714] = 0xea;        bytes[startAddress + 0xf748] = 0xea;
+        // bytes[startAddress + 0x3715] = 0xc9;        bytes[startAddress + 0xf749] = 0xc9;
+        //
+        // return;
+
 
         // It seems the Disk BIOS routines just assume the CHOICE message will reside in the same slot as the Disk BIOS itself.
         // So we must put the message in the same slot and make that memory region readable

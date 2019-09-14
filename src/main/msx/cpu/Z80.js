@@ -14,15 +14,42 @@ wmsx.Z80 = function() {
         defineAllInstructions();
     }
 
+    this.connectBus = function(aBus) {
+        bus = aBus;
+    };
+
     this.powerOn = function() {
+        setINT(0xff);
+
+        this.reset();
         toAF(0xfffd); toBC(0xffff); DE = 0xffff; HL = 0xffff;
         AF2 = 0xfffd; BC2 = 0xffff; DE2 = 0xffff; HL2 = 0xffff;
         toIX(0xffff); toIY(0xffff); SP = 0xffff;
-        setINT(0xff);
-        this.reset();
+
+        writeState(modeBackState);
     };
 
     this.powerOff = function() {
+    };
+
+    this.reset = function() {
+        r800Mode = false;
+        busCycles = 0;
+        ackINT = false; prefix = 0;
+        T = -1; opcode = null; instruction = null;
+        PC = 0; I = 0; R = 0; IFF1 = 0; IM = 0;
+        extCurrRunning = null; extExtraIter = 0;
+
+        writeState(modeBackState);
+    };
+
+    this.setR800Mode = function(state) {
+        console.log("Set R800 mode: " + state);
+
+        if (r800Mode === !!state) return;
+
+        r800Mode = !r800Mode;
+        swapModeState();
     };
 
     this.clockPulses = function(quant) {
@@ -57,18 +84,6 @@ wmsx.Z80 = function() {
     //         ++busCycles;                             // Precise bus cycle reporting in original clock (no turbo). Higher precision, worse performance
     //     }
     // };
-
-    this.connectBus = function(aBus) {
-        bus = aBus;
-    };
-
-    this.reset = function() {
-        busCycles = 0;
-        T = -1; opcode = null; ackINT = false;
-        instruction = null; prefix = 0;
-        PC = 0; I = 0; R = 0; IFF1 = 0; IM = 0;
-        extensionCurrentlyRunning = null; extensionExtraIterations = 0;
-    };
 
     this.setINTChannel = function(chan, state) {
         var val = state ? INT | (1 << chan) : INT & ~(1 << chan);
@@ -112,12 +127,16 @@ wmsx.Z80 = function() {
     };
 
 
+    // Main processor mode
+    var r800Mode = false;
+    var modeBackState = {}, modeFrontState = {};
+
     // Speed mode
     var turboClockMulti = 1;
 
     // Extension Handling
-    var extensionCurrentlyRunning = null;
-    var extensionExtraIterations = 0;
+    var extCurrRunning = null;
+    var extExtraIter = 0;
 
     // Interfaces
     var bus;
@@ -200,7 +219,9 @@ wmsx.Z80 = function() {
 
         opcode = fromN();           // Will inc PC
         selectInstruction();
-        T = instruction.remainCycles;
+
+        // TODO R800 timing and waits
+        T = r800Mode ? Math.max(instruction.remainCycles / 4, 2) | 0 : instruction.remainCycles;
     }
     // if (self.trace) self.breakpoint("TRACE");
 
@@ -226,10 +247,44 @@ wmsx.Z80 = function() {
         }
     }
 
+    function swapModeState() {
+        // console.log("SWAP STATE");
+
+        writeState(modeFrontState);
+        var back = modeBackState; modeBackState = modeFrontState; modeFrontState = back;
+        readState(modeFrontState);
+    }
+
+    function writeState(to) {
+        to.busCycles = busCycles;
+        to.ackINT = ackINT;
+        to.prefix = prefix;
+        to.T = T; to.opcode = opcode; to.instruction = instruction;
+        to.PC = PC; to.SP = SP; to.I = I; to.R = R; to.IFF1 = IFF1; to.IM = IM;
+        to.AF = fromAF(); to.BC = fromBC(); to.DE = DE; to.HL = HL; to.IX = fromIX(); to.IY = fromIY();
+        to.AF2 = AF2; to.BC2 = BC2; to.DE2 = DE2; to.HL2 = HL2;
+        to.extCurrRunning = extCurrRunning; to.extExtraIters = extExtraIter;
+    }
+
+    function readState(from) {
+        busCycles = from.busCycles;
+        ackINT = from.ackINT;
+        prefix = from.prefix;
+        T = from.T; opcode = from.opcode; instruction = from.instruction;
+        PC = from.PC; SP = from.SP; I = from.I; R = from.R; IFF1 = from.IFF1; IM = from.IM;
+        toAF(from.AF); toBC(from.BC); DE = from.DE; HL = from.HL; toIX(from.IX); toIY(from.IY);
+        AF2 = from.AF2; BC2 = from.BC2; DE2 = from.DE2; HL2 = from.HL2;
+        extCurrRunning = from.extCurrRunning; extExtraIter = from.extExtraIters;
+    }
+
     function pcInc() {
         var old = PC;
         PC = (PC + 1) & 0xffff;
         return old;
+    }
+
+    function dec2PC() {
+        return PC = (PC - 2) & 0xffff;
     }
 
     function spInc() {
@@ -562,9 +617,7 @@ wmsx.Z80 = function() {
     function LDIR() {
         LDI();
         if (F & bPV) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
+            dec2PC();     // Repeat this instruction
             T += 5;
             instruction = instructionADT_CYCLES;
         }
@@ -583,9 +636,7 @@ wmsx.Z80 = function() {
     function LDDR() {
         LDD();
         if (F & bPV) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
+            dec2PC();     // Repeat this instruction
             T += 5;
             instruction = instructionADT_CYCLES;
         }
@@ -608,9 +659,7 @@ wmsx.Z80 = function() {
     function CPIR() {
         CPI();
         if ((F & bPV) && !(F & bZ)) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
+            dec2PC();     // Repeat this instruction
             T += 5;
             instruction = instructionADT_CYCLES;
         }
@@ -633,9 +682,7 @@ wmsx.Z80 = function() {
     function CPDR() {
         CPD();
         if ((F & bPV) && !(F & bZ)) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
+            dec2PC();     // Repeat this instruction
             T += 5;
             instruction = instructionADT_CYCLES;
         }
@@ -818,9 +865,7 @@ wmsx.Z80 = function() {
     function INIR() {
         INI();
         if (B !== 0) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
+            dec2PC();     // Repeat this instruction
             T += 5;
             instruction = instructionADT_CYCLES;
         }
@@ -838,9 +883,7 @@ wmsx.Z80 = function() {
     function INDR() {
         IND();
         if (B !== 0) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
+            dec2PC();     // Repeat this instruction
             T += 5;
             instruction = instructionADT_CYCLES;
         }
@@ -848,49 +891,51 @@ wmsx.Z80 = function() {
 
     function OUTnA() {
         var port = fromN();
-        bus.output((A << 8) | port, A);
+        bus.output((A << 8) | port, A);            // Must be the last operation on the instruction processing, because of CPU mode switch
 
         // if (DEBUG_LOOP) console.log("OUT", ((A << 8) | port).toString(16), ":", A.toString(16));
     }
 
-    function OUTI() {
+    function OUTI() {                              // IMPORTANT: Called by OTIR
+        var val = from_HL_8();
         B = (B - 1) & 0xff;
-        bus.output(fromBC(), from_HL_8());
         HL = (HL + 1) & 0xffff;
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
+
+        bus.output(fromBC(), val);                 // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
     function OTIR() {
-        OUTI();
-        if (B !== 0) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
+        if (B !== 1) {                             // OUTI below will DEC B. If B !== 0 after OUTI, repeat this instruction
+            dec2PC();
             T += 5;
             instruction = instructionADT_CYCLES;
         }
+
+        OUTI();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
-    function OUTD() {
+    function OUTD() {                              // IMPORTANT: Called by OTDR
+        var val = from_HL_8();
         B = (B - 1) & 0xff;
-        bus.output(fromBC(), from_HL_8());
         HL = (HL - 1) & 0xffff;
         // Flags
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
+
+        bus.output(fromBC(), val);                 // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
     function OTDR() {
-        OUTD();
-        if (B !== 0) {
-            // Will repeat this instruction
-            PC -= 2;
-            // Uses more cycles
+        if (B !== 1) {                             // OUTD below will DEC B. If B !== 0 after OUTD, repeat this instruction
+            dec2PC();
             T += 5;
             instruction = instructionADT_CYCLES;
         }
+
+        OUTD();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
     function newLD_PreRead_IXYd_(to, from) {
@@ -1240,7 +1285,10 @@ wmsx.Z80 = function() {
     function newSLL(to, from, toExt) {
         return function SLL() {
             var val = from();
-            var res = ((val << 1) | 1) & 255;
+
+            // In R800, SLL is just like SLA, so bit 0 is not set
+            var res = r800Mode ? (val << 1) & 255 : ((val << 1) | 1) & 255;
+
             to(res);
             if (toExt) toExt(res);
             // Flags
@@ -1366,10 +1414,45 @@ wmsx.Z80 = function() {
 
     function newOUTCr(from) {
         return function OUTCr() {
-            bus.output(fromBC(), from());
+            bus.output(fromBC(), from());               // Must be the last operation on the instruction processing, because of CPU mode switch
         }
     }
 
+    // R800 exclusive instructions
+
+    function newMULUB(from) {
+        return function MULUB() {
+            console.log("MULUB A, " + from.name);
+
+            // In Z80, MULUB is just like NOP
+            if (!r800Mode) return;
+
+            var res = A * from();
+            HL = res;
+            // Flags
+            F = (F & 0x12)                                      // H = H, N = N, S = 0, PV = 0, V = 0
+                | (res & 0x28)                                  // f5, f3 copied from res
+                | ((res === 0) << nZ)                           // Z = res is 0
+                | (res > 0xff);                                 // C = res > 8bits
+        };
+    }
+
+    function newMULUW(from) {
+        return function MULUW() {
+            console.log("MULUW HL, " + from.name);
+
+            // In Z80, MULUW is just like NOP
+            if (!r800Mode) return;
+
+            var res = HL * from();
+            DE = res >> 16; HL = res & 0xffff;
+            // Flags
+            F = (F & 0x12)                                      // H = H, N = N, S = 0, PV = 0, V = 0
+                | (res & 0x28)                                  // f5, f3 copied from res
+                | ((res === 0) << nZ)                           // Z = res is 0
+                | (res > 0xffff);                               // C = res > 16bits
+        };
+    }
 
     // Undocumented instructions
 
@@ -1387,7 +1470,7 @@ wmsx.Z80 = function() {
     }
 
     function uOUTC0() {                      // Like the normal OUT (C), r but always output 0
-        bus.output(fromBC(), 0);
+        bus.output(fromBC(), 0);                   // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
     // Pseudo instructions
@@ -1455,25 +1538,24 @@ wmsx.Z80 = function() {
         // Do nothing
     }
 
-
     // Extension Point pseudo instructions
 
     function newpEXT(num) {
         return function pEXT() {
             // Check for extraIterations of last extension instruction. No new instruction until iterations end
-            if (extensionCurrentlyRunning !== null) {
-                if (extensionExtraIterations > 0) {         // Need more iterations?
-                    extensionExtraIterations--;
-                    PC -= 2;
-                } else {                                    // End of iterations, perform finish operation
+            if (extCurrRunning !== null) {
+                if (extExtraIter > 0) {                 // Need more iterations?
+                    extExtraIter--;
+                    dec2PC();                           // Repeat this instruction
+                } else {                                // End of iterations, perform finish operation
                     var finish = bus.cpuExtensionFinish(extractCPUState(num));
                     reinsertCPUState(finish);
-                    extensionCurrentlyRunning = null;
+                    extCurrRunning = null;
                 }
                 return;
             }
-            // New extension instruction may happen now
-            extensionCurrentlyRunning = num; extensionExtraIterations = 0;
+            // New extension instruction will start now
+            extCurrRunning = num; extExtraIter = 0;
             var init = bus.cpuExtensionBegin(extractCPUState(num));
             reinsertCPUState(init);
             // Recur to finish the process
@@ -1509,10 +1591,9 @@ wmsx.Z80 = function() {
             if (state.HL2 !== undefined)   HL2 = state.HL2;
             // No IFF1
             if (state.IM !== undefined)    IM = state.IM;
-            if (state.extraIterations > 0) extensionExtraIterations = state.extraIterations;
+            if (state.extraIterations > 0) extExtraIter = state.extraIterations;
         }
     }
-
 
     // Testing pseudo instructions
 
@@ -2118,7 +2199,7 @@ wmsx.Z80 = function() {
             }
         }
 
-        // Define INS HL, dd   (ADC and SBC)   2 bytes, 4M, 15T        * Extended with ED prefix so no DD and FD prefixed variations
+        // Define INS HL, dd   (ADC and SBC)   2 bytes, 4M, 15T        Extended with ED prefix so no DD and FD prefixed variations
         for (i in arith16ExtendedInstructions) {
             ins = arith16ExtendedInstructions[i];
             opcodeBase = ins.opcode;
@@ -2192,7 +2273,7 @@ wmsx.Z80 = function() {
             RR:  { desc: "RR ",   instr: newRR,   opcode: 0x18 },
             SLA: { desc: "SLA ",  instr: newSLA,  opcode: 0x20 },
             SRA: { desc: "SRA ",  instr: newSRA,  opcode: 0x28 },
-            SLL: { desc: "SLL ",  instr: newSLL, opcode: 0x30, undoc: true },
+            SLL: { desc: "SLL ",  instr: newSLL,  opcode: 0x30, undoc: true },
             SRL: { desc: "SRL ",  instr: newSRL,  opcode: 0x38 }
         };
 
@@ -2498,6 +2579,30 @@ wmsx.Z80 = function() {
         instr = OTDR;
         defineInstruction(null, 0xed, opcode, 12, instr, "OTDR", false);
 
+        // R800 exclusive instructions
+
+        // 2 bytes, ?M, 14T: - R800 MULUB A, r
+        opcodeBase = 0xc1;
+        for (op in operR) {
+            oper = operR[op];
+            opcode = opcodeBase | (oper.bits << 3);
+            instr = newMULUB(
+                oper.from
+            );
+            defineInstruction(null, 0xed, opcode, 14, instr, "MULUB A, " + oper.desc, false);
+        }
+
+        // 2 bytes, ?M, 36T: - R800 MULUW HL, dd
+        opcodeBase = 0xc3;
+        for (op in operDD) {
+            oper = operDD[op];
+            opcode = opcodeBase | (oper.bits << 4);
+            instr = newMULUW(
+                oper.from
+            );
+            defineInstruction(null, 0xed, opcode, 36, instr, "MULUW HL, " + oper.desc, false);
+        }
+
         // Undocumented instructions, besides DD and FD prefixed variations already defined
 
         // 2 bytes, 2M, 8T: - uNEG
@@ -2544,14 +2649,18 @@ wmsx.Z80 = function() {
         instr = uOUTC0;
         defineInstruction(null, 0xed, opcode, 8, instr, "OUT (C), 0", true);
 
-        // Extension pseudo Instructions (ED E0 to ED FF)
+        // Extension pseudo Instructions (ED E0 to ED FF), not yet defined (excludes E1, E3, E9, F3, F9 which are R800 instructions)
 
         for (opcode = 0xe0; opcode <= 0xff; opcode++) {
-            instr = newpEXT(opcode);
-            defineInstruction(null, 0xed, opcode, 4, instr, "EXT " + opcode.toString(16), true);
+            if (!instructionsED[i]) {
+                instr = newpEXT(opcode);
+                defineInstruction(null, 0xed, opcode, 4, instr, "EXT " + opcode.toString(16), true);
+            }
         }
 
-        // 2 bytes, 2M, 8T: - uNOP              All ED extended instructions not yet defined are NOPs
+        // All remaining ED extended instructions not yet defined are NOPs
+
+        // 2 bytes, 2M, 8T: - uNOP
         for (i = 0x00; i <= 0xff; i++) {
             if (!instructionsED[i]) {
                 opcode = i;
@@ -2650,14 +2759,14 @@ wmsx.Z80 = function() {
         }
     }
 
-    // Savestate  -------------------------------------------
+    // TODO Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
             c: busCycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
-            ecr: extensionCurrentlyRunning, eei: extensionExtraIterations,
+            ecr: extCurrRunning, eei: extExtraIter,
             tcm: turboClockMulti
         };
     };
@@ -2667,7 +2776,7 @@ wmsx.Z80 = function() {
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1;
         setINT(s.nINT ? s.INT : s.INT ? 0xff : 0xfe);   // Backward compatibility
         busCycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
-        extensionCurrentlyRunning = s.ecr; extensionExtraIterations = s.eei;
+        extCurrRunning = s.ecr; extExtraIter = s.eei;
         turboClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;  // Backward compatibility
     };
 

@@ -19,3 +19,5 @@
 
 
 poke &he000, &h3e : poke &he001, &h82 : poke &he002, &hcd : poke &he003, &h80 : poke &he004, &h01 : poke &he005, &hc9 : defusr 0 = &he000 : print usr(0)
+
+defusr 0 = 0: x = usr(0)

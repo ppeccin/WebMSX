@@ -917,23 +917,23 @@ wmsx.SlotFormats = {
         recreateFromSaveState: function (state, previousSlot) {
             return wmsx.CartridgeDOS2.recreateFromSaveState(state, previousSlot);
         }
-    }
+    },
 
-    // "MSXDOS2TRDiskPatch": {
-    //     name: "MSXDOS2TRDiskPatch",
-    //     desc: "MSX-DOS 2 + Patched Disk BIOS",
-    //     priority: 1511,
-    //     priorityForRom: function (rom) {
-    //         // Only 64K content. Must be selected via info format hint
-    //         return (rom.content.length === 65536) ? this.priority : null;
-    //     },
-    //     createFromROM: function (rom) {
-    //         return new wmsx.CartridgeDOS2TRDiskPatched(rom);
-    //     },
-    //     recreateFromSaveState: function (state, previousSlot) {
-    //         return wmsx.CartridgeDOS2TRDiskPatched.recreateFromSaveState(state, previousSlot);
-    //     }
-    // }
+    "MSXDOS2TRDiskPatch": {
+        name: "MSXDOS2TRDiskPatch",
+        desc: "MSX-DOS 2 + Patched Disk BIOS",
+        priority: 1511,
+        priorityForRom: function (rom) {
+            // Only 64K content. Must be selected via info format hint
+            return (rom.content.length === 65536) ? this.priority : null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeDOS2TRDiskPatched(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeDOS2TRDiskPatched.recreateFromSaveState(state, previousSlot);
+        }
+    }
 
 };
 

@@ -2,7 +2,7 @@
 
 // Turbo R Pause and S1990 devices
 
-wmsx.TurboRDevices = function() {
+wmsx.TurboRDevices = function(cpu) {
 "use strict";
 
     this.setMachineType = function(type) {
@@ -39,27 +39,27 @@ wmsx.TurboRDevices = function() {
     };
 
     this.inputA7 = function() {
-        var res = active ? 0 : 0xff;
+        var res = active ? window.TRPAUSE : 0xff;
 
         // console.log("tR pause read: " + res.toString(16));
 
         return res;           // bit 0: pause switch (1 = on). turbo R never paused here!
     };
     this.outputA7 = function(val) {
-        console.log("tR LEDS write: " + val.toString(16));
+        // console.log("tR LEDS write: " + val.toString(16));
 
-        if (active) leds = val & 0x81;      // bit 7: R800 LED (1 = on), bit 0: pause LED (1 = on)
+        if (active) leds = val & 0x81;      // bit 7: R800 LED (1 = on), bit 1: Z80 pause??? (1 = yes), bit 0: pause LED (1 = on)
     };
 
     this.inputE4 = function() {
         var res = active ? registerSelect : 0xff;
 
-        console.log("S19990 Register select read: " + res.toString(16));
+        // console.log("S1990 Register select read: " + res.toString(16));
 
         return res;
     };
     this.outputE4 = function(val) {
-        console.log("S19990 Register select write: " + val.toString(16));
+        // console.log("S1990 Register select write: " + val.toString(16));
 
         if (active) registerSelect = val;
     };
@@ -67,29 +67,32 @@ wmsx.TurboRDevices = function() {
     this.inputE5 = function() {
         var res = active && registerSelect === 6 ? register6 : 0xff;
 
-        console.log("S19990 Register: " + registerSelect.toString(16) + " read: " + res.toString(16));
+        // console.log("S1990 Register: " + registerSelect.toString(16) + " read: " + res.toString(16));
 
         return res;
     };
     this.outputE5 = function(val) {
-        console.log("S19990 Register: " + registerSelect.toString(16) + " write: " + val.toString(16));
+        // console.log("S1990 Register: " + registerSelect.toString(16) + " write: " + val.toString(16) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
-        if (active && registerSelect === 6) register6 = val & 0x60;
+        if (active && registerSelect === 6) {
+            register6 = val & 0x60;
+            cpu.setR800Mode((register6 & 0x20) === 0);
+        }
     };
 
     this.inputE6 = function() {
-        console.log("S19990 Timer LOW read");
+        console.log("S1990 Timer LOW read");
 
         return active ? 0xff : 0xff;
     };
     this.inputE7 = function() {
-        console.log("S19990 Timer HIGH read");
+        console.log("S1990 Timer HIGH read");
 
         return active ? 0xff : 0xff;
     };
 
     this.outputE6 = function(val) {
-        console.log("S19990 Timer reset: " + val.toString(16));
+        console.log("S1990 Timer reset: " + val.toString(16));
     };
 
 
@@ -124,5 +127,8 @@ wmsx.TurboRDevices = function() {
         registerSelect = s.rs;
         register6 = s.r6
     };
+
+
+    window.TRPAUSE = 0;
 
 };

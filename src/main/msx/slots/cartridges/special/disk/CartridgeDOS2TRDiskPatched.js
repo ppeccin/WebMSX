@@ -12,7 +12,7 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
         bytes = new Array(rom.content.length + 0x100);      // Additional 0x100 bytes for CHOICE string
         wmsx.Util.arrayCopy(rom.content, 0, bytes);
         self.bytes = bytes;
-        driver.patchDiskBIOS(bytes, 0xc0000);
+        driver.patchDiskBIOS(bytes, 0x0000);
     }
 
     this.connect = function(machine) {
@@ -46,8 +46,11 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
     };
 
     this.write = function(address, value) {
-        if (address === 0x7ffd)
+        if (address === 0x7ff0) {
+            // console.log("BANK: " + (value & 3));
+
             bankOffset = ((value & 0x03) << 14) - 0x4000;
+        }
     };
 
     this.cpuExtensionBegin = function(s) {
@@ -80,7 +83,7 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: /* this.lightState() ? null : */ wmsx.Util.compressInt8BitArrayToStringBase64(bytes),        // Not Embedded!
+            b: /* this.lightState() ? null : */ wmsx.Util.compressInt8BitArrayToStringBase64(bytes),        // TODO Not Embedded!
             d: driver.saveState(),
             b1: bankOffset
         };

@@ -16,6 +16,7 @@
             "SLOT00_URL":     "tr/MSXTR_JAP.bios",
             "SLOT03_URL":     "tr/MSXTROPEN.bios", "SLOT03_FORMAT": "PlainROM", "SLOT03_START": "0x4000",
             "SLOT31_URL":     "tr/MSXTREXT_JAP.bios | tr/KanjiBasicTR.bios",
+            "__SLOT32_URL":     "tr/[MSXDOS2TRDiskPatch].rom",
             "RAMMAPPER_SIZE": 512,
             "VDP_TYPE": 3
         }
