@@ -15,7 +15,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
         self.bytes = bytes;
         baseAddress = rom.content.length === 0x4000 ? 0x4000 : (WMSX.DISK_ROM_START_PAGE || 0) * 0x4000;
         topAddress = baseAddress + bytes.length;
-        driver.patchDiskBIOS(bytes, baseAddress === 0x4000 ? 0 : 0x4000);
+        driver.patchDiskBIOS(0, bytes, baseAddress === 0x4000 ? 0 : 0x4000);
     }
 
     this.connect = function(machine) {
@@ -82,7 +82,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
             var len = this.rom.content.length + 0x100;
             if (!bytes || bytes.length !== len) bytes = new Array(len);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
-            driver.patchDiskBIOS(bytes, baseAddress === 0x4000 ? 0 : 0x4000);
+            driver.patchDiskBIOS(0, bytes, baseAddress === 0x4000 ? 0 : 0x4000);
         }
         this.bytes = bytes;
         topAddress = baseAddress + bytes.length;

@@ -9,10 +9,10 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = new Array(rom.content.length + 0x100);      // Additional 0x100 bytes for CHOICE string
+        bytes = new Array(rom.content.length /*+ 0x100*/);      // Additional 0x100 bytes for CHOICE string
         wmsx.Util.arrayCopy(rom.content, 0, bytes);
         self.bytes = bytes;
-        driver.patchDiskBIOS(bytes, 0x0000);
+        driver.patchDiskBIOS(1, bytes, 0x0000);
     }
 
     this.connect = function(machine) {
@@ -95,10 +95,10 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
             bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         else {
             this.rom.reloadEmbeddedContent();
-            var len = this.rom.content.length + 0x100;
+            var len = this.rom.content.length /*+ 0x100*/;
             if (!bytes || bytes.length !== len) bytes = new Array(len);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
-            driver.patchDiskBIOS(bytes, 0xc000);
+            driver.patchDiskBIOS(1, bytes, 0x0000);
         }
         this.bytes = bytes;
         bankOffset = s.b1;
