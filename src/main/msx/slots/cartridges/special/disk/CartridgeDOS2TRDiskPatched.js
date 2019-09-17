@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Patched DOS2 + Disk ROM content = 64K, starting at 0x4000
-// Disk ROM will be patched at 0xC000
+// Disk ROM will be patched at 0x0000
 // 0x4000 - 0x7FFF
 
 wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
@@ -12,7 +12,16 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
         bytes = new Array(rom.content.length /*+ 0x100*/);      // Additional 0x100 bytes for CHOICE string
         wmsx.Util.arrayCopy(rom.content, 0, bytes);
         self.bytes = bytes;
-        driver.patchDiskBIOS(1, bytes, 0x0000);
+        // There appears to be a Disk Driver on the first page ar 0x0000
+        driver.patchDiskBIOS(
+            bytes, 0,
+            0x07d6, 0x08c6, 0x3459, 0x379d, 0x3800, 0x381a, 0x3c52, 0x3713, false
+        );
+        // There appears to be a second Disk Driver on the last page ar 0xc000
+        driver.patchDiskBIOS(
+            bytes, 0xc000,
+                -1,     -1, 0x3495, 0x37cb, 0x380b, 0x3826, 0x3c58, 0x3747, false
+        );
     }
 
     this.connect = function(machine) {
@@ -98,7 +107,14 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
             var len = this.rom.content.length /*+ 0x100*/;
             if (!bytes || bytes.length !== len) bytes = new Array(len);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
-            driver.patchDiskBIOS(1, bytes, 0x0000);
+            driver.patchDiskBIOS(
+                bytes, 0,
+                0x07d6, 0x08c6, 0x3459, 0x379d, 0x3800, 0x381a, 0x3c52, 0x3713, false
+            );
+            driver.patchDiskBIOS(
+                bytes, 0xc000,
+                -1,     -1, 0x3495, 0x37cb, 0x380b, 0x3826, 0x3c58, 0x3747, false
+            );
         }
         this.bytes = bytes;
         bankOffset = s.b1;
