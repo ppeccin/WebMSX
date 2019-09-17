@@ -12,12 +12,12 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
         bytes = new Array(rom.content.length /*+ 0x100*/);      // Additional 0x100 bytes for CHOICE string
         wmsx.Util.arrayCopy(rom.content, 0, bytes);
         self.bytes = bytes;
-        // There appears to be a Disk Driver on the first page ar 0x0000
+        // DOS2 Disk Driver on the first page at 0x0000
         driver.patchDiskBIOS(
             bytes, 0,
-            0x07d6, 0x08c6, 0x3459, 0x379d, 0x3800, 0x381a, 0x3c52, 0x3713, false
+            0x36f1, 0x3747, 0x3459, 0x379d, 0x37f9, 0x381a, 0x3c52, 0x3867, false        // Orig MTOFF: 0x3713, new: 0x3867
         );
-        // There appears to be a second Disk Driver on the last page ar 0xc000
+        // DOS1 Disk Driver on the last page at 0xc000
         driver.patchDiskBIOS(
             bytes, 0xc000,
                 -1,     -1, 0x3495, 0x37cb, 0x380b, 0x3826, 0x3c58, 0x3747, false
@@ -81,7 +81,7 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.MSXDOS2TRDiskPatch;
 
-    var driver = new wmsx.ImageDiskDriver();
+    var driver = new wmsx.ImageDiskDriver(true);        // DOS2
 
     var bankOffset;
 
@@ -109,7 +109,7 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
             driver.patchDiskBIOS(
                 bytes, 0,
-                0x07d6, 0x08c6, 0x3459, 0x379d, 0x3800, 0x381a, 0x3c52, 0x3713, false
+                0x36f1, 0x3747, 0x3459, 0x379d, 0x37f9, 0x381a, 0x3c52, 0x3867, false
             );
             driver.patchDiskBIOS(
                 bytes, 0xc000,

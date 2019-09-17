@@ -38,6 +38,11 @@ wmsx.TurboRDevices = function(cpu) {
         register6 = 0x60;
     };
 
+    this.outputA7 = function(val) {
+        // console.log("tR LEDS write: " + val.toString(16));
+
+        if (active) leds = val & 0x81;      // bit 7: R800 LED (1 = on), bit 1: Z80 pause??? (1 = yes), bit 0: pause LED (1 = on)
+    };
     this.inputA7 = function() {
         var res = active ? window.TRPAUSE : 0xff;
 
@@ -45,12 +50,12 @@ wmsx.TurboRDevices = function(cpu) {
 
         return res;           // bit 0: pause switch (1 = on). turbo R never paused here!
     };
-    this.outputA7 = function(val) {
-        // console.log("tR LEDS write: " + val.toString(16));
 
-        if (active) leds = val & 0x81;      // bit 7: R800 LED (1 = on), bit 1: Z80 pause??? (1 = yes), bit 0: pause LED (1 = on)
+    this.outputE4 = function(val) {
+        // console.log("S1990 Register select write: " + val.toString(16));
+
+        if (active) registerSelect = val;
     };
-
     this.inputE4 = function() {
         var res = active ? registerSelect : 0xff;
 
@@ -58,28 +63,29 @@ wmsx.TurboRDevices = function(cpu) {
 
         return res;
     };
-    this.outputE4 = function(val) {
-        // console.log("S1990 Register select write: " + val.toString(16));
 
-        if (active) registerSelect = val;
+    this.outputE5 = function(val) {
+        // console.log("S1990 Register: " + registerSelect.toString(16) + " write: " + val.toString(16) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
+
+        if (registerSelect === 6) {
+            register6 = val & 0x60;
+            cpu.setR800Mode((register6 & 0x20) === 0);
+        }
     };
-
     this.inputE5 = function() {
-        var res = active && registerSelect === 6 ? register6 : 0xff;
+        var res =
+              registerSelect === 5 ? register5
+            : registerSelect === 6 ? register6
+            : 0xff;
 
         // console.log("S1990 Register: " + registerSelect.toString(16) + " read: " + res.toString(16));
 
         return res;
     };
-    this.outputE5 = function(val) {
-        // console.log("S1990 Register: " + registerSelect.toString(16) + " write: " + val.toString(16) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
-        if (active && registerSelect === 6) {
-            register6 = val & 0x60;
-            cpu.setR800Mode((register6 & 0x20) === 0);
-        }
+    this.outputE6 = function(val) {
+        console.log("S1990 Timer reset: " + val.toString(16));
     };
-
     this.inputE6 = function() {
         console.log("S1990 Timer LOW read");
 
@@ -91,15 +97,12 @@ wmsx.TurboRDevices = function(cpu) {
         return active ? 0xff : 0xff;
     };
 
-    this.outputE6 = function(val) {
-        console.log("S1990 Timer reset: " + val.toString(16));
-    };
-
 
     var active = false;
 
-    var leds = 0;
+    var leds = 0x00;
     var registerSelect = 0;
+    var register5 = 0x00;           // bit 6: Firmware Switch (0=right(OFF), 1=left(ON))  NEVER CHANGED, firmware always inactive
     var register6 = 0x60;          	// bit 6: ROM mode (0=DRAM, 1=ROM), bit 5: Processor mode (0=R800, 1=Z80)
 
 

@@ -17,8 +17,13 @@ wmsx.CartridgeDiskPatched = function(rom) {
         topAddress = baseAddress + bytes.length;
         driver.patchDiskBIOS(
             bytes, baseAddress === 0x4000 ? 0 : 0x4000,
-            0x176f, 0x1850, 0x0010, 0x0013, 0x0016, 0x0019, 0x001c, 0x001f, true
+            0x3786, 0x37b6, 0x344d, 0x380b, 0x385f, 0x387f, 0x38be, 0x378e, true
         );
+        // OLD patch at the caller/jump table. New above is at routine location
+        // driver.patchDiskBIOS(
+        //     bytes, baseAddress === 0x4000 ? 0 : 0x4000,
+        //     0x176f, 0x1850, 0x0010, 0x0013, 0x0016, 0x0019, 0x001c, 0x001f, true
+        // );
     }
 
     this.connect = function(machine) {
@@ -60,7 +65,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.DiskPatch;
 
-    var driver = new wmsx.ImageDiskDriver();
+    var driver = new wmsx.ImageDiskDriver(false);       // DOS1
 
 
     // Savestate  -------------------------------------------
@@ -87,9 +92,8 @@ wmsx.CartridgeDiskPatched = function(rom) {
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
             driver.patchDiskBIOS(
                 bytes, baseAddress === 0x4000 ? 0 : 0x4000,
-                0x176f, 0x1850, 0x0010, 0x0013, 0x0016, 0x0019, 0x001c, 0x001f, true
+                0x3786, 0x37b6, 0x344d, 0x380b, 0x385f, 0x387f, 0x38be, 0x378e, true
             );
-
         }
         this.bytes = bytes;
         topAddress = baseAddress + bytes.length;

@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // MSX-DOS and SymbOS Disk Driver for disk images. Implements driver public calls using the CPU extension protocol
-wmsx.ImageDiskDriver = function() {
+wmsx.ImageDiskDriver = function(dos2) {
 "use strict";
 
     this.connect = function(diskBIOS, machine) {
@@ -37,7 +37,7 @@ wmsx.ImageDiskDriver = function() {
             case 0xe5:
                 return DSKCHG(s.F, s.A, s.B, s.C, s.HL);
             case 0xe6:
-                return GETDPB(s.A, s.B, s.C, s.HL);
+                return GETDPB(s.F, s.A, s.B, s.C, s.HL);
             case 0xe7:
                 return CHOICE();
             case 0xe8:
@@ -67,11 +67,11 @@ wmsx.ImageDiskDriver = function() {
             // INIHRD routine (EXT 0)
             bytes[startAddress + inihrd + 0] = 0xed;
             bytes[startAddress + inihrd + 1] = 0xe0;
-            bytes[startAddress + inihrd + 2] = 0x00;
+            bytes[startAddress + inihrd + 2] = 0xc9;
             // DRIVES routine (EXT 2)
             bytes[startAddress + drives + 0] = 0xed;
             bytes[startAddress + drives + 1] = 0xe2;
-            bytes[startAddress + drives + 2] = 0x00;
+            bytes[startAddress + drives + 2] = 0xc9;
         }
 
         if (dskio >= 0) {
@@ -85,9 +85,9 @@ wmsx.ImageDiskDriver = function() {
             bytes[startAddress + dskchg + 1] = 0xe5;
             bytes[startAddress + dskchg + 2] = 0xc9;
             // GETDPB routine (EXT 6)
-            // bytes[startAddress + getdpb + 0] = 0xed;
-            // bytes[startAddress + getdpb + 1] = 0xe6;
-            // bytes[startAddress + getdpb + 2] = 0xc9;
+            bytes[startAddress + getdpb + 0] = 0xed;
+            bytes[startAddress + getdpb + 1] = 0xe6;
+            bytes[startAddress + getdpb + 2] = 0xc9;
             // CHOICE routine (EXT 7)
             bytes[startAddress + choice + 0] = 0xed;
             bytes[startAddress + choice + 1] = 0xe7;
@@ -190,13 +190,13 @@ wmsx.ImageDiskDriver = function() {
         if (mediaDeskFromDisk === null)
             return { F: F | 1, A: 2, B: 0, extraIterations: spinTime };
 
-        GETDPB(A, mediaDeskFromDisk, C, HL, true);
+        if (!dos2) GETDPB(F, A, mediaDeskFromDisk, C, HL, true);
 
         // Success, Disk changed or unknown and new DPB transferred. B = -1 (FFh) if disk changed
         return { F: F & ~1, B: (res === true ? 0xff : 0), extraIterations: spinTime };
     }
 
-    function GETDPB(A, B, C, HL, fromChoice) {
+    function GETDPB(F, A, B, C, HL, fromChoice) {
         // var pri = bus.getPrimarySlotConfig();
         // wmsx.Util.log("GETDPB: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL)
         //     + " Slots: " + wmsx.Util.toHex2(pri)
@@ -204,10 +204,12 @@ wmsx.ImageDiskDriver = function() {
         //     + " From DSKCHG: " + fromChoice);
 
         var mediaType = B < 0xF8 ? C : B;
-        if (mediaType < 0xF8) return;           // Invalid Media Descriptor
+        if (mediaType < 0xF8) return { F: F | 1 };           // Invalid Media Descriptor
 
         var dpb = drive.MEDIA_TYPE_DPB[mediaType];
         writeToMemory(dpb, HL + 1);
+
+        return { F: F & ~1 };
     }
 
     function CHOICE() {
@@ -253,7 +255,7 @@ wmsx.ImageDiskDriver = function() {
     }
 
     function getSlotForMemoryAccess(address) {
-        // If address is in DISK-BIOS range, force to RAM slot as per F342h
+        // If address is in DISK-BIOS range, force to RAM slot as per RAMAD1 system variable (0xf342)
         // The selected slot will be used for the entire transfer even if it crosses a page boundary
         var slot;
         if (address >= 0x4000 && address <= 0x7fff) {
