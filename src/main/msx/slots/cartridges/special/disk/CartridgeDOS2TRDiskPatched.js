@@ -9,18 +9,18 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
 
     function init(self) {
         self.rom = rom;
-        bytes = new Array(rom.content.length /*+ 0x100*/);      // Additional 0x100 bytes for CHOICE string
+        bytes = new Array(rom.content.length);
         wmsx.Util.arrayCopy(rom.content, 0, bytes);
         self.bytes = bytes;
         // DOS2 Disk Driver on the first page at 0x0000
         driver.patchDiskBIOS(
-            bytes, 0,
-            0x36f1, 0x3747, 0x3459, 0x379d, 0x37f9, 0x381a, 0x3c52, 0x3867, false        // Orig MTOFF: 0x3713, new: 0x3867
+            bytes, -0x4000, 0x4000,
+            0x76f1, 0x7747, 0x7459, 0x779d, 0x77f9, 0x781a, 0x7c52, 0x7867, 0x7824
         );
         // DOS1 Disk Driver on the last page at 0xc000
         driver.patchDiskBIOS(
-            bytes, 0xc000,
-                -1,     -1, 0x3495, 0x37cb, 0x380b, 0x3826, 0x3c58, 0x3747, false
+            bytes, 0x8000, 0x4000,
+            0x7725, 0x777b, 0x7495, 0x77cb, 0x780b, 0x7826, 0x7c58, 0x7747, 0x782a
         );
     }
 
@@ -55,11 +55,8 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
     };
 
     this.write = function(address, value) {
-        if (address === 0x7ff0) {
-            // console.log("BANK: " + (value & 3));
-
+        if (address === 0x7ff0)
             bankOffset = ((value & 0x03) << 14) - 0x4000;
-        }
     };
 
     this.cpuExtensionBegin = function(s) {
@@ -86,7 +83,7 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
     var bankOffset;
 
 
-    // Savestate  -------------------------------------------
+    // TODO Test Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
@@ -104,16 +101,16 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
             bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         else {
             this.rom.reloadEmbeddedContent();
-            var len = this.rom.content.length /*+ 0x100*/;
+            var len = this.rom.content.length;
             if (!bytes || bytes.length !== len) bytes = new Array(len);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
             driver.patchDiskBIOS(
-                bytes, 0,
-                0x36f1, 0x3747, 0x3459, 0x379d, 0x37f9, 0x381a, 0x3c52, 0x3867, false
+                bytes, -0x4000, 0x4000,
+                0x76f1, 0x7747, 0x7459, 0x779d, 0x77f9, 0x781a, 0x7c52, 0x7867, 0x7824
             );
             driver.patchDiskBIOS(
-                bytes, 0xc000,
-                -1,     -1, 0x3495, 0x37cb, 0x380b, 0x3826, 0x3c58, 0x3747, false
+                bytes, 0x8000, 0x4000,
+                0x7725, 0x777b, 0x7495, 0x77cb, 0x780b, 0x7826, 0x7c58, 0x7747, 0x782a
             );
         }
         this.bytes = bytes;

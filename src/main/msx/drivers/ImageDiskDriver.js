@@ -39,7 +39,7 @@ wmsx.ImageDiskDriver = function(dos2) {
             case 0xe6:
                 return GETDPB(s.F, s.A, s.B, s.C, s.HL);
             case 0xe7:
-                return CHOICE();
+                return CHOICE(s.extPC);
             case 0xe8:
                 return DSKFMT(s.F, s.A, s.DE);
             case 0xea:
@@ -59,56 +59,56 @@ wmsx.ImageDiskDriver = function(dos2) {
         drive.allMotorsOff();
     };
 
-    this.patchDiskBIOS = function(bytes, startAddress, inihrd, drives, dskio, dskchg, getdpb, choice, deskfmt, mtoff, choiceStr) {
+    this.patchDiskBIOS = function (bytes, patchStart, driverStart, inihrd, drives, dskio, dskchg, getdpb, choice, deskfmt, mtoff, choiceStrAddr) {
         // DOS kernel places where Driver routines with no jump table are called
 
         // Disk Driver init routines not present on Jump Table
         if (inihrd >= 0) {
             // INIHRD routine (EXT 0)
-            bytes[startAddress + inihrd + 0] = 0xed;
-            bytes[startAddress + inihrd + 1] = 0xe0;
-            bytes[startAddress + inihrd + 2] = 0xc9;
+            bytes[patchStart + inihrd + 0] = 0xed;
+            bytes[patchStart + inihrd + 1] = 0xe0;
+            bytes[patchStart + inihrd + 2] = 0xc9;
             // DRIVES routine (EXT 2)
-            bytes[startAddress + drives + 0] = 0xed;
-            bytes[startAddress + drives + 1] = 0xe2;
-            bytes[startAddress + drives + 2] = 0xc9;
+            bytes[patchStart + drives + 0] = 0xed;
+            bytes[patchStart + drives + 1] = 0xe2;
+            bytes[patchStart + drives + 2] = 0xc9;
         }
 
         if (dskio >= 0) {
             // DOS Kernel Jump Table for Disk Driver routines
             // DSKIO routine (EXT 4)
-            bytes[startAddress + dskio + 0] = 0xed;
-            bytes[startAddress + dskio + 1] = 0xe4;
-            bytes[startAddress + dskio + 2] = 0xc9;
+            bytes[patchStart + dskio + 0] = 0xed;
+            bytes[patchStart + dskio + 1] = 0xe4;
+            bytes[patchStart + dskio + 2] = 0xc9;
             // DSKCHG routine (EXT 5)
-            bytes[startAddress + dskchg + 0] = 0xed;
-            bytes[startAddress + dskchg + 1] = 0xe5;
-            bytes[startAddress + dskchg + 2] = 0xc9;
+            bytes[patchStart + dskchg + 0] = 0xed;
+            bytes[patchStart + dskchg + 1] = 0xe5;
+            bytes[patchStart + dskchg + 2] = 0xc9;
             // GETDPB routine (EXT 6)
-            bytes[startAddress + getdpb + 0] = 0xed;
-            bytes[startAddress + getdpb + 1] = 0xe6;
-            bytes[startAddress + getdpb + 2] = 0xc9;
+            bytes[patchStart + getdpb + 0] = 0xed;
+            bytes[patchStart + getdpb + 1] = 0xe6;
+            bytes[patchStart + getdpb + 2] = 0xc9;
             // CHOICE routine (EXT 7)
-            bytes[startAddress + choice + 0] = 0xed;
-            bytes[startAddress + choice + 1] = 0xe7;
-            bytes[startAddress + choice + 2] = 0xc9;
+            bytes[patchStart + choice + 0] = 0xed;
+            bytes[patchStart + choice + 1] = 0xe7;
+            bytes[patchStart + choice + 2] = 0xc9;
             // DSKFMT routine (EXT 8)
-            bytes[startAddress + deskfmt + 0] = 0xed;
-            bytes[startAddress + deskfmt + 1] = 0xe8;
-            bytes[startAddress + deskfmt + 2] = 0xc9;
+            bytes[patchStart + deskfmt + 0] = 0xed;
+            bytes[patchStart + deskfmt + 1] = 0xe8;
+            bytes[patchStart + deskfmt + 2] = 0xc9;
             // MTOFF routine (EXT a)
-            bytes[startAddress + mtoff + 0] = 0xed;
-            bytes[startAddress + mtoff + 1] = 0xea;
-            bytes[startAddress + mtoff + 2] = 0xc9;
+            bytes[patchStart + mtoff + 0] = 0xed;
+            bytes[patchStart + mtoff + 1] = 0xea;
+            bytes[patchStart + mtoff + 2] = 0xc9;
         }
 
         // It seems the Disk BIOS routines just assume the CHOICE message will reside in the same slot as the Disk BIOS itself.
         // So we must put the message in the same slot and make that memory region readable
         // Lets use a memory space in page 2 of this same slot and hope it works
-        if (choiceStr) {
-            wmsx.Util.arrayFill(bytes, 0xff, startAddress + 0x4000);   // 256 bytes additional space over ROM
+        if (choiceStrAddr >= 0) {
+            choiceStringAddress[choice] = choiceStrAddr;
             for (var i = 0; i < CHOICE_STRING.length; i++)
-                bytes[startAddress + CHOICE_STRING_ADDRESS - 0x4000 + i] = CHOICE_STRING.charCodeAt(i);
+                bytes[patchStart + choiceStrAddr + i] = CHOICE_STRING.charCodeAt(i);
         }
     };
 
@@ -212,10 +212,10 @@ wmsx.ImageDiskDriver = function(dos2) {
         return { F: F & ~1 };
     }
 
-    function CHOICE() {
-        // wmsx.Util.log("CHOICE" + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
+    function CHOICE(extPC) {
+        // wmsx.Util.log("CHOICE" + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()) + ", extPC: " + extPC.toString(16));
 
-        return { HL: CHOICE_STRING_ADDRESS };
+        return { HL: choiceStringAddress[extPC] || 0 };     // 0 = no choice, only 1 option
     }
 
     function DSKFMT(F, A, DE) {
@@ -353,24 +353,32 @@ wmsx.ImageDiskDriver = function(dos2) {
     // Savestate  -------------------------------------------
 
     this.saveState = function() {
-        return { sd: symbOSDeviceDrive };
+        return {
+            sd: symbOSDeviceDrive,
+            csa: choiceStringAddress
+        };
     };
 
     this.loadState = function(s) {
-        symbOSDeviceDrive = (s && s.sd) !== undefined ? s.sd : { };
+        symbOSDeviceDrive = (s && s.sd) !== undefined ? s.sd : { };         // backward compatibility
+        choiceStringAddress = s.csa !== undefined ? s.csa : { };            // backward compatibility
     };
 
-
-    var symbOSDeviceDrive = { };            // Stores Drive Letter (A: 1, B: 2, ...) for each SymbOS device (0..7)
 
     var drive;
     var bus;
 
+    var symbOSDeviceDrive = { };            // Stores Drive Letter (A: 1, B: 2, ...) for each SymbOS device (0..7)
+    var choiceStringAddress = { };          // Choice String address for each CHOICE patched
+
 
     var BYTES_PER_SECTOR = 512;             // Fixed for now, for all disks
 
-    var CHOICE_STRING = "A new disk will be created.\r\nPlease choose format:\r\n1) 720KB, Double Sided\r\n2) 360KB, Single Sided\r\n\0";
-    var CHOICE_STRING_ADDRESS = 0x8040;
+    // var CHOICE_STRING = "A new disk will be created.\r\nPlease choose format:\r\n1) 720KB, Double Sided\r\n2) 360KB, Single Sided\r\n\0";
+    // var CHOICE_STRING = "123456789012345678901234567890123456789012";
+    var CHOICE_STRING = "Adding a new Disk...\r\n1) 720KB\r\n2) 360KB\r\n\0";
+
+    var OLD_CHOICE_STRING_ADDRESS = 0x8040;
 
     var EXTRA_ITERATIONS_PER_SECTOR = 5000;
     var EXTRA_ITERATIONS_FORMAT = 2000000;
