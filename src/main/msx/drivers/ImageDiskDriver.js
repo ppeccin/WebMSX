@@ -219,10 +219,10 @@ wmsx.ImageDiskDriver = function(dos2) {
     }
 
     function DSKFMT(F, A, DE) {
-        // wmsx.Util.log("DSKFMT" + " Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
+        // wmsx.Util.log("DSKFMT: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex4(DE) + ", Slots: " + wmsx.Util.toHex2(WMSX.room.machine.bus.getPrimarySlotConfig()));
 
         var d = DE >>> 8;
-        var f = A - 1;
+        var f = A >= 1 && A <= 2 ? A - 1 : 0;
 
         // Bad Parameter error if Disk or Format Option is invalid. Only options 0 and 1 supported
         if ((f < 0 || f > 1) || (d < 0 || d > 1))
@@ -361,7 +361,7 @@ wmsx.ImageDiskDriver = function(dos2) {
 
     this.loadState = function(s) {
         symbOSDeviceDrive = (s && s.sd) !== undefined ? s.sd : { };                             // backward compatibility
-        choiceStringAddress = s.csa !== undefined ? s.csa : OLD_CHOICE_STRING_ADDRESS;          // backward compatibility
+        choiceStringAddress = s.csa !== undefined ? s.csa : { };                                // backward compatibility: No options, force 720KB
     };
 
 
@@ -377,8 +377,6 @@ wmsx.ImageDiskDriver = function(dos2) {
     // var CHOICE_STRING = "A new disk will be created.\r\nPlease choose format:\r\n1) 720KB, Double Sided\r\n2) 360KB, Single Sided\r\n\0";
     // var CHOICE_STRING = "123456789012345678901234567890123456789012";
     var CHOICE_STRING = "Adding a new Disk...\r\n1) 720KB\r\n2) 360KB\r\n\0";
-
-    var OLD_CHOICE_STRING_ADDRESS = { 0x787f: 0x7893 };
 
     var EXTRA_ITERATIONS_PER_SECTOR = 5000;
     var EXTRA_ITERATIONS_FORMAT = 2000000;
