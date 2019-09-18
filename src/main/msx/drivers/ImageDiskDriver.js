@@ -360,8 +360,8 @@ wmsx.ImageDiskDriver = function(dos2) {
     };
 
     this.loadState = function(s) {
-        symbOSDeviceDrive = (s && s.sd) !== undefined ? s.sd : { };         // backward compatibility
-        choiceStringAddress = s.csa !== undefined ? s.csa : { };            // backward compatibility
+        symbOSDeviceDrive = (s && s.sd) !== undefined ? s.sd : { };                             // backward compatibility
+        choiceStringAddress = s.csa !== undefined ? s.csa : OLD_CHOICE_STRING_ADDRESS;          // backward compatibility
     };
 
 
@@ -378,7 +378,7 @@ wmsx.ImageDiskDriver = function(dos2) {
     // var CHOICE_STRING = "123456789012345678901234567890123456789012";
     var CHOICE_STRING = "Adding a new Disk...\r\n1) 720KB\r\n2) 360KB\r\n\0";
 
-    var OLD_CHOICE_STRING_ADDRESS = 0x8040;
+    var OLD_CHOICE_STRING_ADDRESS = { 0x787f: 0x7893 };
 
     var EXTRA_ITERATIONS_PER_SECTOR = 5000;
     var EXTRA_ITERATIONS_FORMAT = 2000000;
