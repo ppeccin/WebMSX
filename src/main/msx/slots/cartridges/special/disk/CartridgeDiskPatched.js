@@ -15,15 +15,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
         self.bytes = bytes;
         baseAddress = rom.content.length === 0x4000 ? 0x4000 : (WMSX.DISK_ROM_START_PAGE || 0) * 0x4000;
         topAddress = baseAddress + bytes.length;
-        driver.patchDiskBIOS(
-            bytes, baseAddress === 0x4000 ? -0x4000 : 0x0000, 0x4000,
-            0x7786, 0x77b6, 0x744d, 0x780b, 0x785f, 0x787f, 0x78be, 0x778e, 0x7893
-        );
-        // OLD patch at the caller/jump table. New above is at routine location
-        // driver.patchDiskBIOS(
-        //     bytes, baseAddress === 0x4000 ? 0 : 0x4000,
-        //     0x176f, 0x1850, 0x0010, 0x0013, 0x0016, 0x0019, 0x001c, 0x001f, true
-        // );
+        driver.patchDiskBIOS(bytes, baseAddress === 0x4000 ? -0x4000 : 0x0000, 0x4000, 0x576f, 0x5850, 0x7893);
     }
 
     this.connect = function(machine) {
@@ -90,10 +82,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
             var len = this.rom.content.length;
             if (!bytes || bytes.length !== len) bytes = new Array(len);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
-            driver.patchDiskBIOS(
-                bytes, baseAddress === 0x4000 ? -0x4000 : 0x0000, 0x4000,
-                0x7786, 0x77b6, 0x744d, 0x780b, 0x785f, 0x787f, 0x78be, 0x778e, 0x7893
-            );
+            driver.patchDiskBIOS(bytes, baseAddress === 0x4000 ? -0x4000 : 0x0000, 0x4000, 0x576f, 0x5850, 0x7893);
         }
         this.bytes = bytes;
         topAddress = baseAddress + bytes.length;

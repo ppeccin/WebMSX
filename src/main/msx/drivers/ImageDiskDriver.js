@@ -59,56 +59,59 @@ wmsx.ImageDiskDriver = function(dos2) {
         drive.allMotorsOff();
     };
 
-    this.patchDiskBIOS = function (bytes, patchStart, driverStart, inihrd, drives, dskio, dskchg, getdpb, choice, deskfmt, mtoff, choiceStrAddr) {
+    this.patchDiskBIOS = function (bytes, patchBase, driverStart, inihrd, drives, choiceStrAddr) {
         // DOS kernel places where Driver routines with no jump table are called
+        var addr = 0, choiceAddr = 0;
 
-        // Disk Driver init routines not present on Jump Table
-        if (inihrd >= 0) {
-            // INIHRD routine (EXT 0)
-            bytes[patchStart + inihrd + 0] = 0xed;
-            bytes[patchStart + inihrd + 1] = 0xe0;
-            bytes[patchStart + inihrd + 2] = 0xc9;
-            // DRIVES routine (EXT 2)
-            bytes[patchStart + drives + 0] = 0xed;
-            bytes[patchStart + drives + 1] = 0xe2;
-            bytes[patchStart + drives + 2] = 0xc9;
-        }
+        // Disk Driver init routines not present on Jump Table. Patched at the CALLER location
+        // INIHRD routine (EXT 0)
+        bytes[patchBase + inihrd + 0] = 0xed;
+        bytes[patchBase + inihrd + 1] = 0xe0;
+        bytes[patchBase + inihrd + 2] = 0x00;  // NOP
+        // DRIVES routine (EXT 2)
+        bytes[patchBase + drives + 0] = 0xed;
+        bytes[patchBase + drives + 1] = 0xe2;
+        bytes[patchBase + drives + 2] = 0x00;  // NOP
 
-        if (dskio >= 0) {
-            // DOS Kernel Jump Table for Disk Driver routines
-            // DSKIO routine (EXT 4)
-            bytes[patchStart + dskio + 0] = 0xed;
-            bytes[patchStart + dskio + 1] = 0xe4;
-            bytes[patchStart + dskio + 2] = 0xc9;
-            // DSKCHG routine (EXT 5)
-            bytes[patchStart + dskchg + 0] = 0xed;
-            bytes[patchStart + dskchg + 1] = 0xe5;
-            bytes[patchStart + dskchg + 2] = 0xc9;
-            // GETDPB routine (EXT 6)
-            bytes[patchStart + getdpb + 0] = 0xed;
-            bytes[patchStart + getdpb + 1] = 0xe6;
-            bytes[patchStart + getdpb + 2] = 0xc9;
-            // CHOICE routine (EXT 7)
-            bytes[patchStart + choice + 0] = 0xed;
-            bytes[patchStart + choice + 1] = 0xe7;
-            bytes[patchStart + choice + 2] = 0xc9;
-            // DSKFMT routine (EXT 8)
-            bytes[patchStart + deskfmt + 0] = 0xed;
-            bytes[patchStart + deskfmt + 1] = 0xe8;
-            bytes[patchStart + deskfmt + 2] = 0xc9;
-            // MTOFF routine (EXT a)
-            bytes[patchStart + mtoff + 0] = 0xed;
-            bytes[patchStart + mtoff + 1] = 0xea;
-            bytes[patchStart + mtoff + 2] = 0xc9;
-        }
+        // DOS Kernel Jump Table for Disk Driver routines. Patched at the ROUTINE location + offset
+        // DSKIO routine (EXT 4)
+        addr = (patchBase + driverStart + 16 + 0) || ((patchBase + driverStart + 16 + 0 + 1) << 8);
+        bytes[addr + 0] = 0xed;
+        bytes[addr + 1] = 0xe4;
+        bytes[addr + 2] = 0xc9;
+        // DSKCHG routine (EXT 5)
+        addr = (patchBase + driverStart + 16 + 3) || ((patchBase + driverStart + 16 + 3 + 1) << 8);
+        bytes[addr + 0] = 0xed;
+        bytes[addr + 1] = 0xe5;
+        bytes[addr + 2] = 0xc9;
+        // GETDPB routine (EXT 6)
+        addr = (patchBase + driverStart + 16 + 6) || ((patchBase + driverStart + 16 + 6 + 1) << 8);
+        bytes[addr + 0] = 0xed;
+        bytes[addr + 1] = 0xe6;
+        bytes[addr + 2] = 0xc9;
+        // CHOICE routine (EXT 7)
+        choiceAddr = addr = (patchBase + driverStart + 16 + 9) || ((patchBase + driverStart + 16 + 9 + 1) << 8);
+        bytes[addr + 0] = 0xed;
+        bytes[addr + 1] = 0xe7;
+        bytes[addr + 2] = 0xc9;
+        // DSKFMT routine (EXT 8)
+        addr = (patchBase + driverStart + 16 + 12) || ((patchBase + driverStart + 16 + 12 + 1) << 8);
+        bytes[addr + 0] = 0xed;
+        bytes[addr + 1] = 0xe8;
+        bytes[addr + 2] = 0xc9;
+        // MTOFF routine (EXT a)
+        addr = (patchBase + driverStart + 16 + 15) || ((patchBase + driverStart + 16 + 15 + 1) << 8);
+        bytes[addr + 0] = 0xed;
+        bytes[addr + 1] = 0xea;
+        bytes[addr + 2] = 0xc9;
 
         // It seems the Disk BIOS routines just assume the CHOICE message will reside in the same slot as the Disk BIOS itself.
         // So we must put the message in the same slot and make that memory region readable
         // Lets use a memory space in page 2 of this same slot and hope it works
         if (choiceStrAddr >= 0) {
-            choiceStringAddress[choice] = choiceStrAddr;
+            choiceStringAddress[choiceAddr] = choiceStrAddr;
             for (var i = 0; i < CHOICE_STRING.length; i++)
-                bytes[patchStart + choiceStrAddr + i] = CHOICE_STRING.charCodeAt(i);
+                bytes[patchBase + choiceStrAddr + i] = CHOICE_STRING.charCodeAt(i);
         }
     };
 
@@ -360,8 +363,8 @@ wmsx.ImageDiskDriver = function(dos2) {
     };
 
     this.loadState = function(s) {
-        symbOSDeviceDrive = (s && s.sd) !== undefined ? s.sd : { };                             // backward compatibility
-        choiceStringAddress = s.csa !== undefined ? s.csa : { };                                // backward compatibility: No options, force 720KB
+        symbOSDeviceDrive = (s && s.sd) !== undefined ? s.sd : { };         // backward compatibility
+        choiceStringAddress = s.csa !== undefined ? s.csa : { };            // backward compatibility: No options, force 720KB
     };
 
 

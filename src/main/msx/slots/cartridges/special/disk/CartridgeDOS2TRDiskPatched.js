@@ -13,15 +13,9 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
         wmsx.Util.arrayCopy(rom.content, 0, bytes);
         self.bytes = bytes;
         // DOS2 Disk Driver on the first page at 0x0000
-        driver.patchDiskBIOS(
-            bytes, -0x4000, 0x4000,
-            0x76f1, 0x7747, 0x7459, 0x779d, 0x77f9, 0x781a, 0x7c52, 0x7867, 0x7824
-        );
+        driver.patchDiskBIOS(bytes, -0x4000, 0x4000, 0x47d6, 0x48c6, 0x7824);
         // DOS1 Disk Driver on the last page at 0xc000
-        driver.patchDiskBIOS(
-            bytes, 0x8000, 0x4000,
-            0x7725, 0x777b, 0x7495, 0x77cb, 0x780b, 0x7826, 0x7c58, 0x7747, 0x782a
-        );
+        driver.patchDiskBIOS(bytes, 0x8000, 0x4000, 0x576f, 0x5850, 0x782a);
     }
 
     this.connect = function(machine) {
@@ -104,14 +98,8 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
             var len = this.rom.content.length;
             if (!bytes || bytes.length !== len) bytes = new Array(len);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
-            driver.patchDiskBIOS(
-                bytes, -0x4000, 0x4000,
-                0x76f1, 0x7747, 0x7459, 0x779d, 0x77f9, 0x781a, 0x7c52, 0x7867, 0x7824
-            );
-            driver.patchDiskBIOS(
-                bytes, 0x8000, 0x4000,
-                0x7725, 0x777b, 0x7495, 0x77cb, 0x780b, 0x7826, 0x7c58, 0x7747, 0x782a
-            );
+            driver.patchDiskBIOS(bytes, -0x4000, 0x4000, 0x47d6, 0x48c6, 0x7824);
+            driver.patchDiskBIOS(bytes, 0x8000, 0x4000, 0x576f, 0x5850, 0x782a);
         }
         this.bytes = bytes;
         bankOffset = s.b1;
