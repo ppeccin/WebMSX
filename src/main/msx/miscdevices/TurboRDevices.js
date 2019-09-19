@@ -9,7 +9,8 @@ wmsx.TurboRDevices = function(cpu) {
         active = type >= wmsx.Machine.MACHINE_TYPE.MSXTR;
     };
 
-    this.connectBus = function(bus) {
+    this.connectBus = function(pBus) {
+        bus = pBus;
         bus.connectInputDevice( 0xa7, this.inputA7);            // Pause Switch
         bus.connectOutputDevice(0xa7, this.outputA7);           // R800 and Pause Leds
 
@@ -36,6 +37,7 @@ wmsx.TurboRDevices = function(cpu) {
         leds = 0x00;
         registerSelect = 0;
         register6 = 0x60;
+        this.outputE6(0);       // reset counter
     };
 
     this.outputA7 = function(val) {
@@ -78,32 +80,43 @@ wmsx.TurboRDevices = function(cpu) {
             : registerSelect === 6 ? register6
             : 0xff;
 
-        // console.log("S1990 Register: " + registerSelect.toString(16) + " read: " + res.toString(16));
+        // var pri = bus.getPrimarySlotConfig();
+        // console.log("S1990 Register: " + registerSelect.toString(16) + " read: " + res.toString(16)
+        //     + " Slots: " + wmsx.Util.toHex2(pri)
+        //     + " Sub Slots: " + wmsx.Util.toHex2(~bus.slots[pri >> 6].read(0xffff) & 0xff));
 
         return res;
     };
 
     this.outputE6 = function(val) {
-        console.log("S1990 Timer reset: " + val.toString(16));
+        // console.log("S1990 Counter reset");
+
+        counterBase = cpu.getBUSCycles();
     };
     this.inputE6 = function() {
-        console.log("S1990 Timer LOW read");
+        // console.log("S1990 Counter LOW read");
 
-        return active ? 0xff : 0xff;
+        return active ? getCounterValue() & 0xff : 0xff;
     };
     this.inputE7 = function() {
-        console.log("S1990 Timer HIGH read");
+        // console.log("S1990 Counter HIGH read");
 
-        return active ? 0xff : 0xff;
+        return active ? getCounterValue() >> 8 : 0xff;
     };
 
+    function getCounterValue() {
+        return ((cpu.getBUSCycles() - counterBase) / 14) & 0xffff;
+    }
 
+
+    var bus;
     var active = false;
 
     var leds = 0x00;
     var registerSelect = 0;
     var register5 = 0x00;           // bit 6: Firmware Switch (0=right(OFF), 1=left(ON))  NEVER CHANGED, firmware always inactive
     var register6 = 0x60;          	// bit 6: ROM mode (0=DRAM, 1=ROM), bit 5: Processor mode (0=R800, 1=Z80)
+    var counterBase = 0;
 
 
     // Savestate  -------------------------------------------
@@ -113,7 +126,8 @@ wmsx.TurboRDevices = function(cpu) {
             a: active,
             ld: leds,
             rs: registerSelect,
-            r6: register6
+            r6: register6,
+            cb: counterBase
         };
     };
 
@@ -128,7 +142,8 @@ wmsx.TurboRDevices = function(cpu) {
         active =  s.a;
         leds = s.ld;
         registerSelect = s.rs;
-        register6 = s.r6
+        register6 = s.r6;
+        counterBase = s.cb;
     };
 
 

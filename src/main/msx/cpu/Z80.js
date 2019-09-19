@@ -256,7 +256,7 @@ wmsx.Z80 = function() {
     }
 
     function writeState(to) {
-        to.busCycles = busCycles;
+        // to.busCycles = busCycles;
         to.ackINT = ackINT;
         to.prefix = prefix;
         to.T = T; to.opcode = opcode; to.instruction = instruction;
@@ -267,7 +267,7 @@ wmsx.Z80 = function() {
     }
 
     function readState(from) {
-        busCycles = from.busCycles;
+        // busCycles = from.busCycles;
         ackINT = from.ackINT;
         prefix = from.prefix;
         T = from.T; opcode = from.opcode; instruction = from.instruction;
@@ -1422,8 +1422,6 @@ wmsx.Z80 = function() {
 
     function newMULUB(from) {
         return function MULUB() {
-            console.log("MULUB A, " + from.name);
-
             // In Z80, MULUB is just like NOP
             if (!r800Mode) return;
 
@@ -1439,13 +1437,11 @@ wmsx.Z80 = function() {
 
     function newMULUW(from) {
         return function MULUW() {
-            console.log("MULUW HL, " + from.name);
-
             // In Z80, MULUW is just like NOP
             if (!r800Mode) return;
 
             var res = HL * from();
-            DE = res >> 16; HL = res & 0xffff;
+            DE = res >>> 16; HL = res & 0xffff;
             // Flags
             F = (F & 0x12)                                      // H = H, N = N, S = 0, PV = 0, V = 0
                 | (res & 0x28)                                  // f5, f3 copied from res
