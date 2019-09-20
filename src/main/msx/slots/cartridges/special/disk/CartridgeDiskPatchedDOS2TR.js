@@ -4,7 +4,7 @@
 // Disk ROM will be patched at 0x0000
 // 0x4000 - 0x7FFF
 
-wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
+wmsx.CartridgeDiskPatchedDOS2TR = function(rom) {
 "use strict";
 
     function init(self) {
@@ -70,7 +70,7 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
     var baseAddress = 0x4000, topAddress = 0x8000;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.MSXDOS2TRDiskPatch;
+    this.format = wmsx.SlotFormats.DiskPatchDOS2TR;
 
     var driver = new wmsx.ImageDiskDriver(true);        // DOS2
 
@@ -111,10 +111,10 @@ wmsx.CartridgeDOS2TRDiskPatched = function(rom) {
 
 };
 
-wmsx.CartridgeDOS2TRDiskPatched.prototype = wmsx.Slot.base;
+wmsx.CartridgeDiskPatchedDOS2TR.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeDOS2TRDiskPatched.recreateFromSaveState = function(state, previousSlot) {
-    var cart = previousSlot || new wmsx.CartridgeDOS2TRDiskPatched(null);
+wmsx.CartridgeDiskPatchedDOS2TR.recreateFromSaveState = function(state, previousSlot) {
+    var cart = previousSlot || new wmsx.CartridgeDiskPatchedDOS2TR(null);
     cart.loadState(state);
     return cart;
 };

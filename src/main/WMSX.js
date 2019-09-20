@@ -122,10 +122,12 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
+    MSXTR:    { DESCX: "MSX tR Auto Detect",    AUTO_TYPE: 5 },
     MSX2PP:   { DESCX: "MSX2++ Auto Detect",    AUTO_TYPE: 4 },
     MSX2P:    { DESCX: "MSX2+ Auto Detect",     AUTO_TYPE: 3 },
     MSX2:     { DESCX: "MSX2 Auto Detect",      AUTO_TYPE: 2 },
     MSX1:     { DESCX: "MSX Auto Detect",       AUTO_TYPE: 1 },
+    MSXTRJ:   { DESC:  "MSX turbo R Japan (NTSC)",  TYPE: 5, PRESETS: "_MSXTRJ", LANG: "ja", CODE_LABEL: "KANA" },
     MSX2PPA:  { DESC:  "MSX2++ America (NTSC)", TYPE: 4, PRESETS: "_MSX2PPA" },
     MSX2PPE:  { DESC:  "MSX2++ Europe (PAL)",   TYPE: 4, PRESETS: "_MSX2PPE" },
     MSX2PPJ:  { DESC:  "MSX2++ Japan (NTSC)",   TYPE: 4, PRESETS: "_MSX2PPJ", LANG: "ja", CODE_LABEL: "KANA" },
@@ -145,13 +147,13 @@ WMSX.MACHINES_CONFIG = {
 };
 
 WMSX.EXTENSIONS_CONFIG = {
-    HARDDISK:  { DESC: "Hard Drive",    URL: "@[Nextor16Patch].rom", SLOT: [2, 3], SLOT2: [3, 3], TOGGLE: "DISK", CHANGE: { RAMMAPPER: 1 } },
-    DISK:      { DESC: "Floppy Drives", URL: "@[DiskPatch].rom",     SLOT: [2, 3], SLOT2: [3, 3], TOGGLE: "HARDDISK" },
+    HARDDISK:  { DESC: "Hard Drive",    URL: "@[Nextor16Patch].rom", SLOT: [2, 3], SLOT2: [3, 2], TOGGLE: "DISK", CHANGE: { RAMMAPPER: 1 } },
+    DISK:      { DESC: "Floppy Drives", URL: "@[DiskPatch].rom",     SLOT: [2, 3], SLOT2: [3, 2], TOGGLE: "HARDDISK" },
     RAMMAPPER: { DESC: "RAM Mapper",    URL: "@[RAMMapper].rom",     SLOT: [3],                   MUTUAL: "RAMNORMAL" },
     RAMNORMAL: {                        URL: "@[RAMNormal].rom",     SLOT: [3],                   MUTUAL: "RAMMAPPER" },
     KANJI:     { DESC: "KANJI Fonts",   URL: "@[Kanji1].rom",        SLOT: [4, 0] },
     V9990:     { DESC: "V9990 Video",   URL: "@[V9990].rom",         SLOT: [4, 3] },
-    MSXMUSIC:  { DESC: "MSX-MUSIC",     URL: "@[MSXMUSIC].rom",      SLOT: [3, 2] },
+    MSXMUSIC:  { DESC: "MSX-MUSIC",     URL: "@[MSXMUSIC].rom",      SLOT: [3, 3] },
     OPL4:      { DESC: "OPL4 Wave",     URL: "@[MoonSound].rom",     SLOT: [4, 1] },
     DOUBLEPSG: { DESC: "Double PSG",    URL: "@[ExtraPSG].rom",      SLOT: [4, 2] },
     SCCI:      { DESC: "Konami SCC+",   URL: "@[SCCIExpansion].rom", SLOT: [1],    SLOT2: [2], CHANGE: { SCC:  0, PAC: 0, MEGARAM: 0 } },
@@ -171,9 +173,11 @@ WMSX.PRESETS_CONFIG = {
     NOHARDDISK: { "EXTENSIONS.HARDDISK": 0 },
 
     // Floppy Disk Drives
-    DISK:     { "EXTENSIONS.DISK": 2 },
-    DISKA:    { "EXTENSIONS.DISK": 1 },
-    NODISK:   { "EXTENSIONS.DISK": 0 },
+    DISK:      { "EXTENSIONS.DISK": 2 },
+    DISKA:     { "EXTENSIONS.DISK": 1 },
+    NODISK:    { "EXTENSIONS.DISK": 0 },
+    DISKEXTN:  { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatch].rom" },
+    DISKEXTTR: { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatchDOS2TR].rom" },
 
     // RAM type
     RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
@@ -241,6 +245,19 @@ WMSX.PRESETS_CONFIG = {
         EXPANSION2_SLOT:                   [3, 3],
         "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [2, 2],
         "PRESETS_CONFIG.DISK":             { "EXTENSIONS.DISK": 1 }
+    },
+
+    // MSX2 tR Machine Presets. Do not use directly
+
+    _MSXTRJ: {
+        _INCLUDE:           "_MSXTRBASE",
+        SLOT00_URL:         "@MSXTR_JAP.bios",
+        SLOT03_URL:         "@MSXTROPEN.bios", SLOT03_FORMAT: "PlainROM", SLOT03_START: "0x4000",
+        SLOT31_URL:         "@MSXTREXT_JAP.bios | @KanjiBasicTR.bios",
+        BOOT_DURATION_AUTO: 380
+    },
+    _MSXTRBASE: {
+        _INCLUDE:           "_MSX2BASE, DISKEXTTR, KANJI"
     },
 
     // MSX2++ Machine Presets. Do not use directly
@@ -349,6 +366,7 @@ WMSX.PRESETS_CONFIG = {
     },
 
     _BASE: {
+        _INCLUDE:               "DISKEXTN",
         CPU_SOFT_TURBO_MULTI:   1,
         VDP_SOFT_TURBO_MULTI:   1,
         CPU_SOFT_TURBO_AUTO_ON: 0,

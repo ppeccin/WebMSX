@@ -919,19 +919,19 @@ wmsx.SlotFormats = {
         }
     },
 
-    "MSXDOS2TRDiskPatch": {
-        name: "MSXDOS2TRDiskPatch",
-        desc: "MSX-DOS 2 + Patched Disk BIOS",
+    "DiskPatchDOS2TR": {
+        name: "DiskPatchDOS2TR",
+        desc: "TR MSX-DOS2 + Patched Disk BIOS",
         priority: 1511,
         priorityForRom: function (rom) {
             // Only 64K content. Must be selected via info format hint
             return (rom.content.length === 65536) ? this.priority : null;
         },
         createFromROM: function (rom) {
-            return new wmsx.CartridgeDOS2TRDiskPatched(rom);
+            return new wmsx.CartridgeDiskPatchedDOS2TR(rom);
         },
         recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeDOS2TRDiskPatched.recreateFromSaveState(state, previousSlot);
+            return wmsx.CartridgeDiskPatchedDOS2TR.recreateFromSaveState(state, previousSlot);
         }
     }
 

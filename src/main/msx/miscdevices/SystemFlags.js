@@ -11,9 +11,9 @@ wmsx.SystemFlags = function() {
     };
 
     this.connectBus = function(bus) {
-        bus.connectInputDevice( 0xf3, this.inputF3);                            // VDP Mode  (2+ only)
+        bus.connectInputDevice( 0xf3, this.inputF3);                            // VDP Mode  (>= 2+ only)
         bus.connectOutputDevice(0xf3, this.outputF3);
-        bus.connectInputDevice( 0xf4, this.inputF4);                            // System Boot flags (2+ only)
+        bus.connectInputDevice( 0xf4, this.inputF4);                            // System Boot flags (>= 2+ only)
         bus.connectOutputDevice(0xf4, this.outputF4);
 
         bus.connectInputDevice( 0xf5, wmsx.DeviceMissing.outputPortIgnored);    // System Control flags, unsupported
