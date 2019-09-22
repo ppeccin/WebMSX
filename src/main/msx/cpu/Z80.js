@@ -66,6 +66,7 @@ wmsx.Z80 = function() {
                 ++R;
                 if (ackINT) acknowledgeINT();
                 else fetchNextInstruction();
+                if (T <= 1) instruction.operation();
             }
         }
         busCycles += quant;
