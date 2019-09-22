@@ -5,6 +5,8 @@
 // NMI is not supported. All IM modes supported, but data coming from device in bus will always be FFh (MSX). IFF2 is always the same as IFF1
 // Original base clock: 3579545 Hz. Rectified to real 60Hz: 3584160 Hz
 
+// TODO R800 timing and waits
+
 wmsx.Z80 = function() {
 "use strict";
 
@@ -33,7 +35,7 @@ wmsx.Z80 = function() {
     };
 
     this.reset = function() {
-        r800Mode = false;
+        r800 = false;
         busCycles = 0;
         ackINT = false; prefix = 0;
         T = -1; opcode = null; instruction = null;
@@ -46,9 +48,9 @@ wmsx.Z80 = function() {
     this.setR800Mode = function(state) {
         console.log("Set R800 mode: " + state);
 
-        if (r800Mode === !!state) return;
+        if (r800 === !!state) return;
 
-        r800Mode = !r800Mode;
+        r800 = !r800;
         swapModeState();
     };
 
@@ -128,7 +130,7 @@ wmsx.Z80 = function() {
 
 
     // Main processor mode
-    var r800Mode = false;
+    var r800 = false;
     var modeBackState = {}, modeFrontState = {};
 
     // Speed mode
@@ -220,8 +222,7 @@ wmsx.Z80 = function() {
         opcode = fromN();           // Will inc PC
         selectInstruction();
 
-        // TODO R800 timing and waits
-        T = r800Mode ? Math.max(instruction.remainCycles / 4, 2) | 0 : instruction.remainCycles;
+        T = r800 ? instruction.remainCyclesR800 : instruction.remainCycles;
     }
     // if (self.trace) self.breakpoint("TRACE");
 
@@ -1287,7 +1288,7 @@ wmsx.Z80 = function() {
             var val = from();
 
             // In R800, SLL is just like SLA, so bit 0 is not set
-            var res = r800Mode ? (val << 1) & 255 : ((val << 1) | 1) & 255;
+            var res = r800 ? (val << 1) & 255 : ((val << 1) | 1) & 255;
 
             to(res);
             if (toExt) toExt(res);
@@ -1423,7 +1424,7 @@ wmsx.Z80 = function() {
     function newMULUB(from) {
         return function MULUB() {
             // In Z80, MULUB is just like NOP
-            if (!r800Mode) return;
+            if (!r800) return;
 
             var res = A * from();
             HL = res;
@@ -1438,7 +1439,7 @@ wmsx.Z80 = function() {
     function newMULUW(from) {
         return function MULUW() {
             // In Z80, MULUW is just like NOP
-            if (!r800Mode) return;
+            if (!r800) return;
 
             var res = HL * from();
             DE = res >>> 16; HL = res & 0xffff;
@@ -1598,28 +1599,12 @@ wmsx.Z80 = function() {
     //    self.stop = true;
     //}
 
-    //function pCPM_BDOS() {
-    //    var cha;
-    //    if (C === 2) {
-    //        // Prints char in E
-    //        cha = String.fromCharCode(DE & 0xff);
-    //        self.testPrintChar(cha);
-    //    } else if (C === 9) {
-    //        // Prints string at DE, terminated with "$". Auto returns (RET)
-    //        do {
-    //            cha = String.fromCharCode(bus.read(DE));
-    //            if (cha === "$") break;
-    //            DE++; if (DE > 0xffff) DE = 0;
-    //            self.testPrintChar(cha);
-    //        } while (true);
-    //    }
-    //    RET();
-    //}
-
 
     // Instructions Definitions  ---------------------------------------------------
 
     function defineAllInstructions() {
+
+        var t = 0, tr = 0;
 
         // LD 8-bit Group  -------------------------------------------------------------
 
@@ -1669,7 +1654,7 @@ wmsx.Z80 = function() {
                     operFrom.from
                 );
                 var prefix = operTo.pref | operFrom.pref;
-                defineInstruction(prefix, null, opcode, 4, instr, "LD " + operTo.desc + ", " + operFrom.desc, prefix);
+                defineInstruction(prefix, null, opcode, 4, 1, instr, "LD " + operTo.desc + ", " + operFrom.desc, prefix);
             }
         }
 
@@ -1683,7 +1668,7 @@ wmsx.Z80 = function() {
                 fromN
             );
             prefix = operTo.pref;
-            defineInstruction(prefix, null, opcode, 7, instr, "LD " + operTo.desc + ", n", prefix);
+            defineInstruction(prefix, null, opcode, 7, 2, instr, "LD " + operTo.desc + ", n", prefix);
         }
 
         // 1 byte *+2, 2M *+3, 7T *+12: - LD r, (HLp)       * Includes DD and FD prefixed variations for _HL_
@@ -1698,7 +1683,7 @@ wmsx.Z80 = function() {
                     operFrom.from
                 );
                 prefix = operFrom.pref;
-                defineInstruction(prefix, null, opcode, 7 + (prefix ? 8 : 0), instr, "LD " + operTo.desc + ", " + operFrom.desc, false);
+                defineInstruction(prefix, null, opcode, 7 + (prefix ? 8 : 0), 4 + (prefix ? 2 : 0), instr, "LD " + operTo.desc + ", " + operFrom.desc, false);
             }
         }
 
@@ -1714,7 +1699,7 @@ wmsx.Z80 = function() {
                     operFrom.from
                 );
                 prefix = operTo.pref;
-                defineInstruction(prefix, null, opcode, 7 + (prefix ? 8 : 0), instr, "LD " + operTo.desc + ", " + operFrom.desc, false);
+                defineInstruction(prefix, null, opcode, 7 + (prefix ? 8 : 0), 4 + (prefix ? 2 : 0), instr, "LD " + operTo.desc + ", " + operFrom.desc, false);
             }
         }
 
@@ -1736,7 +1721,7 @@ wmsx.Z80 = function() {
                     fromN
                 );
             }
-            defineInstruction(prefix, null, opcode, 10 + (prefix ? 5 : 0), instr, "LD " + operTo.desc + ", n", false);
+            defineInstruction(prefix, null, opcode, 10 + (prefix ? 5 : 0), 5 + (prefix ? 1 : 0), instr, "LD " + operTo.desc + ", n", false);
         }
 
         // 1 byte, 2M, 7T: - LD A, (BC)
@@ -1745,7 +1730,7 @@ wmsx.Z80 = function() {
             toA,
             from_BC_8
         );
-        defineInstruction(null, null, opcode, 7, instr, "LD A, (BC)", false);
+        defineInstruction(null, null, opcode, 7, 4, instr, "LD A, (BC)", false);
 
         // 1 byte, 2M, 7T: - LD A, (DE)
         opcode = 0x1a;
@@ -1753,7 +1738,7 @@ wmsx.Z80 = function() {
             toA,
             from_DE_8
         );
-        defineInstruction(null, null, opcode, 7, instr, "LD A, (DE)", false);
+        defineInstruction(null, null, opcode, 7, 4, instr, "LD A, (DE)", false);
 
         // 3 bytes, 4M, 13T: - LD A, (nn)
         opcode = 0x3a;
@@ -1761,7 +1746,7 @@ wmsx.Z80 = function() {
             toA,
             from_NN_8
         );
-        defineInstruction(null, null, opcode, 13, instr, "LD A, (nn)", false);
+        defineInstruction(null, null, opcode, 13, 6, instr, "LD A, (nn)", false);
 
         // 1 byte, 2M, 7T: - LD (BC), A
         opcode = 0x02;
@@ -1769,7 +1754,7 @@ wmsx.Z80 = function() {
             to_BC_8,
             fromA
         );
-        defineInstruction(null, null, opcode, 7, instr, "LD (BC), A", false);
+        defineInstruction(null, null, opcode, 7, 4, instr, "LD (BC), A", false);
 
         // 1 byte, 2M, 7T: - LD (DE), A
         opcode = 0x12;
@@ -1777,35 +1762,35 @@ wmsx.Z80 = function() {
             to_DE_8,
             fromA
         );
-        defineInstruction(null, null, opcode, 7, instr, "LD (DE), A", false);
+        defineInstruction(null, null, opcode, 7, 4, instr, "LD (DE), A", false);
 
-        // 3 bytes, 4M, 13T: - LD A, (nn)
+        // 3 bytes, 4M, 13T: - LD (nn), A
         opcode = 0x32;
         instr = newLD(
             to_NN_8,
             fromA
         );
-        defineInstruction(null, null, opcode, 13, instr, "LD (nn), A", false);
+        defineInstruction(null, null, opcode, 13, 6, instr, "LD (nn), A", false);
 
         // 2 bytes, 2M, 9T: - LD A, I
         opcode = 0x57;
         instr = LDAI;
-        defineInstruction(null, 0xed, opcode, 5, instr, "LD A, I", false);
+        defineInstruction(null, 0xed, opcode, 5, 2, instr, "LD A, I", false);
 
         // 2 bytes, 2M, 9T: - LD A, R
         opcode = 0x5f;
         instr = LDAR;
-        defineInstruction(null, 0xed, opcode, 5, instr, "LD A, R", false);
+        defineInstruction(null, 0xed, opcode, 5, 2, instr, "LD A, R", false);
 
         // 2 bytes, 2M, 9T: - LD I, A
         opcode = 0x47;
         instr = LDIA;
-        defineInstruction(null, 0xed, opcode, 5, instr, "LD I, A", false);
+        defineInstruction(null, 0xed, opcode, 5, 2, instr, "LD I, A", false);
 
         // 2 bytes, 2M, 9T: - LD R, A
         opcode = 0x4f;
         instr = LDRA;
-        defineInstruction(null, 0xed, opcode, 5, instr, "LD R, A", false);
+        defineInstruction(null, 0xed, opcode, 5, 2, instr, "LD R, A", false);
 
 
         // LD 16-bit Group  -----------------------------------------------------
@@ -1851,7 +1836,7 @@ wmsx.Z80 = function() {
                 fromNN
             );
             prefix = operTo.pref;
-            defineInstruction(prefix, null, opcode, 10, instr, "LD " + operTo.desc + ", nn", false);
+            defineInstruction(prefix, null, opcode, 10, 3, instr, "LD " + operTo.desc + ", nn", false);
         }
 
         // 3 bytes *+1, 5M *+1, 16T *+4: - LD HLp, (nn)         * Includes DD and FD prefixed variations for HL
@@ -1863,7 +1848,7 @@ wmsx.Z80 = function() {
                 from_NN_16
             );
             prefix = operTo.pref;
-            defineInstruction(prefix, null, opcode, 16, instr, "LD " + operTo.desc + ", (nn)", false);
+            defineInstruction(prefix, null, opcode, 16, 7, instr, "LD " + operTo.desc + ", (nn)", false);
         }
 
         // 4 bytes, 6M, 20T: - LD dd, (nn)          Extended with ED prefix so no DD and FD prefix variations
@@ -1875,7 +1860,7 @@ wmsx.Z80 = function() {
                 operTo.to,
                 from_NN_16
             );
-            defineInstruction(null, 0xed, opcode, 16, instr, "LD " + operTo.desc + ", (nn)", false);
+            defineInstruction(null, 0xed, opcode, 16, 7, instr, "LD " + operTo.desc + ", (nn)", false);
         }
 
         // 3 bytes *+1, 5M *+1, 16T *+4: - LD (nn), HLp         * Includes DD and FD prefixed variations for HL
@@ -1887,7 +1872,7 @@ wmsx.Z80 = function() {
                 operFrom.from
             );
             prefix = operFrom.pref;
-            defineInstruction(prefix, null, opcode, 16, instr, "LD (nn), " + operFrom.desc, false);
+            defineInstruction(prefix, null, opcode, 16, 7, instr, "LD (nn), " + operFrom.desc, false);
         }
 
         // 4 bytes, 6M, 20T: - LD (nn), dd              Extended with ED prefix so no DD and FD prefix variations
@@ -1899,7 +1884,7 @@ wmsx.Z80 = function() {
                 to_NN_16,
                 operFrom.from
             );
-            defineInstruction(null, 0xed, opcode, 16, instr, "LD (nn), " + operFrom.desc, false);
+            defineInstruction(null, 0xed, opcode, 16, 7, instr, "LD (nn), " + operFrom.desc, false);
         }
 
         // 1 bytes *+1, 1M *+1, 6T *+4: - LD SP, HLp        * Includes DD and FD prefixed variations for HL
@@ -1911,7 +1896,7 @@ wmsx.Z80 = function() {
                 operFrom.from
             );
             prefix = operFrom.pref;
-            defineInstruction(prefix, null, opcode, 6, instr, "LD SP, " + operFrom.desc, false);
+            defineInstruction(prefix, null, opcode, 6, 1, instr, "LD SP, " + operFrom.desc, false);
         }
 
         // 1 byte *+1, 3M *+1, 11T *+4: - PUSH qqp          * Includes DD and FD prefixed variations for qq
@@ -1923,7 +1908,7 @@ wmsx.Z80 = function() {
                 operFrom.from
             );
             prefix = operFrom.pref;
-            defineInstruction(prefix, null, opcode, 11, instr, "PUSH " + operFrom.desc, false);
+            defineInstruction(prefix, null, opcode, 11, 6, instr, "PUSH " + operFrom.desc, false);
         }
 
         // 1 byte *+1, 3M *+1, 10T *+4: - POP qqp           * Includes DD and FD prefixed variations for qq
@@ -1935,7 +1920,7 @@ wmsx.Z80 = function() {
                 operTo.to
             );
             prefix = operTo.pref;
-            defineInstruction(prefix, null, opcode, 10, instr, "POP " + operTo.desc, false);
+            defineInstruction(prefix, null, opcode, 10, 5, instr, "POP " + operTo.desc, false);
         }
 
     // Exchange, Block Transfer, and Search Group  -------------------------------------
@@ -1943,17 +1928,17 @@ wmsx.Z80 = function() {
         // 1 byte, 1M, 4T: - EX DE, HL
         opcode = 0xeb;
         instr = EXDEHL;
-        defineInstruction(null, null, opcode, 4, instr, "EX DE, HL", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "EX DE, HL", false);
 
         // 1 byte, 1M, 4T: - EX AF, AF'
         opcode = 0x08;
         instr = EXAFAF2;
-        defineInstruction(null, null, opcode, 4, instr, "EX AF, AF'", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "EX AF, AF'", false);
 
         // 1 byte, 1M, 4T: - EXX
         opcode = 0xd9;
         instr = EXX;
-        defineInstruction(null, null, opcode, 4, instr, "EXX", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "EXX", false);
 
         // 1 byte *+1, 5M *+1, 19T *+4: - EX (SP), HLp
         opcode = 0xe3;
@@ -1961,48 +1946,48 @@ wmsx.Z80 = function() {
             var oper = operHLp[op];
             instr = newEXr_SP_16(oper.to, oper.from);
             prefix = oper.pref;
-            defineInstruction(prefix, null, opcode, 19, instr, "EX (SP), " + oper.desc, false);
+            defineInstruction(prefix, null, opcode, 19, 7, instr, "EX (SP), " + oper.desc, false);
         }
 
         // 2 bytes, 4M, 16T: - LDI
         opcode = 0xa0;
         instr = LDI;
-        defineInstruction(null, 0xed, opcode, 12, instr, "LDI", false);
+        defineInstruction(null, 0xed, opcode, 12, 6, instr, "LDI", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - LDIR         *  in case a repeat occurs
         opcode = 0xb0;
         instr = LDIR;
-        defineInstruction(null, 0xed, opcode, 12, instr, "LDIR", false);
+        defineInstruction(null, 0xed, opcode, 12, 6, instr, "LDIR", false);
 
         // 2 bytes, 4M, 16T: - LDD
         opcode = 0xa8;
         instr = LDD;
-        defineInstruction(null, 0xed, opcode, 12, instr, "LDD", false);
+        defineInstruction(null, 0xed, opcode, 12, 6, instr, "LDD", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - LDDR         *  in case a repeat occurs
         opcode = 0xb8;
         instr = LDDR;
-        defineInstruction(null, 0xed, opcode, 12, instr, "LDDR", false);
+        defineInstruction(null, 0xed, opcode, 12, 6, instr, "LDDR", false);
 
         // 2 bytes, 4M, 16T: - CPI
         opcode = 0xa1;
         instr = CPI;
-        defineInstruction(null, 0xed, opcode, 12, instr, "CPI", false);
+        defineInstruction(null, 0xed, opcode, 12, 5, instr, "CPI", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - CPIR         *  in case a repeat occurs
         opcode = 0xb1;
         instr = CPIR;
-        defineInstruction(null, 0xed, opcode, 12, instr, "CPIR", false);
+        defineInstruction(null, 0xed, opcode, 12, 7, instr, "CPIR", false);
 
         // 2 bytes, 4M, 16T: - CPD
         opcode = 0xa9;
         instr = CPD;
-        defineInstruction(null, 0xed, opcode, 12, instr, "CPD", false);
+        defineInstruction(null, 0xed, opcode, 12, 5, instr, "CPD", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - CPDR         *  in case a repeat occurs
         opcode = 0xb9;
         instr = CPDR;
-        defineInstruction(null, 0xed, opcode, 12, instr, "CPDR", false);
+        defineInstruction(null, 0xed, opcode, 12, 7, instr, "CPDR", false);
 
         // 8-bit Arithmetic Group  ----------------------------------------------------
 
@@ -2010,52 +1995,52 @@ wmsx.Z80 = function() {
             ADD: { desc: "ADD A, ", instr: newADD, variations: {
                 rp:    {opcode: 0x80},
                 n:     {opcode: 0xc6},
-                _HLp_: {opcode: 0x86, T: 7}
+                _HLp_: {opcode: 0x86, T: 7, Tr: 4}
             }},
             ADC: { desc: "ADC A, ", instr: newADC, variations: {
                 rp:    {opcode: 0x88},
                 n:     {opcode: 0xce},
-                _HLp_: {opcode: 0x8e, T: 7}
+                _HLp_: {opcode: 0x8e, T: 7, Tr: 4}
             }},
             SUB: { desc: "SUB ", instr: newSUB, variations: {
                 rp:    {opcode: 0x90},
                 n:     {opcode: 0xd6},
-                _HLp_: {opcode: 0x96, T: 7}
+                _HLp_: {opcode: 0x96, T: 7, Tr: 4}
             }},
             SBC: { desc: "SBC A, ", instr: newSBC, variations: {
                 rp:    {opcode: 0x98},
                 n:     {opcode: 0xde},
-                _HLp_: {opcode: 0x9e, T: 7}
+                _HLp_: {opcode: 0x9e, T: 7, Tr: 4}
             }},
             AND: { desc: "AND ", instr: newAND, variations: {
                 rp:    {opcode: 0xa0},
                 n:     {opcode: 0xe6},
-                _HLp_: {opcode: 0xa6, T: 7}
+                _HLp_: {opcode: 0xa6, T: 7, Tr: 4}
             }},
             OR: { desc: "OR ", instr: newOR, variations: {
                 rp:    {opcode: 0xb0},
                 n:     {opcode: 0xf6},
-                _HLp_: {opcode: 0xb6, T: 7}
+                _HLp_: {opcode: 0xb6, T: 7, Tr: 4}
             }},
             XOR: { desc: "XOR ", instr: newXOR, variations: {
                 rp:    {opcode: 0xa8},
                 n:     {opcode: 0xee},
-                _HLp_: {opcode: 0xae, T: 7}
+                _HLp_: {opcode: 0xae, T: 7, Tr: 4}
             }},
             CP: { desc: "CP ", instr: newCP, variations: {
                 rp:    {opcode: 0xb8},
                 n:     {opcode: 0xfe},
-                _HLp_: {opcode: 0xbe, T: 7}
+                _HLp_: {opcode: 0xbe, T: 7, Tr: 4}
             }},
             INC: { desc: "INC ", instr: newINC, selfModifyInstr: newINC_PreRead_IXYd_, variations: {
                 rp:    {opcode: 0x04, rShift: 3},     // r bits right shift by 3
                 // no n variation
-                _HLp_: {opcode: 0x34, T: 11}
+                _HLp_: {opcode: 0x34, T: 11, Tr: 7}
             }},
             DEC: { desc: "DEC ", instr: newDEC, selfModifyInstr: newDEC_PreRead_IXYd_, variations: {
                 rp:    {opcode: 0x05, rShift: 3},     // r bits right shift by 3
                 // no n variation
-                _HLp_: {opcode: 0x35, T: 11}
+                _HLp_: {opcode: 0x35, T: 11, Tr: 7}
             }}
         };
 
@@ -2071,7 +2056,7 @@ wmsx.Z80 = function() {
                     oper.from, oper.to
                 );
                 prefix = oper.pref;
-                defineInstruction(prefix, null, opcode, 4, instr, ins.desc + oper.desc, prefix);
+                defineInstruction(prefix, null, opcode, 4, 1, instr, ins.desc + oper.desc, prefix);
             }
             // Define INS n (if included)
             vari = ins.variations.n;
@@ -2080,7 +2065,7 @@ wmsx.Z80 = function() {
                 instr = ins.instr(
                     fromN, null
                 );
-                defineInstruction(null, null, opcode, 7, instr, ins.desc + "n", false);
+                defineInstruction(null, null, opcode, 7, 2, instr, ins.desc + "n", false);
             }
             // Define INS (HLp)   * Includes DD and FD prefixed variations for _HL_
             // +++ Must use preRead_d in case of selfModifyInstructions with prefix
@@ -2098,7 +2083,7 @@ wmsx.Z80 = function() {
                         oper.from, oper.to
                     );
                 }
-                defineInstruction(prefix, null, opcode, vari.T + (prefix ? 8 : 0), instr, ins.desc + oper.desc, false);
+                defineInstruction(prefix, null, opcode, vari.T + (prefix ? 8 : 0), vari.Tr + (prefix ? 2 : 0), instr, ins.desc + oper.desc, false);
             }
         }
 
@@ -2107,62 +2092,62 @@ wmsx.Z80 = function() {
         // 1 bytes, 1M, 4T: - DAA
         opcode = 0x27;
         instr = DAA;
-        defineInstruction(null, null, opcode, 4, instr, "DAA", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "DAA", false);
 
         // 1 bytes, 1M, 4T: - CPL
         opcode = 0x2f;
         instr = CPL;
-        defineInstruction(null, null, opcode, 4, instr, "CPL", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "CPL", false);
 
         // 2 bytes, 2M, 8T: - NEG
         opcode = 0x44;
         instr = NEG;
-        defineInstruction(null, 0xed, opcode, 4, instr, "NEG", false);
+        defineInstruction(null, 0xed, opcode, 4, 1, instr, "NEG", false);
 
         // 1 bytes, 1M, 4T: - CCF
         opcode = 0x3f;
         instr = CCF;
-        defineInstruction(null, null, opcode, 4, instr, "CCF", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "CCF", false);
 
         // 1 bytes, 1M, 4T: - SCF
         opcode = 0x37;
         instr = SCF;
-        defineInstruction(null, null, opcode, 4, instr, "SCF", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "SCF", false);
 
         // 1 bytes, 1M, 4T: - NOP
         opcode = 0x00;
         instr = NOP;
-        defineInstruction(null, null, opcode, 4, instr, "NOP", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "NOP", false);
 
         // 1 bytes, 1M, 4T: - HALT
         opcode = 0x76;
         instr = HALT;
-        instructionHALT = defineInstruction(null, null, opcode, 4, instr, "HALT", false);
+        instructionHALT = defineInstruction(null, null, opcode, 4, 2, instr, "HALT", false);
 
         // 1 bytes, 1M, 4T: - DI
         opcode = 0xf3;
         instr = DI;
-        defineInstruction(null, null, opcode, 4, instr, "DI", false);
+        defineInstruction(null, null, opcode, 4, 2, instr, "DI", false);
 
         // 1 bytes, 1M, 4T: - EI
         opcode = 0xfb;
         instr = EI;
-        defineInstruction(null, null, opcode, 4, instr, "EI", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "EI", false);
 
         // 2 bytes, 2M, 8T: - IM 0
         opcode = 0x46;
         instr = newIM(0);
-        defineInstruction(null, 0xed, opcode, 4, instr, "IM 0", false);
+        defineInstruction(null, 0xed, opcode, 4, 2, instr, "IM 0", false);
 
         // 2 bytes, 2M, 8T: - IM 1
         opcode = 0x56;
         instr = newIM(1);
-        defineInstruction(null, 0xed, opcode, 4, instr, "IM 1", false);
+        defineInstruction(null, 0xed, opcode, 4, 2, instr, "IM 1", false);
 
         // 2 bytes, 2M, 8T: - IM 2
         opcode = 0x5e;
         instr = newIM(2);
-        defineInstruction(null, 0xed, opcode, 4, instr, "IM 2", false);
+        defineInstruction(null, 0xed, opcode, 4, 2, instr, "IM 2", false);
 
         // 16-bit Arithmetic Group  ----------------------------------------------------
 
@@ -2191,7 +2176,7 @@ wmsx.Z80 = function() {
                     operTo.to, operTo.from, operFrom.from
                 );
                 prefix = operTo.pref;
-                defineInstruction(prefix, null, opcode, 11, instr, "ADD " + operTo.desc + ", " + operFrom.desc, false);
+                defineInstruction(prefix, null, opcode, 11, 1, instr, "ADD " + operTo.desc + ", " + operFrom.desc, false);
             }
         }
 
@@ -2205,7 +2190,7 @@ wmsx.Z80 = function() {
                 instr = ins.instr(
                     toHL, fromHL, oper.from
                 );
-                defineInstruction(null, 0xed, opcode, 11, instr, ins.desc + oper.desc, false);
+                defineInstruction(null, 0xed, opcode, 11, 1, instr, ins.desc + oper.desc, false);
             }
         }
 
@@ -2220,7 +2205,7 @@ wmsx.Z80 = function() {
                     oper.to, oper.from
                 );
                 prefix = oper.pref;
-                defineInstruction(prefix, null, opcode, 6, instr, ins.desc + oper.desc, false);
+                defineInstruction(prefix, null, opcode, 6, 1, instr, ins.desc + oper.desc, false);
             }
         }
 
@@ -2229,22 +2214,22 @@ wmsx.Z80 = function() {
         // 1 bytes, 1M, 4T: - RLCA
         opcode = 0x07;
         instr = RLCA;
-        defineInstruction(null, null, opcode, 4, instr, "RLCA", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "RLCA", false);
 
         // 1 bytes, 1M, 4T: - RLA
         opcode = 0x17;
         instr = RLA;
-        defineInstruction(null, null, opcode, 4, instr, "RLA", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "RLA", false);
 
         // 1 bytes, 1M, 4T: - RRCA
         opcode = 0x0f;
         instr = RRCA;
-        defineInstruction(null, null, opcode, 4, instr, "RRCA", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "RRCA", false);
 
         // 1 bytes, 1M, 4T: - RRA
         opcode = 0x1f;
         instr = RRA;
-        defineInstruction(null, null, opcode, 4, instr, "RRA", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "RRA", false);
 
         var operRu = {
             A:    { bits: 7, to: toA,     from: fromA,     desc: "A" },
@@ -2285,8 +2270,9 @@ wmsx.Z80 = function() {
                     oper.from,
                     null
                 );
-                T = op == "_HL_" ? 11 : 4;
-                defineInstruction(null, 0xcb, opcode, T, instr, ins.desc + oper.desc, ins.undoc);
+                t = op == "_HL_" ? 11 : 4;
+                tr = op == "_HL_" ? 7 : 1;
+                defineInstruction(null, 0xcb, opcode, t, tr, instr, ins.desc + oper.desc, ins.undoc);
             }
             // Define INS (IX+d/IY+d)    * DD and FD prefixed variations, can also store result in register
             for (var p in oper_IXIY_pre) {
@@ -2300,7 +2286,7 @@ wmsx.Z80 = function() {
                         pref.from,
                         toExt         // Also store result in the register! Undocumented.
                     );
-                    defineInstruction(pref.prefix, 0xcb, opcode, 11 + (pref.prefix ? 4 : 0), instr, ins.desc + pref.desc + (toExt ? ", " + oper.desc : ""), ins.undoc || toExt);
+                    defineInstruction(pref.prefix, 0xcb, opcode, 15, 8, instr, ins.desc + pref.desc + (toExt ? ", " + oper.desc : ""), ins.undoc || toExt);
                 }
             }
         }
@@ -2308,19 +2294,19 @@ wmsx.Z80 = function() {
         // 2 bytes, 5M, 18T: - RLD
         opcode = 0x6f;
         instr = RLD;
-        defineInstruction(null, 0xed, opcode, 14, instr, "RLD", false);
+        defineInstruction(null, 0xed, opcode, 14, 7, instr, "RLD", false);
 
         // 2 bytes, 5M, 18T: - RRD
         opcode = 0x67;
         instr = RRD;
-        defineInstruction(null, 0xed, opcode, 14, instr, "RRD", false);
+        defineInstruction(null, 0xed, opcode, 14, 7, instr, "RRD", false);
 
         // Bit Set, Reset, and Test Group  --------------------------------------------------
 
         var bitSetResetRegOrMem = {
-            BIT: { desc: "BIT ", instr: newBIT, opcode: 0x40, T_HL_: 8 },
-            SET: { desc: "SET ", instr: newSET, opcode: 0xc0, T_HL_: 11, toExt: true },
-            RES: { desc: "RES ", instr: newRES, opcode: 0x80, T_HL_: 11, toExt: true }
+            BIT: { desc: "BIT ", instr: newBIT, opcode: 0x40, T_HL_: 8, T_HL_r: 4 },
+            SET: { desc: "SET ", instr: newSET, opcode: 0xc0, T_HL_: 11, T_HL_r: 7, toExt: true },
+            RES: { desc: "RES ", instr: newRES, opcode: 0x80, T_HL_: 11, T_HL_r: 7, toExt: true }
         };
 
         for (i in bitSetResetRegOrMem) {
@@ -2337,8 +2323,9 @@ wmsx.Z80 = function() {
                         bit,
                         null
                     );
-                    T = op == "_HL_" ? ins.T_HL_ : 4;
-                    defineInstruction(null, 0xcb, opcode, T, instr, ins.desc + bit + ", " + oper.desc, false);
+                    t = op == "_HL_" ? ins.T_HL_ : 4;
+                    tr = op == "_HL_" ? ins.T_HL_r : 1;
+                    defineInstruction(null, 0xcb, opcode, t, tr, instr, ins.desc + bit + ", " + oper.desc, false);
                 }
             }
             // Define INS (IX+d/IY+d)     * DD and FD prefixed variations, can also store result in register
@@ -2356,7 +2343,7 @@ wmsx.Z80 = function() {
                             bit,
                             toExt         // Also store result in the register! Undocumented.
                         );
-                        defineInstruction(pref.prefix, 0xcb, opcode, ins.T_HL_ + (pref.prefix ? 4 : 0), instr, ins.desc + bit + ", " + pref.desc + (toExt ? ", " + oper.desc : ""), undoc);
+                        defineInstruction(pref.prefix, 0xcb, opcode, ins.T_HL_ + 4, ins.T_HL_r + 1, instr, ins.desc + bit + ", " + pref.desc + (toExt ? ", " + oper.desc : ""), undoc);
                     }
                 }
             }
@@ -2365,10 +2352,10 @@ wmsx.Z80 = function() {
         // Jump Group  --------------------------------------------------------------------
 
         var operVVp = {
-            nn:   { desc: "nn",   from: fromNN, opcode: 0xc3, T: 10 },
-            HL:   { desc: "(HL)", from: fromHL, opcode: 0xe9, T: 4 },                   // Not really indirect
-            IX:   { desc: "(IX)", from: fromIX, opcode: 0xe9, T: 4, pref: 0xdd },       // Not really indirect
-            IY:   { desc: "(IY)", from: fromIY, opcode: 0xe9, T: 4, pref: 0xfd }        // Not really indirect
+            nn:   { desc: "nn",   from: fromNN, opcode: 0xc3, T: 10, Tr: 5 },
+            HL:   { desc: "(HL)", from: fromHL, opcode: 0xe9, T: 4,  Tr: 3 },                   // Not really indirect
+            IX:   { desc: "(IX)", from: fromIX, opcode: 0xe9, T: 4,  Tr: 3, pref: 0xdd },       // Not really indirect
+            IY:   { desc: "(IY)", from: fromIY, opcode: 0xe9, T: 4,  Tr: 3, pref: 0xfd }        // Not really indirect
         };
 
         var operCC = {
@@ -2390,7 +2377,7 @@ wmsx.Z80 = function() {
                 oper.from
             );
             prefix = oper.pref;
-            defineInstruction(prefix, null, opcode, oper.T, instr, "JP " + oper.desc, false);
+            defineInstruction(prefix, null, opcode, oper.T, oper.Tr, instr, "JP " + oper.desc, false);
         }
 
         // 3 bytes, 3M, 10T: - JP cc, nn
@@ -2402,13 +2389,13 @@ wmsx.Z80 = function() {
                 oper.flag,
                 oper.val
             );
-            defineInstruction(null, null, opcode, 10, instr, "JP " + oper.desc + ", nn", false);
+            defineInstruction(null, null, opcode, 10, 3, instr, "JP " + oper.desc + ", nn", false);
         }
 
         // 2 bytes, 3M, 12T: - JR e
         opcode = 0x18;
         instr = JR;
-        defineInstruction(null, null, opcode, 12, instr, "JR e", false);
+        defineInstruction(null, null, opcode, 12, 3, instr, "JR e", false);
 
         var operCCe = {
             C:  { opcode: 0x38, desc: "C",  flag: bC, val: bC },
@@ -2425,20 +2412,20 @@ wmsx.Z80 = function() {
                 oper.flag,
                 oper.val
             );
-            defineInstruction(null, null, opcode, 7, instr, "JR " + oper.desc + ", e", false);
+            defineInstruction(null, null, opcode, 7, 3, instr, "JR " + oper.desc + ", e", false);
         }
 
         // 2 bytes, 2M *+1, 8T *+5: - DJNZ e       * if condition is true and branch taken
         opcode = 0x10;
         instr = DJNZ;
-        defineInstruction(null, null, opcode, 8, instr, "DJNZ e", false);
+        defineInstruction(null, null, opcode, 8, 2, instr, "DJNZ e", false);
 
         // Call and Return Group  ----------------------------------------------------------
 
         // 3 bytes, 5M,  17T: - CALL nn
         opcode = 0xcd;
         instr = CALL;
-        defineInstruction(null, null, opcode, 17, instr, "CALL nn", false);
+        defineInstruction(null, null, opcode, 17, 8, instr, "CALL nn", false);
 
         // 3 bytes, 3M *+2, 10T *+7: - CALL cc, nn       * if condition is true and branch taken
         opcodeBase = 0xc4;
@@ -2449,13 +2436,13 @@ wmsx.Z80 = function() {
                 oper.flag,
                 oper.val
             );
-            defineInstruction(null, null, opcode, 10, instr, "CALL " + oper.desc + ", nn", false);
+            defineInstruction(null, null, opcode, 10, 3, instr, "CALL " + oper.desc + ", nn", false);
         }
 
         // 1 bytes, 3M, 10T: - RET
         opcode = 0xc9;
         instr = RET;
-        defineInstruction(null, null, opcode, 10, instr, "RET", false);
+        defineInstruction(null, null, opcode, 10, 5, instr, "RET", false);
 
         // 1 bytes, 1M *+2, 5T *+6: - RET cc          * if condition is true and branch taken
         opcodeBase = 0xc0;
@@ -2466,18 +2453,18 @@ wmsx.Z80 = function() {
                 oper.flag,
                 oper.val
             );
-            defineInstruction(null, null, opcode, 5, instr, "RET " + oper.desc, false);
+            defineInstruction(null, null, opcode, 5, 1, instr, "RET " + oper.desc, false);
         }
 
         // 2 bytes, 4M, 14T: - RETI
         opcode = 0x4d;
         instr = RETI;
-        defineInstruction(null, 0xed, opcode, 10, instr, "RETI", false);
+        defineInstruction(null, 0xed, opcode, 10, 6, instr, "RETI", false);
 
         // 2 bytes, 4M, 14T: - RETN
         opcode = 0x45;
         instr = RETN;
-        defineInstruction(null, 0xed, opcode, 10, instr, "RETN", false);
+        defineInstruction(null, 0xed, opcode, 10, 6, instr, "RETN", false);
 
         var operRST = {
             h00: { bits: 0, addr: 0x0000, desc: "00h" },
@@ -2498,7 +2485,7 @@ wmsx.Z80 = function() {
             instr = newRST(
                 oper.addr
             );
-            defineInstruction(null, null, opcode, 11, instr, "RST " + oper.desc, false);
+            defineInstruction(null, null, opcode, 11, 7, instr, "RST " + oper.desc, false);
         }
 
         // Input and Output Group  ----------------------------------------------------------
@@ -2506,7 +2493,7 @@ wmsx.Z80 = function() {
         // 2 bytes, 3M, 11T: - IN A, (n)
         opcode = 0xdb;
         instr = INAn;
-        defineInstruction(null, null, opcode, 11, instr, "IN A, (n)", false);
+        defineInstruction(null, null, opcode, 11, 9, instr, "IN A, (n)", false);
 
         // 2 bytes, 3M, 12T: - IN r, (C)
         opcodeBase = 0x40;
@@ -2516,33 +2503,33 @@ wmsx.Z80 = function() {
             instr = newINrC(
                 oper.to
             );
-            defineInstruction(null, 0xed, opcode, 8, instr, "IN " + oper.desc + ", (C)", false);
+            defineInstruction(null, 0xed, opcode, 8, 8, instr, "IN " + oper.desc + ", (C)", false);
         }
 
         // 2 bytes, 4M, 16T: - INI
         opcode = 0xa2;
         instr = INI;
-        defineInstruction(null, 0xed, opcode, 12, instr, "INI", false);
+        defineInstruction(null, 0xed, opcode, 12, 10, instr, "INI", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - INIR         *  in case a repeat occurs
         opcode = 0xb2;
         instr = INIR;
-        defineInstruction(null, 0xed, opcode, 12, instr, "INIR", false);
+        defineInstruction(null, 0xed, opcode, 12, 10, instr, "INIR", false);
 
         // 2 bytes, 4M, 16T: - IND
         opcode = 0xaa;
         instr = IND;
-        defineInstruction(null, 0xed, opcode, 12, instr, "IND", false);
+        defineInstruction(null, 0xed, opcode, 12, 10, instr, "IND", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - INDR         *  in case a repeat occurs
         opcode = 0xba;
         instr = INDR;
-        defineInstruction(null, 0xed, opcode, 12, instr, "INDR", false);
+        defineInstruction(null, 0xed, opcode, 12, 10, instr, "INDR", false);
 
         // 2 bytes, 3M, 11T: - OUT (n), A
         opcode = 0xd3;
         instr = OUTnA;
-        defineInstruction(null, null, opcode, 11, instr, "OUT (n), A", false);
+        defineInstruction(null, null, opcode, 11, 9, instr, "OUT (n), A", false);
 
         // 2 bytes, 3M, 12T: - OUT (C), r
         opcodeBase = 0x41;
@@ -2552,28 +2539,28 @@ wmsx.Z80 = function() {
             instr = newOUTCr(
                 oper.from
             );
-            defineInstruction(null, 0xed, opcode, 8, instr, "OUT (C), " + oper.desc, false);
+            defineInstruction(null, 0xed, opcode, 8, 8, instr, "OUT (C), " + oper.desc, false);
         }
 
         // 2 bytes, 4M, 16T: - OUTI
         opcode = 0xa3;
         instr = OUTI;
-        defineInstruction(null, 0xed, opcode, 12, instr, "OUTI", false);
+        defineInstruction(null, 0xed, opcode, 12, 10, instr, "OUTI", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - OTIR         *  in case a repeat occurs
         opcode = 0xb3;
         instr = OTIR;
-        defineInstruction(null, 0xed, opcode, 12, instr, "OTIR", false);
+        defineInstruction(null, 0xed, opcode, 12, 10, instr, "OTIR", false);
 
         // 2 bytes, 4M, 16T: - OUTD
         opcode = 0xab;
         instr = OUTD;
-        defineInstruction(null, 0xed, opcode, 12, instr, "OUTD", false);
+        defineInstruction(null, 0xed, opcode, 12, 10, instr, "OUTD", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - OTDR         *  in case a repeat occurs
         opcode = 0xbb;
         instr = OTDR;
-        defineInstruction(null, 0xed, opcode, 12, instr, "OTDR", false);
+        defineInstruction(null, 0xed, opcode, 12, 10, instr, "OTDR", false);
 
         // R800 exclusive instructions
 
@@ -2585,7 +2572,7 @@ wmsx.Z80 = function() {
             instr = newMULUB(
                 oper.from
             );
-            defineInstruction(null, 0xed, opcode, 14, instr, "MULUB A, " + oper.desc, false);
+            defineInstruction(null, 0xed, opcode, 4, 13, instr, "MULUB A, " + oper.desc, false);
         }
 
         // 2 bytes, ?M, 36T: - R800 MULUW HL, dd
@@ -2596,7 +2583,7 @@ wmsx.Z80 = function() {
             instr = newMULUW(
                 oper.from
             );
-            defineInstruction(null, 0xed, opcode, 36, instr, "MULUW HL, " + oper.desc, false);
+            defineInstruction(null, 0xed, opcode, 4, 35, instr, "MULUW HL, " + oper.desc, false);
         }
 
         // Undocumented instructions, besides DD and FD prefixed variations already defined
@@ -2606,7 +2593,7 @@ wmsx.Z80 = function() {
         for (i = 0; i < ops.length; i++) {
             opcode = ops[i];
             instr = NEG;
-            defineInstruction(null, 0xed, opcode, 4, instr, "NEG", true);
+            defineInstruction(null, 0xed, opcode, 4, 1, instr, "NEG", true);
         }
 
         // 2 bytes, 4M, 14T: - uRETN
@@ -2614,7 +2601,7 @@ wmsx.Z80 = function() {
         for (i = 0; i < ops.length; i++) {
             opcode = ops[i];
             instr = RETN;
-            defineInstruction(null, 0xed, opcode, 10, instr, "RETN", true);
+            defineInstruction(null, 0xed, opcode, 10, 6, instr, "RETN", true);
         }
 
         // 2 bytes, 2M, 8T: - uIM 0
@@ -2622,35 +2609,35 @@ wmsx.Z80 = function() {
         for (i = 0; i < ops.length; i++) {
             opcode = ops[i];
             instr = newIM(0);
-            defineInstruction(null, 0xed, opcode, 4, instr, "IM 0", true);
+            defineInstruction(null, 0xed, opcode, 4, 2, instr, "IM 0", true);
         }
 
         // 2 bytes, 2M, 8T: - uIM 1
         opcode = 0x76;
         instr = newIM(1);
-        defineInstruction(null, 0xed, opcode, 4, instr, "IM 1", true);
+        defineInstruction(null, 0xed, opcode, 4, 2, instr, "IM 1", true);
 
         // 2 bytes, 2M, 8T: - uIM 2
         opcode = 0x7e;
         instr = newIM(2);
-        defineInstruction(null, 0xed, opcode, 4, instr, "IM 2", true);
+        defineInstruction(null, 0xed, opcode, 4, 2, instr, "IM 2", true);
 
         // 2 bytes, 3M, 12T: - uIN (C)
         opcode = 0x70;
         instr = uIN_C;
-        defineInstruction(null, 0xed, opcode, 8, instr, "IN (C)", true);
+        defineInstruction(null, 0xed, opcode, 8, 8, instr, "IN (C)", true);
 
         // 2 bytes, 3M, 12T: - uOUT (C)
         opcode = 0x71;
         instr = uOUTC0;
-        defineInstruction(null, 0xed, opcode, 8, instr, "OUT (C), 0", true);
+        defineInstruction(null, 0xed, opcode, 8, 8, instr, "OUT (C), 0", true);
 
         // Extension pseudo Instructions (ED E0 to ED FF), not yet defined (excludes E1, E3, E9, F3, F9 which are R800 instructions)
 
         for (opcode = 0xe0; opcode <= 0xff; opcode++) {
             if (!instructionsED[i]) {
                 instr = newpEXT(opcode);
-                defineInstruction(null, 0xed, opcode, 4, instr, "EXT " + opcode.toString(16), true);
+                defineInstruction(null, 0xed, opcode, 4, 1, instr, "EXT " + opcode.toString(16), true);
             }
         }
 
@@ -2661,7 +2648,7 @@ wmsx.Z80 = function() {
             if (!instructionsED[i]) {
                 opcode = i;
                 instr = uNOP;
-                defineInstruction(null, 0xed, opcode, 4, instr, "NOP", true);
+                defineInstruction(null, 0xed, opcode, 4, 1, instr, "NOP", true);
             }
         }
 
@@ -2669,61 +2656,63 @@ wmsx.Z80 = function() {
 
         opcode = 0xcb;
         instr = pSET_CB;
-        defineInstruction(null, null, opcode, 4, instr, "< SET CB >", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "< SET CB >", false);
 
         opcode = 0xed;
         instr = pSET_ED;
-        defineInstruction(null, null, opcode, 4, instr, "< SET ED >", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "< SET ED >", false);
 
         opcode = 0xdd;
         instr = pSET_DD;
-        defineInstruction(null, null, opcode, 4, instr, "< SET DD >", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "< SET DD >", false);
         opcode = 0xdd;
         instr = pSET_DD;
-        defineInstruction(0xdd, null, opcode, 4, instr, "< SET DD again >", false);
+        defineInstruction(0xdd, null, opcode, 4, 1, instr, "< SET DD again >", false);
         opcode = 0xfd;
         instr = pSET_FD;
-        defineInstruction(0xdd, null, opcode, 4, instr, "< SWITCH to FD >", false);
+        defineInstruction(0xdd, null, opcode, 4, 1, instr, "< SWITCH to FD >", false);
         opcode = 0xcb;
         instr = pSET_DDCB;
-        defineInstruction(0xdd, null, opcode, 3, instr, "< SET DDCB >", false);         // Discount -1 for wrongly added M1 wait
+        defineInstruction(0xdd, null, opcode, 3, 1, instr, "< SET DDCB >", false);         // 3: Discount -1 for wrongly added M1 wait
 
         opcode = 0xfd;
         instr = pSET_FD;
-        defineInstruction(null, null, opcode, 4, instr, "< SET FD >", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "< SET FD >", false);
         opcode = 0xfd;
         instr = pSET_FD;
-        defineInstruction(0xfd, null, opcode, 4, instr, "< SET FD again >", false);
+        defineInstruction(0xfd, null, opcode, 4, 1, instr, "< SET FD again >", false);
         opcode = 0xdd;
         instr = pSET_DD;
-        defineInstruction(0xfd, null, opcode, 4, instr, "< SWITCH to DD >", false);
+        defineInstruction(0xfd, null, opcode, 4, 1, instr, "< SWITCH to DD >", false);
         opcode = 0xcb;
         instr = pSET_FDCB;
-        defineInstruction(0xfd, null, opcode, 3, instr, "< SET FDCB >", false);         // Discount -1 for wrongly added M1 wait
+        defineInstruction(0xfd, null, opcode, 3, 1, instr, "< SET FDCB >", false);         // 3: Discount -1 for wrongly added M1 wait
 
         opcode = 257;
         instr = pADT_CYCLES;
-        instructionADT_CYCLES = defineInstruction(null, null, opcode, 0, instr, "< ADT CYCLES >", false);
+        instructionADT_CYCLES = defineInstruction(null, null, opcode, 0, 0, instr, "< ADT CYCLES >", false);
 
         // Testing pseudo instructions
 
         //opcode = 258;
         //instr = pSTOP;
-        //defineInstruction(null, null, opcode, 4, instr, "++ BDOS STOP ++", false);
+        //defineInstruction(null, null, opcode, 4, 1, instr, "++ BDOS STOP ++", false);
         //
         //opcode = 259;
         //instr = pCPM_BDOS;
-        //defineInstruction(null, null, opcode, 4, instr, "++ BDOS PRINT ++", false);
+        //defineInstruction(null, null, opcode, 4, 1, instr, "++ BDOS PRINT ++", false);
 
 
         // ------------------------------
 
-        function defineInstruction(prefix1, prefix2, opcode, cycles, operation, mnemonic, undocumented) {
+        function defineInstruction(prefix1, prefix2, opcode, cycles, cyclesR800, operation, mnemonic, undocumented) {
             var instr = {};
             instr.prefix = prefix2 ? ((prefix1 << 8) | prefix2) : prefix1;
             instr.opcode = opcode;
-            instr.remainCycles = cycles + 1;                                                     // extra M1 wait for MSX
+            instr.remainCycles = cycles + 1;                                                     // extra M1 wait for Z80
+            instr.remainCyclesR800 = cyclesR800;                                                 // NO extra M1 wait for R800
             instr.totalCycles = instr.remainCycles + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);      // each prefix adds 4T + 1 extra M1 state for the first prefix
+            instr.totalCyclesR800 = instr.remainCycles + (prefix1 ? 1 : 0) + (prefix2 ? 1 : 0);  // each prefix adds 1T
             instr.operation = operation;
             instr.mnemonic = mnemonic;
             instr.undocumented = undocumented;
