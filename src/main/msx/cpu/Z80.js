@@ -5,7 +5,7 @@
 // NMI is not supported. All IM modes supported, but data coming from device in bus will always be FFh (MSX). IFF2 is always the same as IFF1
 // Original base clock: 3579545 Hz. Rectified to real 60Hz: 3584160 Hz
 
-// TODO R800 timing and waits
+// TODO R800 additional waits
 
 wmsx.Z80 = function() {
 "use strict";
@@ -619,7 +619,7 @@ wmsx.Z80 = function() {
         LDI();
         if (F & bPV) {
             dec2PC();     // Repeat this instruction
-            T += 5;
+            T += r800 ? 1 : 5;
             instruction = instructionADT_CYCLES;
         }
     }
@@ -638,7 +638,7 @@ wmsx.Z80 = function() {
         LDD();
         if (F & bPV) {
             dec2PC();     // Repeat this instruction
-            T += 5;
+            T += r800 ? 1 : 5;
             instruction = instructionADT_CYCLES;
         }
     }
@@ -661,7 +661,7 @@ wmsx.Z80 = function() {
         CPI();
         if ((F & bPV) && !(F & bZ)) {
             dec2PC();     // Repeat this instruction
-            T += 5;
+            T += r800 ? 1 : 5;
             instruction = instructionADT_CYCLES;
         }
     }
@@ -684,7 +684,7 @@ wmsx.Z80 = function() {
         CPD();
         if ((F & bPV) && !(F & bZ)) {
             dec2PC();     // Repeat this instruction
-            T += 5;
+            T += r800 ? 1 : 5;
             instruction = instructionADT_CYCLES;
         }
     }
@@ -820,7 +820,7 @@ wmsx.Z80 = function() {
         B = (B - 1) & 0xff;
         if (B !== 0) {
             PC = sum16Signed(PC, relat);
-            T += 5;
+            T += r800 ? 1 : 5;
             instruction = instructionADT_CYCLES;
         }
     }
@@ -867,7 +867,7 @@ wmsx.Z80 = function() {
         INI();
         if (B !== 0) {
             dec2PC();     // Repeat this instruction
-            T += 5;
+            T += r800 ? 1 : 5;
             instruction = instructionADT_CYCLES;
         }
     }
@@ -885,7 +885,7 @@ wmsx.Z80 = function() {
         IND();
         if (B !== 0) {
             dec2PC();     // Repeat this instruction
-            T += 5;
+            T += r800 ? 1 : 5;
             instruction = instructionADT_CYCLES;
         }
     }
@@ -911,7 +911,7 @@ wmsx.Z80 = function() {
     function OTIR() {
         if (B !== 1) {                             // OUTI below will DEC B. If B !== 0 after OUTI, repeat this instruction
             dec2PC();
-            T += 5;
+            T += r800 ? 1 : 5;
             instruction = instructionADT_CYCLES;
         }
 
@@ -932,7 +932,7 @@ wmsx.Z80 = function() {
     function OTDR() {
         if (B !== 1) {                             // OUTD below will DEC B. If B !== 0 after OUTD, repeat this instruction
             dec2PC();
-            T += 5;
+            T += r800 ? 1 : 5;
             instruction = instructionADT_CYCLES;
         }
 
@@ -1356,8 +1356,13 @@ wmsx.Z80 = function() {
     function newJPcc(flag, val) {
         return function JPcc() {
             var addr = fromNN();
-            if ((F & flag) === val)
+            if ((F & flag) === val) {
                 PC = addr;
+                if (r800) {
+                    T += 2;
+                    instruction = instructionADT_CYCLES;
+                }
+            }
         }
     }
 
@@ -1366,7 +1371,7 @@ wmsx.Z80 = function() {
             var relat = fromN();
             if ((F & flag) === val) {
                 PC = sum16Signed(PC, relat);
-                T += 5;
+                T += r800 ? 1 : 5;
                 instruction = instructionADT_CYCLES;
             }
         }
@@ -1378,7 +1383,7 @@ wmsx.Z80 = function() {
             if ((F & flag) === val) {
                 push16(PC);
                 PC = addr;
-                T += 7;
+                T += r800 ? 5 : 7;
                 instruction = instructionADT_CYCLES;
             }
         }
@@ -1388,7 +1393,7 @@ wmsx.Z80 = function() {
         return function RETcc() {
             if ((F & flag) === val) {
                 RET();
-                T += 6;
+                T += r800 ? 4 : 6;
                 instruction = instructionADT_CYCLES;
             }
         }
@@ -1481,19 +1486,19 @@ wmsx.Z80 = function() {
         if (IM === 1) {
             // Same as a RST 38h
             PC = 0x0038;
-            T = 13;
+            T = r800 ? 8 : 13;
         } else if (IM === 2) {
             // Read Jump Table address low from Bus (always FFh in this implementation)
             // Read Jump Table address high from I
             var jumpTableEntry = (I << 8) | 0xff;
             // Call address read from Jump Table
             PC = bus.read(jumpTableEntry) | (bus.read(jumpTableEntry + 1) << 8);
-            T = 19;
+            T = r800 ? 11 : 19;
         } else {
             // IM 0. Read instruction to execute from Bus (always FFh in this implementation)
             // Since its always FF, its the same as a RST 38h
             PC = 0x0038;
-            T = 13;
+            T = r800 ? 8 : 13;
         }
     }
 
@@ -2412,7 +2417,7 @@ wmsx.Z80 = function() {
                 oper.flag,
                 oper.val
             );
-            defineInstruction(null, null, opcode, 7, 3, instr, "JR " + oper.desc + ", e", false);
+            defineInstruction(null, null, opcode, 7, 2, instr, "JR " + oper.desc + ", e", false);
         }
 
         // 2 bytes, 2M *+1, 8T *+5: - DJNZ e       * if condition is true and branch taken
