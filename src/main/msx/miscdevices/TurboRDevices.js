@@ -26,6 +26,35 @@ wmsx.TurboRDevices = function(cpu) {
         bus.connectOutputDevice(0xe7, wmsx.DeviceMissing.outputPortIgnored());
     };
 
+    this.connectBIOS = function(slot) {
+        bios = slot;
+        if (ram) bios.connectRAM(ram, 65536);
+    };
+    this.disconnectBIOS = function(slot) {
+        if (bios === slot) bios = undefined;
+    };
+
+    this.connectBIOSExt = function(slot) {
+        biosExt = slot;
+        if (ram) biosExt.connectRAM(ram, 32768);
+    };
+    this.disconnectBIOSExt = function(slot) {
+        if (biosExt === slot) biosExt = undefined;
+    };
+
+    this.connectRAM = function(slot) {
+        if (ram) return;        // Connects only to the first RAM Mapper connected to the system
+        ram = slot;
+        if (bios) bios.connectRAM(ram, 65536);
+        if (biosExt) biosExt.connectRAM(ram, 32768);
+    };
+    this.disconnectRAM = function(slot) {
+        if (ram !== slot) return;
+        if (bios) bios.disconnectRAM(ram);
+        if (biosExt) biosExt.disconnectRAM(ram);
+        ram = undefined;
+    };
+
     this.powerOn = function() {
         this.reset();
     };
@@ -70,8 +99,15 @@ wmsx.TurboRDevices = function(cpu) {
         // console.log("S1990 Register: " + registerSelect.toString(16) + " write: " + val.toString(16) + ", PC: " + WMSX.room.machine.cpu.eval("PC").toString(16));
 
         if (registerSelect === 6) {
-            register6 = val & 0x60;
+            var newVal = val & 0x60;
+            if (register6 === newVal) return;
+            register6 = newVal;
+
             cpu.setR800Mode((register6 & 0x20) === 0);
+            var dramMode = (register6 & 0x40) === 0;
+            bios.setDRAMMode(dramMode);
+            biosExt.setDRAMMode(dramMode);
+            ram.setDRAMMode(dramMode);
         }
     };
     this.inputE5 = function() {
@@ -118,8 +154,10 @@ wmsx.TurboRDevices = function(cpu) {
     var register6 = 0x60;          	// bit 6: ROM mode (0=DRAM, 1=ROM), bit 5: Processor mode (0=R800, 1=Z80)
     var counterBase = 0;
 
+    var bios, biosExt, ram;
 
-    // Savestate  -------------------------------------------
+
+    // TODO Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {

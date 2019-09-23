@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main BIOS ROM content >= 16K & <= 64K, starting at 0x0000. Can be bundled with other BIOS/ROMs
+// Also handles turbo R DRAM mode. Redirects reads to top of RAM
 // 0x0000 - ????
 
 wmsx.SlotBIOS = function(rom) {
@@ -20,13 +21,25 @@ wmsx.SlotBIOS = function(rom) {
         keyboardExtension.connect(machine);
         cassetteDriver.connect(this, machine);
         turboDriver.connect(this, machine);
+        machine.trd.connectBIOS(this);
         machine.setBIOS(this);
     };
 
     this.disconnect = function(machine) {
         if (cassetteDriver) cassetteDriver.disconnect(this, machine);
         if (turboDriver) turboDriver.disconnect(this, machine);
+        machine.trd.disconnectBIOS(this);
         machine.setBIOS(null);
+    };
+
+    this.connectRAM = function(pRam, pRamBase) {
+        ramBytes = pRam.bytes;
+        ramBase = ramBytes.length - pRamBase;
+    };
+    this.disconnectRAM = function(pRam) {
+        if (ramBytes !== pRam.bytes) return;
+        ramBytes = undefined;
+        dramMode = false;
     };
 
     this.getKeyboardExtension = function() {
@@ -43,11 +56,16 @@ wmsx.SlotBIOS = function(rom) {
 
     this.reset = function() {
         if (turboDriver) turboDriver.reset();
+        dramMode = false;
+    };
+
+    this.setDRAMMode = function(state) {
+        dramMode = !!state;
     };
 
     this.read = function(address) {
         if (address < topAddress)
-            return bytes[address];
+            return dramMode && address < 32768 ? ramBytes[ramBase + address] : bytes[address];
         else
             return 0xff;
     };
@@ -82,6 +100,8 @@ wmsx.SlotBIOS = function(rom) {
 
     var topAddress;
 
+    var dramMode = false, ramBytes, ramBase = 0;
+
     var cassetteDriver = new wmsx.ImageCassetteDriver();
     var keyboardExtension = new wmsx.BIOSKeyboardExtension();
     var turboDriver = new wmsx.TurboDriver();
@@ -92,7 +112,7 @@ wmsx.SlotBIOS = function(rom) {
     this.originalVideoStandard = null;
 
 
-    // Savestate  -------------------------------------------
+    // TODO Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {

@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // MSX2 Standard RAM Mapper. Supports sizes from 128KB to 4MB
+// Also handles turbo R DRAM mode. Prevents writes to last 64KB when in DRAM mode
 // 0x0000 - 0xffff
 
 wmsx.SlotRAMMapper = function(rom) {
@@ -15,6 +16,7 @@ wmsx.SlotRAMMapper = function(rom) {
         self.bytes = bytes;
         pageMask = (bytes.length >> 14) - 1;
         pageReadBackOR = 0xff & ~pageMask;
+        dramModeStart = bytes.length - 65536;
 
         // console.log("RAMMApper init: " + size);
     }
@@ -28,6 +30,7 @@ wmsx.SlotRAMMapper = function(rom) {
         machine.bus.connectOutputDevice(0xfd, this.outputFD);
         machine.bus.connectOutputDevice(0xfe, this.outputFE);
         machine.bus.connectOutputDevice(0xff, this.outputFF);
+        machine.trd.connectRAM(this);
     };
 
     this.refreshConnect = function() {
@@ -44,6 +47,11 @@ wmsx.SlotRAMMapper = function(rom) {
         machine.bus.disconnectOutputDevice(0xfd, this.outputFD);
         machine.bus.disconnectOutputDevice(0xfe, this.outputFE);
         machine.bus.disconnectOutputDevice(0xff, this.outputFF);
+        machine.trd.disconnectRAM(this);
+    };
+
+    this.setDRAMMode = function(state) {
+        dramModeOff = !state;
     };
 
     this.powerOn = function() {
@@ -57,6 +65,7 @@ wmsx.SlotRAMMapper = function(rom) {
 
     this.reset = function() {
         page0Offset = page1Offset = page2Offset = page3Offset = 0;
+        dramModeOff = true;
     };
 
     this.outputFC = function(val) {
@@ -98,10 +107,10 @@ wmsx.SlotRAMMapper = function(rom) {
         // wmsx.Util.log ("RAM Mapper write: " + address.toString(16) + ", " + value.toString(16) + ". SlotConf: " + WMSX.room.machine.bus.getPrimarySlotConfig().toString(16));
 
         switch (address & 0xc000) {
-            case 0x0000: bytes[address + page0Offset] = value; return;
-            case 0x4000: bytes[address + page1Offset] = value; return;
-            case 0x8000: bytes[address + page2Offset] = value; return;
-            case 0xc000: bytes[address + page3Offset] = value; return;
+            case 0x0000: if (dramModeOff || (address + page0Offset < dramModeStart)) bytes[address + page0Offset] = value; return;
+            case 0x4000: if (dramModeOff || (address + page1Offset < dramModeStart)) bytes[address + page1Offset] = value; return;
+            case 0x8000: if (dramModeOff || (address + page2Offset < dramModeStart)) bytes[address + page2Offset] = value; return;
+            case 0xc000: if (dramModeOff || (address + page3Offset < dramModeStart)) bytes[address + page3Offset] = value; return;
         }
     };
 
@@ -109,6 +118,8 @@ wmsx.SlotRAMMapper = function(rom) {
     var page0Offset = 0, page1Offset = 0, page2Offset = 0, page3Offset = 0;
     var pageMask = 0;
     var pageReadBackOR = 0;
+
+    var dramModeOff = true, dramModeStart = 0;
 
     var bytes;
     this.bytes = null;
@@ -118,7 +129,8 @@ wmsx.SlotRAMMapper = function(rom) {
 
     var VALID_SIZES = [64, 128, 256, 512, 1024, 2048, 4096];
 
-    // Savestate  -------------------------------------------
+
+    // TODO Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
