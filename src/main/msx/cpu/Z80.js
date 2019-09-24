@@ -4,9 +4,9 @@
 // Then fetches operands and executes all operations of the instruction at the LAST clock cycle
 // NMI is not supported. All IM modes supported, but data coming from device in bus will always be FFh (MSX). IFF2 is always the same as IFF1
 // Original Z80 base clock: 3579545 Hz. Rectified to NTSC 60Hz: 3584160 Hz   (228 clocks/line * 262 lines * 60 frames/sec)
-// R800 clock is double Z80 clock
+// TODO R800 clock is double Z80 clock, and processing pauses for 4us each 31us for memory refresh (~12% of the processing time)
 
-// TODO R800 additional waits
+// TODO S1990 additional waits (ROM, External Slot, Bus alignment)
 
 wmsx.Z80 = function() {
 "use strict";
