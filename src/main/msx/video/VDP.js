@@ -624,7 +624,7 @@ wmsx.VDP = function(machine, cpu) {
 
         if (blankingChangePending) updateLineActiveType();
 
-        if ((status[1] & 0x01) && ((register[0] & 0x10) === 0))  status[1] &= ~0x01;                // FH = 0 if interrupts disabled (IE1 = 0)
+        if ((status[1] & 0x01) && ((register[0] & 0x10) === 0)) status[1] &= ~0x01;                 // FH = 0 if interrupts disabled (IE1 = 0)
         if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;                     // VR = 0 at the scanline before first Active scanline
         else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)              // VR = 1, F = 1 at the first Bottom Border line
             triggerVerticalInterrupt();

@@ -47,22 +47,22 @@ wmsx.OPL4Audio = function(pName, cart) {
     };
 
     this.audioClockPulse = function() {
-        try {
+        // try {
             fm.audioClockPulse();
-        } catch (e) {
-            window.E = e;
-            console.error(e);
-        }
+        // } catch (e) {
+        //     window.E = e;
+        //     console.error(e);
+        // }
     };
 
     this.nextSample = function() {
-        try {
+        // try {
             return wave.nextSample();
-        } catch (e) {
-            window.E = e;
-            console.error(e);
-            return 0;
-        }
+        // } catch (e) {
+        //     window.E = e;
+        //     console.error(e);
+        //     return 0;
+        // }
     };
 
     this.memoryRead = cart.opl4ReadMemory;
