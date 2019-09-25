@@ -19,6 +19,12 @@ wmsx.TurboDriver = function() {
         machine.bus.disconnectSwitchedDevice(0x08, this);
     };
 
+    this.powerOff = function() {
+        chgCpuValue = 0;
+        softTurboON = false;
+        this.turboModesUpdate();
+    };
+
     this.reset = function() {
         if (WMSX.CPU_SOFT_TURBO_AUTO_ON) {
             chgCpuValue = 0x82;
@@ -36,11 +42,13 @@ wmsx.TurboDriver = function() {
     };
 
     this.turboModesUpdate = function() {
-        var softTurbo = machine.machineType >= 2 && (WMSX.FAKE_TR || WMSX.FAKE_PANA);         // Only for MSX2 or better, CHGCPU active
-        var cpuMode = machine.getCPUTurboMode();
-        var vdpMode = machine.getVDPTurboMode();
+        // console.log("TurboDriver modes update");
 
-        if (cpuMode < 0 || !softTurbo) {
+        var softTurbo = machine.machineType >= 2 && (WMSX.FAKE_TR || WMSX.FAKE_PANA);         // Only for MSX2 or better, CHGCPU active
+        var cpuMode = machine.getZ80ClockMode();
+        var vdpMode = machine.getVDPClockMode();
+
+        if (cpuMode !== 0 || !softTurbo) {
             unPatchBIOS();
             machine.bus.disconnectSwitchedDevice(0x08, this);
         } else {
@@ -48,8 +56,8 @@ wmsx.TurboDriver = function() {
             if (WMSX.FAKE_PANA) machine.bus.connectSwitchedDevice(0x08, this);
         }
 
-        machine.cpu.setCPUTurboMulti(cpuMode === 0 && softTurbo && softTurboON ? WMSX.CPU_SOFT_TURBO_MULTI : cpuMode <= 0 ? 1 : cpuMode);
-        machine.vdp.setVDPTurboMulti(vdpMode === 0 && softTurbo && softTurboON ? WMSX.VDP_SOFT_TURBO_MULTI : vdpMode > 1 ? vdpMode : 1);
+        machine.cpu.setZ80ClockMulti(cpuMode === 0 && softTurbo && softTurboON ? WMSX.CPU_SOFT_TURBO_MULTI : cpuMode > 0 ? cpuMode : 1);
+        machine.vdp.setVDPTurboMulti(vdpMode === 0 && softTurbo && softTurboON ? WMSX.VDP_SOFT_TURBO_MULTI : vdpMode > 0 ? vdpMode : 1);
 
         biosSocket.fireMachineTurboModesStateUpdate();
     };
@@ -119,11 +127,11 @@ wmsx.TurboDriver = function() {
 
         softTurboON = newSoftON;
 
-        if (machine.getCPUTurboMode() === 0) {
+        if (machine.getZ80ClockMode() === 0) {
             self.turboModesUpdate();
-            machine.showCPUTurboModeMessage();
+            machine.showZ80ClockModeMessage();
         } else
-            machine.showOSD("Could not set CPU Turbo by software: mode is FORCED " + machine.getCPUTurboModeDesc(), true, true);
+            machine.showOSD("Could not set Z80 Turbo by software: mode is FORCED " + machine.getZ80ClockModeDesc(), true, true);
     }
 
     function GETCPU() {

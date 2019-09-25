@@ -14,8 +14,8 @@ wmsx.Machine = function() {
     this.socketsConnected = function() {
         videoSocket.connectMainVideoSignal(vdp.getVideoSignal());
         self.updateMachineType();
-        self.setCPUTurboMode(cpuTurboMode);
-        self.setVDPTurboMode(vdpTurboMode);
+        self.setZ80ClockMode(z80ClockMode);
+        self.setVDPClockMode(vdpClockMode);
         self.setDefaults();
     };
 
@@ -26,8 +26,8 @@ wmsx.Machine = function() {
         rtc.setMachineType(this.machineType);
         syf.setMachineType(this.machineType);
         trd.setMachineType(this.machineType);
-        cpuTurboMode = WMSX.CPU_TURBO_MODE === 1 ? 2 : WMSX.CPU_TURBO_MODE;    // backward compatibility
-        vdpTurboMode = WMSX.VDP_TURBO_MODE;
+        z80ClockMode = WMSX.CPU_TURBO_MODE < 0 ? 0 : WMSX.CPU_TURBO_MODE;
+        vdpClockMode = WMSX.VDP_TURBO_MODE < 0 ? 0 : WMSX.VDP_TURBO_MODE;
         biosSocket.turboDriverTurboModesUpdate();
         bus.refreshConnect();
         machineTypeSocket.fireMachineTypeStateUpdate();
@@ -248,51 +248,51 @@ wmsx.Machine = function() {
         setVSynchMode(mode, true);  // force
     };
 
-    this.toggleCPUTurboMode = function(dec) {
-        if (dec) this.setCPUTurboMode(cpuTurboMode < 0 ? 8 : cpuTurboMode === 0 ? -1 : cpuTurboMode <= 1.5 ? 0 : cpuTurboMode <= 2 ? 1.5 : (cpuTurboMode | 0) - 1);
-        else     this.setCPUTurboMode(cpuTurboMode === 0 ? 1.5 : cpuTurboMode < 1 ? 0 : cpuTurboMode < 1.5 ? 1.5 : (cpuTurboMode | 0) + 1);
-        this.showCPUTurboModeMessage();
+    this.toggleZ80ClockMode = function(dec) {
+        if (dec) this.setZ80ClockMode(z80ClockMode <= 0 ? 8 : z80ClockMode <= 1 ? 0 : z80ClockMode <= 1.5 ? 1 : z80ClockMode <= 2 ? 1.5 : (z80ClockMode | 0) - 1);
+        else     this.setZ80ClockMode(z80ClockMode >= 8 ? 0 : z80ClockMode < 1 ? 1 : z80ClockMode < 1.5 ? 1.5 : z80ClockMode < 2 ? 2 : (z80ClockMode | 0) + 1);
+        this.showZ80ClockModeMessage();
     };
 
-    this.setCPUTurboMode = function(mode) {
-        cpuTurboMode = mode < 0 || mode > 8 ? -1 : mode === 1 ? 2 : mode;        // -1, 0..8
+    this.setZ80ClockMode = function(mode) {
+        z80ClockMode = mode < 0 || mode > 8 ? 0 : mode;
         biosSocket.turboDriverTurboModesUpdate();
     };
 
-    this.getCPUTurboMode = function() {
-        return cpuTurboMode;
+    this.getZ80ClockMode = function() {
+        return z80ClockMode;
     };
 
-    this.showCPUTurboModeMessage = function() {
-        self.showOSD("CPU Turbo: " + this.getCPUTurboModeDesc(), true);
+    this.showZ80ClockModeMessage = function() {
+        self.showOSD("Z80 Clock: " + this.getZ80ClockModeDesc(), true);
     };
 
-    this.getCPUTurboModeDesc = function() {
-        var desc = cpuTurboMode < 0 ? "OFF " : cpuTurboMode === 0 ? "Auto " : "";
-        var multi = cpu.getCPUTurboMulti();
-        desc += (multi !== 1 ? "" + multi + "x " : "") + "(" + cpu.getCPUTurboFreqDesc() + ")";
+    this.getZ80ClockModeDesc = function() {
+        var desc = z80ClockMode === 0 ? "Auto " : z80ClockMode === 1 ? "Normal " : "";
+        var multi = cpu.getZ80ClockMulti();
+        desc += (z80ClockMode !== 0 && z80ClockMode !== 1 ? "" + multi + "x " : "") + "(" + cpu.getClockFreqDesc(multi) + ")";
         return desc;
     };
 
-    this.toggleVDPTurboMode = function(dec) {
-        if (dec) this.setVDPTurboMode(vdpTurboMode < 0 ? 9 : vdpTurboMode === 2 ? 0 : vdpTurboMode - 1);
-        else     this.setVDPTurboMode(vdpTurboMode + 1);
-        self.showOSD("VDP Engine Turbo: " + this.getVDPTurboModeDesc(), true);
+    this.toggleVDPClockMode = function(dec) {
+        if (dec) this.setVDPClockMode(vdpClockMode <= 0 ? 9 : vdpClockMode <= 1 ? 0 : (vdpClockMode | 0) - 1);
+        else     this.setVDPClockMode((vdpClockMode | 0) + 1);
+        self.showOSD("VDP Engine Clock: " + this.getVDPClockModeDesc(), true);
     };
 
-    this.setVDPTurboMode = function(mode) {
-        vdpTurboMode = mode < 0 || mode > 9 ? -1 : mode === 1 ? 2 : mode;        // -1, 0, 2..9
+    this.setVDPClockMode = function(mode) {
+        vdpClockMode = mode < 0 || mode > 9 ? 0 : mode;        // 0..9
         biosSocket.turboDriverTurboModesUpdate();
     };
 
-    this.getVDPTurboMode = function() {
-        return vdpTurboMode;
+    this.getVDPClockMode = function() {
+        return vdpClockMode;
     };
 
-    this.getVDPTurboModeDesc = function() {
-        var desc = vdpTurboMode < 0 ? "OFF " : vdpTurboMode === 0 ? "Auto " : vdpTurboMode === 9 ? "Instant" : "";
+    this.getVDPClockModeDesc = function() {
+        var desc = vdpClockMode === 0 ? "Auto " : vdpClockMode === 1 ? "Normal " : vdpClockMode === 9 ? "Instant" : "";
         var multi = vdp.getVDPTurboMulti();
-        desc += (multi > 1 && multi < 9 ? "" + multi + "x " : "");
+        desc += (multi > 0 && multi !== 1 && multi < 9 ? "" + multi + "x " : "");
         return desc;
     };
 
@@ -418,8 +418,8 @@ wmsx.Machine = function() {
             c:  cpu.saveState(),
             va: videoStandardIsAuto,
             vs: videoStandard.name,
-            ctm: cpuTurboMode,
-            vtm: vdpTurboMode,
+            ctm: z80ClockMode,
+            vtm: vdpClockMode,
             s: speedControl,
             br: basicAutoRunDone,
             bc: basicAutoRunCommand || "",
@@ -474,8 +474,8 @@ wmsx.Machine = function() {
         machineControlsSocket.firePowerAndUserPauseStateUpdate();
         audioSocket.flushAllSignals();
         diskDriveSocket.fireInterfacesChangeUpdate();
-        cpuTurboMode = s.ctm !== undefined ? s.ctm : cpu.getCPUTurboMulti() > 1 ? cpu.getCPUTurboMulti() : 0;
-        vdpTurboMode = s.vtm !== undefined ? s.vtm : vdp.getVDPTurboMulti() > 1 ? vdp.getVDPTurboMulti() : 0;
+        z80ClockMode = s.ctm !== undefined ? s.ctm : cpu.getZ80ClockMulti() > 1 ? cpu.getZ80ClockMulti() : 0;
+        vdpClockMode = s.vtm !== undefined ? s.vtm : vdp.getVDPTurboMulti() > 1 ? vdp.getVDPTurboMulti() : 0;
         biosSocket.turboDriverTurboModesUpdate();
         saveStateSocket.externalStateChange();
     }
@@ -598,8 +598,8 @@ wmsx.Machine = function() {
     var fastBootFrames = WMSX.FAST_BOOT <= 0 ? 0 : WMSX.FAST_BOOT > 1 ? WMSX.FAST_BOOT : WMSX.BOOT_KEYS_FRAMES > 0 ? WMSX.BOOT_KEYS_FRAMES : WMSX.BOOT_DURATION_AUTO;
     var fastBootCountdown = 0;
 
-    var cpuTurboMode = 0;
-    var vdpTurboMode = 0;
+    var z80ClockMode = 0;
+    var vdpClockMode = 0;
 
     var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
 
@@ -696,10 +696,10 @@ wmsx.Machine = function() {
                 vSynchModeToggle();
                 break;
             case controls.CPU_TURBO_MODE:
-                self.toggleCPUTurboMode(altFunc);
+                self.toggleZ80ClockMode(altFunc);
                 break;
             case controls.VDP_TURBO_MODE:
-                self.toggleVDPTurboMode(altFunc);
+                self.toggleVDPClockMode(altFunc);
                 break;
             case controls.DEBUG:
                 var resultingMode = vdp.toggleDebugModes(altFunc);
@@ -1098,12 +1098,12 @@ wmsx.Machine = function() {
                 case controls.VIDEO_STANDARD:
                     return { label: videoStandardIsAuto ? "Auto" : videoStandard.name, active: !videoStandardIsAuto };
                 case controls.CPU_TURBO_MODE:
-                    var multi = cpu.getCPUTurboMulti();
-                    var desc = cpuTurboMode < 0 ? "OFF" : cpuTurboMode === 0 ? "Auto" + (multi !== 1 ? " " + multi + "x" : "") : "" + multi + "x" ;
+                    var multi = cpu.getZ80ClockMulti();
+                    var desc = z80ClockMode === 0 ? "Auto" + (multi !== 1 ? " " + multi + "x" : "") : z80ClockMode === 1 ? "Normal" : "" + multi + "x" ;
                     return { label: desc, active: multi !== 1 };
                 case controls.VDP_TURBO_MODE:
                     multi = vdp.getVDPTurboMulti();
-                    return { label: self.getVDPTurboModeDesc(), active: multi !== 1 };
+                    return { label: self.getVDPClockModeDesc(), active: multi !== 1 };
                 case controls.SPRITE_MODE:
                     desc = vdp.getSpriteDebugModeQuickDesc();
                     return { label: desc, active: desc !== "Normal" };

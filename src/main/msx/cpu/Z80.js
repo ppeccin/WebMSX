@@ -52,14 +52,15 @@ wmsx.Z80 = function() {
         if (r800 === !!state) return;
 
         r800 = !r800;
+        clockMulti = r800 ? r800ClockMulti : z80ClockMulti;
         swapModeState();
     };
 
-    this.clockPulses = function(quant) {
+    this.clockPulses = function(busPulses) {
         // if (self.HALT) return;
 
-        var turboQuant = (quant * turboClockMulti) | 0;
-        for (var t = turboQuant; t > 0; --t) {
+        var cpuPulses = (busPulses * clockMulti) | 0;
+        for (var t = cpuPulses; t > 0; --t) {
             if (--T > 1) continue;
             if (T > 0) {
                 instruction.operation();
@@ -70,12 +71,12 @@ wmsx.Z80 = function() {
                 if (T <= 1) instruction.operation();
             }
         }
-        busCycles += quant;
+        busCycles += busPulses;
     };
 
     // this.clockPulsesPrecise = function(quant) {
     //     for (var q = quant; q > 0; --q) {
-    //         for (var t = turboClockMulti; t > 0; --t) {
+    //         for (var t = clockMulti; t > 0; --t) {
     //             if (--T > 1) continue;               // Still counting cycles of current instruction
     //             if (T > 0) {
     //                 instruction.operation();
@@ -105,20 +106,20 @@ wmsx.Z80 = function() {
         return busCycles;
     };
 
-    this.setCPUTurboMulti = function(multi) {
-        // console.log("SET CPU MULTI:" + multi);
+    this.setZ80ClockMulti = function(multi) {
+        // console.log("Z80 CLOCK MULTI:" + multi);
 
-        turboClockMulti = multi < 0 ? 1 : multi > 8 ? 8 : multi;    // (0..8]
+        z80ClockMulti = multi < 0 ? 1 : multi > 8 ? 8 : multi;    // (0..8]
     };
 
-    this.getCPUTurboMulti = function() {
-        return turboClockMulti;
+    this.getZ80ClockMulti = function() {
+        return z80ClockMulti;
     };
 
-    this.getCPUTurboFreqDesc = function() {
-        return "" + (3.58 * turboClockMulti).toFixed(2) + " MHz";
+    this.getClockFreqDesc = function(multi) {
+        return "" + (3.58 * multi).toFixed(2) + " MHz";
 
-        // switch (turboClockMulti) {
+        // switch (z80ClockMulti) {
         //     case 1:   return "3.58 MHz";
         //     case 2:   return "7.16 MHz";
         //     case 3:   return "10.7 MHz";
@@ -136,7 +137,8 @@ wmsx.Z80 = function() {
     var modeBackState = {}, modeFrontState = {};
 
     // Speed mode
-    var turboClockMulti = 1;
+    var z80ClockMulti = 1, r800ClockMulti = 2;
+    var clockMulti = z80ClockMulti;
 
     // Extension Handling
     var extCurrRunning = null;
@@ -2759,7 +2761,7 @@ wmsx.Z80 = function() {
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
             c: busCycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extCurrRunning, eei: extExtraIter,
-            tcm: turboClockMulti
+            tcm: z80ClockMulti
         };
     };
 
@@ -2769,7 +2771,7 @@ wmsx.Z80 = function() {
         setINT(s.nINT ? s.INT : s.INT ? 0xff : 0xfe);   // Backward compatibility
         busCycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
         extCurrRunning = s.ecr; extExtraIter = s.eei;
-        turboClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;  // Backward compatibility
+        z80ClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;  // Backward compatibility
     };
 
 

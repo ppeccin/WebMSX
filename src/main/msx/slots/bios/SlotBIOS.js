@@ -51,6 +51,7 @@ wmsx.SlotBIOS = function(rom) {
     };
 
     this.powerOff = function() {
+        if (turboDriver) turboDriver.powerOff();
         if (cassetteDriver) cassetteDriver.powerOff();
     };
 

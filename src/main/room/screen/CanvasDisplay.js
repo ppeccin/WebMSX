@@ -622,7 +622,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.machineTurboModesStateUpdate = function() {
         if (quickOtionsDialog) quickOtionsDialog.machineTurboModesStateUpdate();
-        var multi = machine.cpu.getCPUTurboMulti();
+        var multi = machine.cpu.getZ80ClockMulti();
         turboButton.classList.toggle("wmsx-hidden", multi === 1);
         if (multi !== 1) turboButton.textContent = "" + multi + "x";
     };
