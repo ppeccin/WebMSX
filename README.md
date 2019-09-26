@@ -299,9 +299,9 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `AUDIO_MONITOR_BUFFER_SIZE`     |  -1                 |  Audio buffer size. -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size. More buffer = more delay. Don't change! :-)
 | `AUDIO_SIGNAL_BUFFER_RATIO`     |  2                  |  Internal Audio Signal buffer based on Monitor buffer
 | `AUDIO_SIGNAL_ADD_FRAMES`       |  3                  |  Additional frames in internal Audio Signal buffer based on Monitor buffer
-| `CPU_TURBO_MODE`                |  0                  |  CPU Turbo. -1: off; 0: auto (software activation); 2..8: CPU clock multiplier; 1: 2x multiplier (backward compatibility)
-| `VDP_TURBO_MODE`                |  0                  |  VDP Command Engine Turbo. -1: off; 0: auto (software activation); 2..8: Engine clock multiplier; 9: instantaneous
-| `CPU_SOFT_TURBO_MULTI`          |  2                  |  CPU clock multiplier when in AUTO mode and activated by software. 1..8: multi
+| `Z80_CLOCK_MODE`                |  0                  |  Z80 CPU Clock. 0: auto (soft-turbo possible); (0..8]: CPU clock multiplier;
+| `Z80_SOFT_TURBO_MULTI`          |  1.5                |  Z80 CPU clock multiplier when in AUTO mode and activated by software. 1..8: multi
+| `VDP_CLOCK_MODE`                |  0                  |  VDP Command Engine Clock. 0: auto (soft-turbo possible); (0..8]: Engine clock multiplier; 9: instantaneous
 | `VDP_SOFT_TURBO_MULTI`          |  4                  |  VDP Command Engine clock multiplier when in AUTO mode and activated by software. 1..9: multi
 | `JOYSTICKS_MODE`                |  0                  |  Joysticks (on Host) controls. -1: disabled; 0: auto; 1: auto (swapped)
 | `JOYKEYS_MODE`                  |  -1                 |  JoyKeys controls. -1: disabled; 0: enabled at port 1; 1: enabled at port 2; 2: enabled at both ports; 3: enabled at both ports (swapped)

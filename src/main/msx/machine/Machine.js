@@ -26,8 +26,8 @@ wmsx.Machine = function() {
         rtc.setMachineType(this.machineType);
         syf.setMachineType(this.machineType);
         trd.setMachineType(this.machineType);
-        z80ClockMode = WMSX.CPU_TURBO_MODE < 0 ? 0 : WMSX.CPU_TURBO_MODE;
-        vdpClockMode = WMSX.VDP_TURBO_MODE < 0 ? 0 : WMSX.VDP_TURBO_MODE;
+        z80ClockMode = WMSX.Z80_CLOCK_MODE < 0 ? 0 : WMSX.Z80_CLOCK_MODE;
+        vdpClockMode = WMSX.VDP_CLOCK_MODE < 0 ? 0 : WMSX.VDP_CLOCK_MODE;
         biosSocket.turboDriverTurboModesUpdate();
         bus.refreshConnect();
         machineTypeSocket.fireMachineTypeStateUpdate();
@@ -695,10 +695,10 @@ wmsx.Machine = function() {
             case controls.VSYNCH:
                 vSynchModeToggle();
                 break;
-            case controls.CPU_TURBO_MODE:
+            case controls.Z80_CLOCK_MODE:
                 self.toggleZ80ClockMode(altFunc);
                 break;
-            case controls.VDP_TURBO_MODE:
+            case controls.VDP_CLOCK_MODE:
                 self.toggleVDPClockMode(altFunc);
                 break;
             case controls.DEBUG:
@@ -1097,11 +1097,11 @@ wmsx.Machine = function() {
             switch (control) {
                 case controls.VIDEO_STANDARD:
                     return { label: videoStandardIsAuto ? "Auto" : videoStandard.name, active: !videoStandardIsAuto };
-                case controls.CPU_TURBO_MODE:
+                case controls.Z80_CLOCK_MODE:
                     var multi = cpu.getZ80ClockMulti();
                     var desc = z80ClockMode === 0 ? "Auto" + (multi !== 1 ? " " + multi + "x" : "") : z80ClockMode === 1 ? "Normal" : "" + multi + "x" ;
                     return { label: desc, active: multi !== 1 };
-                case controls.VDP_TURBO_MODE:
+                case controls.VDP_CLOCK_MODE:
                     multi = vdp.getVDPTurboMulti();
                     return { label: self.getVDPClockModeDesc(), active: multi !== 1 };
                 case controls.SPRITE_MODE:

@@ -36,27 +36,17 @@ wmsx.TurboDriver = function() {
         this.turboModesUpdate();
     };
 
-    this.patchNewBIOSForFakes = function(bytes) {
-        // Fake TurboR ID
-        if (WMSX.FAKE_TR) bytes[0x002d] = 3;
-    };
-
     this.turboModesUpdate = function() {
         // console.log("TurboDriver modes update");
 
-        var softTurbo = machine.machineType >= 2 && (WMSX.FAKE_TR || WMSX.FAKE_PANA);         // Only for MSX2 or better, CHGCPU active
+        if (WMSX.FAKE_TR) patchBIOS(); else unPatchBIOS();
+        if (WMSX.FAKE_PANA) machine.bus.connectSwitchedDevice(0x08, this); else machine.bus.disconnectSwitchedDevice(0x08, this);
+
+        var softTurbo = WMSX.FAKE_TR || WMSX.FAKE_PANA;
         var cpuMode = machine.getZ80ClockMode();
         var vdpMode = machine.getVDPClockMode();
 
-        if (cpuMode !== 0 || !softTurbo) {
-            unPatchBIOS();
-            machine.bus.disconnectSwitchedDevice(0x08, this);
-        } else {
-            if (WMSX.FAKE_TR) patchBIOS();
-            if (WMSX.FAKE_PANA) machine.bus.connectSwitchedDevice(0x08, this);
-        }
-
-        machine.cpu.setZ80ClockMulti(cpuMode === 0 && softTurbo && softTurboON ? WMSX.CPU_SOFT_TURBO_MULTI : cpuMode > 0 ? cpuMode : 1);
+        machine.cpu.setZ80ClockMulti(cpuMode === 0 && softTurbo && softTurboON ? WMSX.Z80_SOFT_TURBO_MULTI : cpuMode > 0 ? cpuMode : 1);
         machine.vdp.setVDPTurboMulti(vdpMode === 0 && softTurbo && softTurboON ? WMSX.VDP_SOFT_TURBO_MULTI : vdpMode > 0 ? vdpMode : 1);
 
         biosSocket.fireMachineTurboModesStateUpdate();
@@ -78,8 +68,6 @@ wmsx.TurboDriver = function() {
 
     function patchBIOS() {
         var bytes = bios.bytes;
-
-        // CHGCPU/GETCPU Routines
 
         if (bytes[0x190] === 0xed) return;      // already patched
 

@@ -159,12 +159,12 @@ wmsx.Configurator = {
         WMSX.AUDIO_MONITOR_BUFFER_SIZE |= 0;
         WMSX.AUDIO_SIGNAL_BUFFER_RATIO = parseFloat(WMSX.AUDIO_SIGNAL_BUFFER_RATIO);
         WMSX.AUDIO_SIGNAL_ADD_FRAMES |= 0;
-        var turboMulti = Number.parseFloat(WMSX.CPU_TURBO_MODE);
-        WMSX.CPU_TURBO_MODE = isNaN(turboMulti) ? 0 : Number.parseFloat(turboMulti.toFixed(2));
-        turboMulti = Number.parseFloat(WMSX.CPU_SOFT_TURBO_MULTI);
-        WMSX.CPU_SOFT_TURBO_MULTI = isNaN(turboMulti) ? 1.5 : Number.parseFloat(turboMulti.toFixed(2));
-        turboMulti = Number.parseFloat(WMSX.VDP_TURBO_MODE);
-        WMSX.VDP_TURBO_MODE = isNaN(turboMulti) ? 0 : Number.parseFloat(turboMulti.toFixed(2));
+        var turboMulti = Number.parseFloat(WMSX.Z80_CLOCK_MODE);
+        WMSX.Z80_CLOCK_MODE = isNaN(turboMulti) ? 0 : Number.parseFloat(turboMulti.toFixed(2));
+        turboMulti = Number.parseFloat(WMSX.Z80_SOFT_TURBO_MULTI);
+        WMSX.Z80_SOFT_TURBO_MULTI = isNaN(turboMulti) ? 1.5 : Number.parseFloat(turboMulti.toFixed(2));
+        turboMulti = Number.parseFloat(WMSX.VDP_CLOCK_MODE);
+        WMSX.VDP_CLOCK_MODE = isNaN(turboMulti) ? 0 : Number.parseFloat(turboMulti.toFixed(2));
         turboMulti = Number.parseFloat(WMSX.VDP_SOFT_TURBO_MULTI);
         WMSX.VDP_SOFT_TURBO_MULTI = isNaN(turboMulti) ? 2 : Number.parseFloat(turboMulti.toFixed(2));
         WMSX.CPU_SOFT_TURBO_AUTO_ON |= 0;
@@ -435,9 +435,12 @@ wmsx.Configurator = {
         JOYSTICKS: "JOYSTICKS_MODE",
         JOYKEYS: "JOYKEYS_MODE",
         MOUSE: "MOUSE_MODE",
-        TURBO: "CPU_TURBO_MODE",
-        CPU_TURBO: "CPU_TURBO_MODE",
-        VDP_TURBO: "VDP_TURBO_MODE",
+        TURBO: "Z80_CLOCK_MODE",
+        CPU_TURBO: "Z80_CLOCK_MODE",
+        CPU_TURBO_MODE: "Z80_CLOCK_MODE",
+        Z80_CLOCK: "Z80_CLOCK_MODE",
+        VDP_TURBO: "VDP_CLOCK_MODE",
+        VDP_CLOCK: "VDP_CLOCK_MODE",
         VERSION: "VERSION_CHANGE_ATTEMPTED"      // Does not allow version to be changed ;-)
     }
 
