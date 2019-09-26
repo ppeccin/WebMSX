@@ -43,10 +43,12 @@ wmsx.TurboDriver = function() {
         if (WMSX.FAKE_PANA) machine.bus.connectSwitchedDevice(0x08, this); else machine.bus.disconnectSwitchedDevice(0x08, this);
 
         var softTurbo = WMSX.FAKE_TR || WMSX.FAKE_PANA;
-        var cpuMode = machine.getZ80ClockMode();
+        var z80Mode = machine.getZ80ClockMode();
+        var r800Mode = machine.getR800ClockMode();
         var vdpMode = machine.getVDPClockMode();
 
-        machine.cpu.setZ80ClockMulti(cpuMode === 0 && softTurbo && softTurboON ? WMSX.Z80_SOFT_TURBO_MULTI : cpuMode > 0 ? cpuMode : 1);
+        machine.cpu.setZ80ClockMulti(z80Mode === 0 && softTurbo && softTurboON ? WMSX.Z80_SOFT_TURBO_MULTI : z80Mode > 0 ? z80Mode : 1);
+        machine.cpu.setR800ClockMulti(r800Mode);
         machine.vdp.setVDPTurboMulti(vdpMode === 0 && softTurbo && softTurboON ? WMSX.VDP_SOFT_TURBO_MULTI : vdpMode > 0 ? vdpMode : 1);
 
         biosSocket.fireMachineTurboModesStateUpdate();

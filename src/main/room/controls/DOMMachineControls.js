@@ -93,8 +93,8 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         keyCodeMap[KEY_SPRITE_MODE | k.ALT]         = mc.SPRITE_MODE;
         keyCodeMap[KEY_VIDEO_STANDARD | k.ALT]      = mc.VIDEO_STANDARD;
         //keyCodeMap[KEY_VSYNCH | k.ALT]              = mc.VSYNCH;
-        keyCodeMap[KEY_CPU_TURBO | k.ALT]           = mc.Z80_CLOCK_MODE;
-        keyCodeMap[KEY_VDP_TURBO | k.ALT]           = mc.VDP_CLOCK_MODE;
+        keyCodeMap[KEY_Z80_CLOCK | k.ALT]           = mc.Z80_CLOCK_MODE;
+        keyCodeMap[KEY_VDP_CLOCK | k.ALT]           = mc.VDP_CLOCK_MODE;
 
         keyCodeMap[KEY_STATE_0 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_0;
         keyCodeMap[KEY_STATE_0a | k.CONTROL | k.ALT]  = mc.SAVE_STATE_0;
@@ -193,8 +193,8 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
     var KEY_SPRITE_MODE      = domKeys.VK_S.wc;
     var KEY_VIDEO_STANDARD   = domKeys.VK_Q.wc;
     //var KEY_VSYNCH           = domKeys.VK_W.wc;
-    var KEY_CPU_TURBO        = domKeys.VK_T.wc;
-    var KEY_VDP_TURBO        = domKeys.VK_Y.wc;
+    var KEY_Z80_CLOCK        = domKeys.VK_T.wc;
+    var KEY_VDP_CLOCK        = domKeys.VK_Y.wc;
 
     var KEY_STATE_0          = domKeys.VK_QUOTE.wc;
     var KEY_STATE_0a         = domKeys.VK_BACKQUOTE.wc;
@@ -214,7 +214,7 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
     var EXCLUDE_SHIFT_MASK = ~domKeys.SHIFT;
 
     var quickOptionsControls = new Set([
-        mc.VIDEO_STANDARD, mc.Z80_CLOCK_MODE, mc.VDP_CLOCK_MODE, mc.SPRITE_MODE, mc.VSYNCH
+        mc.VIDEO_STANDARD, mc.Z80_CLOCK_MODE, mc.R800_CLOCK_MODE, mc.VDP_CLOCK_MODE, mc.SPRITE_MODE, mc.VSYNCH
     ]);
 
     // User can issue control only on Server. Not sent to Client over network

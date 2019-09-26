@@ -109,11 +109,23 @@ wmsx.Z80 = function() {
     this.setZ80ClockMulti = function(multi) {
         // console.log("Z80 CLOCK MULTI:" + multi);
 
-        z80ClockMulti = multi < 0 ? 1 : multi > 8 ? 8 : multi;    // (0..8]
+        z80ClockMulti = multi <= 0 ? 1 : multi > 8 ? 8 : multi;    // (0..8]
+        if (!r800) clockMulti = z80ClockMulti;
     };
 
     this.getZ80ClockMulti = function() {
         return z80ClockMulti;
+    };
+
+    this.setR800ClockMulti = function(multi) {
+        // console.log("R800 CLOCK MULTI:" + multi);
+
+        r800ClockMulti = 2 * (multi <= 0 ? 1 : multi > 2 ? 2 : multi);    // (0..2]
+        if (r800) clockMulti = r800ClockMulti;
+    };
+
+    this.getR800ClockMulti = function() {
+        return r800ClockMulti / 2;
     };
 
     this.getClockFreqDesc = function(multi) {
@@ -137,8 +149,8 @@ wmsx.Z80 = function() {
     var modeBackState = {}, modeFrontState = {};
 
     // Speed mode
-    var z80ClockMulti = 1, r800ClockMulti = 2;
-    var clockMulti = z80ClockMulti;
+    var z80ClockMulti = 1, r800ClockMulti = 2;              // relative to BUS clock
+    var clockMulti = z80ClockMulti;                         // active CPU multi
 
     // Extension Handling
     var extCurrRunning = null;
@@ -2761,7 +2773,8 @@ wmsx.Z80 = function() {
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
             c: busCycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extCurrRunning, eei: extExtraIter,
-            tcm: z80ClockMulti
+            tcm: z80ClockMulti,
+            rcm: r800ClockMulti
         };
     };
 
@@ -2772,6 +2785,7 @@ wmsx.Z80 = function() {
         busCycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
         extCurrRunning = s.ecr; extExtraIter = s.eei;
         z80ClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;  // Backward compatibility
+        r800ClockMulti = s.rcm !== undefined ? s.rcm : 2;                 // Backward compatibility
     };
 
 

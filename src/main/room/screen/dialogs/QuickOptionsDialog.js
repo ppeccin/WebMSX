@@ -57,6 +57,7 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
         items = [
             { label: "NTSC / PAL",                    control: mc.VIDEO_STANDARD },
             { label: "Z80 CPU Clock",                 control: mc.Z80_CLOCK_MODE },
+            { label: "R800 CPU Clock",                control: mc.R800_CLOCK_MODE },
             { label: "VDP Clock",                     control: mc.VDP_CLOCK_MODE },
             { label: "Sprites Mode",                  control: mc.SPRITE_MODE },
             { label: "Turbo Fire",                    control: pc.TURBO_FIRE_TOGGLE,      peripheral: true },

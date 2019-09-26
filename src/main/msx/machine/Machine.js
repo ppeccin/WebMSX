@@ -15,6 +15,7 @@ wmsx.Machine = function() {
         videoSocket.connectMainVideoSignal(vdp.getVideoSignal());
         self.updateMachineType();
         self.setZ80ClockMode(z80ClockMode);
+        self.setR800ClockMode(r800ClockMode);
         self.setVDPClockMode(vdpClockMode);
         self.setDefaults();
     };
@@ -27,6 +28,7 @@ wmsx.Machine = function() {
         syf.setMachineType(this.machineType);
         trd.setMachineType(this.machineType);
         z80ClockMode = WMSX.Z80_CLOCK_MODE < 0 ? 0 : WMSX.Z80_CLOCK_MODE;
+        r800ClockMode = WMSX.R800_CLOCK_MODE < 0 ? 0 : WMSX.R800_CLOCK_MODE;
         vdpClockMode = WMSX.VDP_CLOCK_MODE < 0 ? 0 : WMSX.VDP_CLOCK_MODE;
         biosSocket.turboDriverTurboModesUpdate();
         bus.refreshConnect();
@@ -274,6 +276,32 @@ wmsx.Machine = function() {
         return desc;
     };
 
+    this.toggleR800ClockMode = function(dec) {
+        if (dec) this.setR800ClockMode(r800ClockMode <= 0 ? 2 : (((r800ClockMode * 2) | 0) - 1) / 2);
+        else     this.setR800ClockMode(r800ClockMode >= 2 ? 0 : (((r800ClockMode * 2) | 0) + 1) / 2);
+        this.showR800ClockModeMessage();
+    };
+
+    this.setR800ClockMode = function(mode) {
+        r800ClockMode = mode < 0 || mode > 2 ? 0 : mode;
+        biosSocket.turboDriverTurboModesUpdate();
+    };
+
+    this.getR800ClockMode = function() {
+        return r800ClockMode;
+    };
+
+    this.showR800ClockModeMessage = function() {
+        self.showOSD("R800 Clock: " + this.getR800ClockModeDesc(), true);
+    };
+
+    this.getR800ClockModeDesc = function() {
+        var desc = r800ClockMode === 0 ? "Auto " : r800ClockMode === 1 ? "Normal " : "";
+        var multi = cpu.getR800ClockMulti();
+        desc += (r800ClockMode !== 0 && r800ClockMode !== 1 ? "" + multi + "x " : "") + "(" + cpu.getClockFreqDesc(multi * 2) + ")";
+        return desc;
+    };
+
     this.toggleVDPClockMode = function(dec) {
         if (dec) this.setVDPClockMode(vdpClockMode <= 0 ? 9 : vdpClockMode <= 1 ? 0 : (vdpClockMode | 0) - 1);
         else     this.setVDPClockMode((vdpClockMode | 0) + 1);
@@ -419,6 +447,7 @@ wmsx.Machine = function() {
             va: videoStandardIsAuto,
             vs: videoStandard.name,
             ctm: z80ClockMode,
+            rtm: r800ClockMode,
             vtm: vdpClockMode,
             s: speedControl,
             br: basicAutoRunDone,
@@ -475,6 +504,7 @@ wmsx.Machine = function() {
         audioSocket.flushAllSignals();
         diskDriveSocket.fireInterfacesChangeUpdate();
         z80ClockMode = s.ctm !== undefined ? s.ctm : cpu.getZ80ClockMulti() > 1 ? cpu.getZ80ClockMulti() : 0;
+        r800ClockMode = s.rtm !== undefined ? s.rtm : cpu.getR800ClockMulti() > 1 ? cpu.getR800ClockMulti() : 0;
         vdpClockMode = s.vtm !== undefined ? s.vtm : vdp.getVDPTurboMulti() > 1 ? vdp.getVDPTurboMulti() : 0;
         biosSocket.turboDriverTurboModesUpdate();
         saveStateSocket.externalStateChange();
@@ -599,6 +629,7 @@ wmsx.Machine = function() {
     var fastBootCountdown = 0;
 
     var z80ClockMode = 0;
+    var r800ClockMode = 0;
     var vdpClockMode = 0;
 
     var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
@@ -697,6 +728,9 @@ wmsx.Machine = function() {
                 break;
             case controls.Z80_CLOCK_MODE:
                 self.toggleZ80ClockMode(altFunc);
+                break;
+            case controls.R800_CLOCK_MODE:
+                self.toggleR800ClockMode(altFunc);
                 break;
             case controls.VDP_CLOCK_MODE:
                 self.toggleVDPClockMode(altFunc);
@@ -1100,6 +1134,10 @@ wmsx.Machine = function() {
                 case controls.Z80_CLOCK_MODE:
                     var multi = cpu.getZ80ClockMulti();
                     var desc = z80ClockMode === 0 ? "Auto" + (multi !== 1 ? " " + multi + "x" : "") : z80ClockMode === 1 ? "Normal" : "" + multi + "x" ;
+                    return { label: desc, active: multi !== 1 };
+                case controls.R800_CLOCK_MODE:
+                    multi = cpu.getR800ClockMulti();
+                    desc = r800ClockMode === 0 ? "Auto" + (multi !== 1 ? " " + multi + "x" : "") : r800ClockMode === 1 ? "Normal" : "" + multi + "x" ;
                     return { label: desc, active: multi !== 1 };
                 case controls.VDP_CLOCK_MODE:
                     multi = vdp.getVDPTurboMulti();

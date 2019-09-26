@@ -167,6 +167,8 @@ wmsx.Configurator = {
         WMSX.VDP_CLOCK_MODE = isNaN(turboMulti) ? 0 : Number.parseFloat(turboMulti.toFixed(2));
         turboMulti = Number.parseFloat(WMSX.VDP_SOFT_TURBO_MULTI);
         WMSX.VDP_SOFT_TURBO_MULTI = isNaN(turboMulti) ? 2 : Number.parseFloat(turboMulti.toFixed(2));
+        turboMulti = Number.parseFloat(WMSX.R800_CLOCK_MODE);
+        WMSX.R800_CLOCK_MODE = isNaN(turboMulti) ? 0 : Number.parseFloat(turboMulti.toFixed(2));
         WMSX.CPU_SOFT_TURBO_AUTO_ON |= 0;
         WMSX.DEBUG_MODE |= 0;
         WMSX.SPRITES_DEBUG_MODE |= 0;
@@ -439,6 +441,7 @@ wmsx.Configurator = {
         CPU_TURBO: "Z80_CLOCK_MODE",
         CPU_TURBO_MODE: "Z80_CLOCK_MODE",
         Z80_CLOCK: "Z80_CLOCK_MODE",
+        R800_CLOCK: "R800_CLOCK_MODE",
         VDP_TURBO: "VDP_CLOCK_MODE",
         VDP_CLOCK: "VDP_CLOCK_MODE",
         VERSION: "VERSION_CHANGE_ATTEMPTED"      // Does not allow version to be changed ;-)
