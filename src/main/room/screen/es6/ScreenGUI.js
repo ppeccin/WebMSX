@@ -317,7 +317,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     width: 47px;
     margin: 0 auto;
     padding: 8px 0 0 0;
-    color: hsl(0, 98%, 61%);
+    color: hsl(0, 100%, 64%);
     font-weight: bold;
     font-size: 12px;
     line-height: 14px;
@@ -325,7 +325,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     vertical-align: top;
     box-sizing: border-box;
 }
-#wmsx-bar-turbo     { left: 109px; padding-left: 25px }
+#wmsx-bar-turbo     { left: 110px; padding-left: 26px }
 #wmsx-bar-caps      { left: calc(166px + 10%); height: 29px; background: none; }
 #wmsx-bar-kana      { left: calc(170px + 25%); height: 29px; background: none; }
 

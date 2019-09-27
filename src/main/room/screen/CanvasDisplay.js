@@ -1112,6 +1112,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (isTouchDevice) logoButton.classList.add("wmsx-full-screen-hidden");
         logoButton.classList.add("wmsx-narrow-hidden");
 
+        // turboButton  = addPeripheralControlButton("wmsx-bar-turbo", -46, -114, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
         turboButton  = addPeripheralControlButton("wmsx-bar-turbo", 0, -68, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
         turboButton.classList.add("wmsx-hidden");
         turboButton.classList.add("wmsx-narrow-hidden");
