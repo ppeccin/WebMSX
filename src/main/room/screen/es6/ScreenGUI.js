@@ -1176,6 +1176,9 @@ html.wmsx-full-screen.wmsx-virtual-keyboard-active #wmsx-virtual-keyboard {
     line-height: 1px;
     text-align: left;
 }
+.wmsx-quick-options-list li.wmsx-hidden {
+    display: none;
+}
 .wmsx-quick-options-list li div {
     display: inline-block;
     overflow: hidden;

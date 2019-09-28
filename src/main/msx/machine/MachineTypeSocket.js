@@ -13,6 +13,10 @@ wmsx.MachineTypeSocket = function(machine) {
         return WMSX.MACHINES_CONFIG[machine.machineName].LANG || "en";
     };
 
+    this.getMachineType = function() {
+        return WMSX.MACHINES_CONFIG[machine.machineName].TYPE || 1;
+    };
+
     this.getCodeKeyLabel = function() {
         return WMSX.MACHINES_CONFIG[machine.machineName].CODE_LABEL || "CODE";
     };

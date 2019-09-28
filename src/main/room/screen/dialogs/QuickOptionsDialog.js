@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralControls) {
+wmsx.QuickOptionsDialog = function(mainElement, machineTypeSocket, machineControls, peripheralControls) {
     "use strict";
 
     var self = this;
@@ -35,7 +35,12 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
         if (visible) refresh();
     };
 
+    this.machineTypeStateUpdate = function() {
+        if (visible) refresh();
+    };
+
     function refresh() {
+        var machineType = machineTypeSocket.getMachineType();
         for (var i = 0; i < items.length; ++i) {
             var item = items[i];
             var report = item.peripheral ? peripheralControls.getControlReport(item.control) : machineControls.getControlReport(item.control);
@@ -43,7 +48,9 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
             item.selected = report.active;
             controlsItems[i].wmsxText.innerText = item.value;
             controlsItems[i].classList.toggle("wmsx-selected", !!item.selected);
+            if (item.machineType) item.element.classList.toggle("wmsx-hidden", item.machineType > machineType);
         }
+        dialog.style.height = "" + (machineType >= 5 ? 386 : 352) + "px";
     }
 
     function create() {
@@ -57,7 +64,7 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
         items = [
             { label: "NTSC / PAL",                    control: mc.VIDEO_STANDARD },
             { label: "Z80 CPU Clock",                 control: mc.Z80_CLOCK_MODE },
-            { label: "R800 CPU Clock",                control: mc.R800_CLOCK_MODE },
+            { label: "R800 CPU Clock",                control: mc.R800_CLOCK_MODE,        machineType: 5 },
             { label: "VDP Clock",                     control: mc.VDP_CLOCK_MODE },
             { label: "Sprites Mode",                  control: mc.SPRITE_MODE },
             { label: "Turbo Fire",                    control: pc.TURBO_FIRE_TOGGLE,      peripheral: true },
@@ -73,6 +80,7 @@ wmsx.QuickOptionsDialog = function(mainElement, machineControls, peripheralContr
 
         for (var i = 0; i < items.length; ++i) {
             var li = document.createElement("li");
+            items[i].element = li;
             var label = document.createElement("div");
             label.innerHTML = items[i].label;
             li.appendChild(label);

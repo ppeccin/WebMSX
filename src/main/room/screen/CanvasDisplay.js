@@ -174,7 +174,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     this.openQuickOptionsDialog = function() {
         closeAllOverlays();
         if (virtualKeyboardMode) setVirtualKeyboard(0);
-        if (!quickOtionsDialog) quickOtionsDialog = new wmsx.QuickOptionsDialog(fsElementCenter, machineControls, peripheralControls);
+        if (!quickOtionsDialog) quickOtionsDialog = new wmsx.QuickOptionsDialog(fsElementCenter, machineTypeSocket, machineControls, peripheralControls);
         quickOtionsDialog.show();
     };
 
@@ -580,6 +580,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.machineTypeStateUpdate = function() {
         if (machineSelectDialog) machineSelectDialog.machineTypeStateUpdate();
+        if (quickOtionsDialog) quickOtionsDialog.machineTypeStateUpdate();
         refreshSettingsMenuForMachineType();
     };
 
