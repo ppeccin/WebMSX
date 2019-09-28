@@ -2,7 +2,7 @@
 
 // Turbo R Pause and S1990 devices
 
-wmsx.TurboRDevices = function(cpu) {
+wmsx.TurboRDevices = function(cpu, ledsSocket) {
 "use strict";
 
     this.setMachineType = function(type) {
@@ -60,6 +60,7 @@ wmsx.TurboRDevices = function(cpu) {
     };
 
     this.powerOff = function() {
+        this.reset();
     };
 
     this.reset = function() {
@@ -67,12 +68,17 @@ wmsx.TurboRDevices = function(cpu) {
         registerSelect = 0;
         register6 = 0x60;
         this.outputE6(0);       // reset counter
+        updateLeds();
     };
 
     this.outputA7 = function(val) {
         // console.log("tR LEDS write: " + val.toString(16));
 
-        if (active) leds = val & 0x81;      // bit 7: R800 LED (1 = on), bit 1: Z80 pause??? (1 = yes), bit 0: pause LED (1 = on)
+        val &= 0x81;
+        if (!active || leds === val) return;
+
+        leds = val;
+        updateLeds();
     };
     this.inputA7 = function() {
         var res = active ? window.TRPAUSE : 0xff;
@@ -144,11 +150,15 @@ wmsx.TurboRDevices = function(cpu) {
         return ((cpu.getBUSCycles() - counterBase) / 14) & 0xffff;
     }
 
+    function updateLeds() {
+        ledsSocket.ledStateChanged(3, (leds & 0x80) !== 0);
+    }
+
 
     var bus;
     var active = false;
 
-    var leds = 0x00;
+    var leds = 0x00;                // bit 7: R800 LED (1 = on), bit 1: Z80 pause??? (1 = yes), bit 0: pause LED (1 = on)
     var registerSelect = 0;
     var register5 = 0x00;           // bit 6: Firmware Switch (0=right(OFF), 1=left(ON))  NEVER CHANGED, firmware always inactive
     var register6 = 0x60;          	// bit 6: ROM mode (0=DRAM, 1=ROM), bit 5: Processor mode (0=R800, 1=Z80)
@@ -182,6 +192,7 @@ wmsx.TurboRDevices = function(cpu) {
         registerSelect = s.rs;
         register6 = s.r6;
         counterBase = s.cb;
+        updateLeds();
     };
 
 

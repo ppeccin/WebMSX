@@ -39,6 +39,7 @@ wmsx.PSG = function(controllersSocket, ledsSocket, secondary) {
 
     this.powerOff = function() {
         powerIsOn = false;
+        this.reset();
         audioChannel.powerOff();
     };
 

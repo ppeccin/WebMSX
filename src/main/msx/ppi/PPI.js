@@ -20,6 +20,7 @@ wmsx.PPI = function(psgAudioChannel, controllersSocket, ledsSocket) {
     };
 
     this.powerOff = function() {
+        this.reset();
     };
 
     this.reset = function() {

@@ -527,7 +527,7 @@ wmsx.Machine = function() {
         self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel(), controllersSocket, ledsSocket);
         self.rtc = rtc = new wmsx.RTC(videoClockSocket);
         self.syf = syf = new wmsx.SystemFlags();
-        self.trd = trd = new wmsx.TurboRDevices(cpu);
+        self.trd = trd = new wmsx.TurboRDevices(cpu, ledsSocket);
         self.bus = bus = new wmsx.BUS(self, cpu);
         cpu.connectBus(bus);
         ppi.connectBus(bus);
@@ -794,14 +794,6 @@ wmsx.Machine = function() {
         this.turboDriverTurboModesUpdate = function() {
             if (bios) bios.getTurboDriver().turboModesUpdate();
         };
-        this.setMachineTurboModesStateListener = function(list) {
-            machineTurboModesListener = list;
-            machineTurboModesListener.machineTurboModesStateUpdate();
-        };
-        this.fireMachineTurboModesStateUpdate = function() {
-            if (machineTurboModesListener) machineTurboModesListener.machineTurboModesStateUpdate();
-        };
-        var machineTurboModesListener;
     }
 
 
@@ -1162,14 +1154,20 @@ wmsx.Machine = function() {
             ledsState[led] = state;
             this.fireLedsStateUpdate();
         };
+        this.ledInfoChanged = function(led, info) {
+            if (ledsInfo[led] === info) return;
+            ledsInfo[led] = info;
+            this.fireLedsStateUpdate();
+        };
         this.setLedsStateListener = function(listener) {
             ledsStateListener = listener;
             this.fireLedsStateUpdate();
         };
         this.fireLedsStateUpdate = function() {
-            if (ledsStateListener) ledsStateListener.ledsStateUpdate(ledsState[0], ledsState[1]);
+            if (ledsStateListener) ledsStateListener.ledsStateUpdate(ledsState, ledsInfo);
         };
-        var ledsState = [ false, false ];   // Caps, Kana
+        var ledsState = [ false, false, false, false ];     // Caps, Kana, Turbo, TurboR
+        var ledsInfo = [ "", "", "", "" ];                  //             Turbo, TurboR
         var ledsStateListener;
     }
 

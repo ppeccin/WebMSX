@@ -108,12 +108,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         //console.log("" + sourceWidth + "x" + sourceHeight + " > " + targetWidth + "x" + targetHeight);
 
         // Update Leds if necessary
-        if (ledsUpdatePending >= 0) updateLeds();
+        if (ledsStatePending) updateLeds();
     };
 
     this.videoSignalOff = function() {
         signalIsOn = false;
-        ledsUpdatePending = 0;
         showCursorAndBar();
         updateLeds();
         updateLogo();
@@ -644,8 +643,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         defineSettingsMenuExtensions();
     };
 
-    this.ledsStateUpdate = function(caps, kana) {
-        ledsUpdatePending = (kana ? 2 : 0) | (caps ? 1 : 0);
+    this.ledsStateUpdate = function(ledsState, ledsInfo) {
+        ledsStatePending = ledsState;
+        ledsInfoPending = ledsInfo;
+        if (!signalIsOn) updateLeds();
     };
 
     this.setLoading = function(state) {
@@ -657,7 +658,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             machineTypeSocket.addMachineTypeStateListener(this);
             extensionsSocket.addExtensionsAndCartridgesStateListener(this);
             machine.getDiskDriveSocket().setInterfacesChangeListener(this);
-            machine.getBIOSSocket().setMachineTurboModesStateListener(this);
             machine.getCartridgeSocket().setCartridgesModifiedStateListener(this);
             machine.getLedsSocket().setLedsStateListener(this);
         }
@@ -866,9 +866,17 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function updateLeds() {
-        capsLed.textContent = (ledsUpdatePending & 1) ? "CAPS" : "";
-        kanaLed.textContent = (ledsUpdatePending & 2) ? machineTypeSocket.getCodeKeyLabel() : "";
-        ledsUpdatePending = -1
+        if (!ledsStatePending) return;
+
+        capsLed.textContent = ledsStatePending[0] ? "CAPS" : "";
+        kanaLed.textContent = ledsStatePending[1] ? machineTypeSocket.getCodeKeyLabel() : "";
+
+        if (quickOtionsDialog) quickOtionsDialog.machineTurboModesStateUpdate();
+        turboButton.classList.toggle("wmsx-hidden", !ledsStatePending[2] && !ledsStatePending[3]);
+        turboButton.textContent = ledsStatePending[3] ? ledsInfoPending[3] : ledsInfoPending[2];
+        turboButton.style.backgroundPositionX = "" + (ledsStatePending[3] ? -1 : -46) + "px";
+
+        ledsStatePending = undefined;
     }
 
     function suppressContextMenu(element) {
@@ -1112,8 +1120,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (isTouchDevice) logoButton.classList.add("wmsx-full-screen-hidden");
         logoButton.classList.add("wmsx-narrow-hidden");
 
-        // turboButton  = addPeripheralControlButton("wmsx-bar-turbo", -46, -114, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
-        turboButton  = addPeripheralControlButton("wmsx-bar-turbo", 0, -68, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
+        turboButton  = addPeripheralControlButton("wmsx-bar-turbo", -46, -114, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
         turboButton.classList.add("wmsx-hidden");
         turboButton.classList.add("wmsx-narrow-hidden");
 
@@ -1937,7 +1944,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var crtPhosphor = -1, crtPhosphorEffective = 0;
     var debugMode = false;
     var isLoading = false;
-    var ledsUpdatePending = -1;
+    var ledsStatePending, ledsInfoPending;
 
     var aspectX = WMSX.SCREEN_DEFAULT_ASPECT;
     var scaleY = 1.0;
