@@ -47,13 +47,17 @@ wmsx.Z80 = function() {
     };
 
     this.setR800Mode = function(state) {
-        console.log("Set R800 mode: " + state);
+        // console.log("Set R800 mode: " + state);
 
         if (r800 === !!state) return;
 
         r800 = !r800;
         clockMulti = r800 ? r800ClockMulti : z80ClockMulti;
         swapModeState();
+    };
+
+    this.getR800Mode = function() {
+        return r800;
     };
 
     this.clockPulses = function(busPulses) {
