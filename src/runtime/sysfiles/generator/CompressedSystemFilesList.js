@@ -34,6 +34,7 @@ wmsx.CompressedSystemFilesList = [
     "Disk64MHeader.dat",
     "Disk128MHeader.dat",
     "DOS1Boot.zip",
+    "DOS2Boot.zip",
     "NextorBoot.zip",
     "[MoonSound].rom",
     "[ExtraPSG].rom"

@@ -67,8 +67,6 @@ wmsx.CartridgeDiskPatchedDOS2TR = function(rom) {
     var bytes;
     this.bytes = null;
 
-    var baseAddress = 0x4000, topAddress = 0x8000;
-
     this.rom = null;
     this.format = wmsx.SlotFormats.DiskPatchDOS2TR;
 
@@ -83,7 +81,7 @@ wmsx.CartridgeDiskPatchedDOS2TR = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: /* this.lightState() ? null : */ wmsx.Util.compressInt8BitArrayToStringBase64(bytes),        // TODO Not Embedded!
+            b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             d: driver.saveState(),
             b1: bankOffset
         };

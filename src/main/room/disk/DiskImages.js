@@ -494,7 +494,7 @@ wmsx.DiskImages = function(room) {
     };
 
     this.makeBootDisk = function (content) {
-        var urls = [{ url: "@DOS1Boot.zip" }];
+        var urls = [{ url: diskDriveSocket.hasDOS2() ? "@DOS2Boot.zip" : "@DOS1Boot.zip" }];
         if (diskDriveSocket.hasHardDiskInterface()) urls.push({ url: "@NextorBoot.zip" });
         new wmsx.MultiDownloader(
             urls,
