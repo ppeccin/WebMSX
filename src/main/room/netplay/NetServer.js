@@ -365,4 +365,4 @@ wmsx.NetServer = function(room) {
 
 };
 
-wmsx.NetServer.SESSION_TYPE_VERSION = "wmsx530";
+wmsx.NetServer.SESSION_TYPE_VERSION = "wmsx600";

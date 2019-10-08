@@ -380,8 +380,8 @@ wmsx.Configurator = {
             WMSX.EXPANSION1_SLOT =                 [2, 2];
             WMSX.EXPANSION2_SLOT =                 [2, 3];
         } else if (s.v < 60) {
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT2 = [3, 3];
             WMSX.EXTENSIONS_CONFIG.DISK.SLOT2 =     [3, 3];
-            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT2 = [3, 3];
             WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT =  [3, 2];
         }
     },

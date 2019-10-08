@@ -114,8 +114,8 @@ WMSX = {
 
     WEB_EXTENSIONS_SERVER:          "webmsx.herokuapp.com",     // Server address for NetPlay!
 
-    STATE_VERSION:                  530,
-    STATE_VERSIONS_ACCEPTED:        { 530: true },
+    STATE_VERSION:                  600,
+    STATE_VERSIONS_ACCEPTED:        { 530: true, 600: true },
 
     ALLOW_URL_PARAMETERS:           true                        // Allows user to override any of these parameters via URL query parameters
 
@@ -149,7 +149,7 @@ WMSX.EXTENSIONS_CONFIG = {
     RAMMAPPER: { DESC: "RAM Mapper",  URL: "@[RAMMapper].rom",     SLOT: [3],             MUTUAL: "RAMNORMAL" },
     RAMNORMAL: {                      URL: "@[RAMNormal].rom",     SLOT: [3],             MUTUAL: "RAMMAPPER" },
     V9990:     { DESC: "V9990 Video", URL: "@[V9990].rom",         SLOT: [4, 3] },
-    MSXMUSIC:  { DESC: "MSX-MUSIC",   URL: "@cbios_music[MSXMUSIC].rom", SLOT: [3, 2] },
+    MSXMUSIC:  { DESC: "MSX-MUSIC",   URL: "@cbios_music[MSXMUSIC].rom", SLOT: [3, 3] },
     DOUBLEPSG: { DESC: "Double PSG",  URL: "@[ExtraPSG].rom",      SLOT: [4, 0] },
     SCCI:      { DESC: "Konami SCC+", URL: "@[SCCIExpansion].rom", SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
     SCC:       {                      URL: "@[SCCExpansion].rom",  SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCCI: 0, PAC: 0, MEGARAM: 0 } },
