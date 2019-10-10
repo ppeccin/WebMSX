@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Bug in Japanese mapping for ": *"
-
 (function() {
 
     // Base mapping. English Machine, Host Keyboard: en-US
@@ -221,7 +219,7 @@
     ja_BR.QUOTE =         k.VK_BR_CEDILLA;
     ja_BR.BACKQUOTE =     k.VK_BR_CLOSE_BRACKET;
     ja_BR.SLASH =         k.VK_BR_SLASH;
-    ja_BR.DEAD =          [ k.VK_BR_TILDE, k.VK_BR_CEDILLA, k.VK_RCONTROL, k.VK_END ];
+    ja_BR.DEAD =          [ k.VK_BR_TILDE, k.VK_RCONTROL, k.VK_END ];
     ja_BR.HOME =          [ k.VK_HOME, { wc: k.VK_BR_OPEN_BRACKET.wc | k.ALT, n: [ "Alt", "[" ] } ];
     ja_BR.INSERT =        [ k.VK_INSERT, { wc: k.VK_BR_CLOSE_BRACKET.wc | k.ALT, n: [ "Alt", "]" ] } ];
     ja_BR.DELETE =        [ k.VK_DELETE, { wc: k.VK_BR_SLASH.wc | k.ALT, n: [ "Alt", "/" ] } ];
