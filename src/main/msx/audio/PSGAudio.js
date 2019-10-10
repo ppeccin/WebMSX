@@ -30,7 +30,7 @@ wmsx.PSGAudio = function(secondary) {
         this.setAmplitudeA(0);
         this.setAmplitudeB(0);
         this.setAmplitudeC(0);
-        pulseSignal = false;
+        pulseSignal = false; pulseSignalOnClock = 0; currentSampleP = 0;
     };
 
     this.nextSample = function() {
@@ -82,22 +82,31 @@ wmsx.PSGAudio = function(secondary) {
 
         // Mix tone with noise. Tone or noise if turned off produce a fixed high value (1). Then add Pulse Signal
 
+        // if (currentSampleP) console.log("ON", audioSocket.getBUSCycles() - pulseSignalOnClock);
+
         if (VOLPAN) {
             // Complete Stereo path (VOL/PAN)
             var sampleA = amplitudeA === 0 || (toneA && !currentSampleA) || (noiseA && !currentSampleN) ? 0 : amplitudeA;
             var sampleB = amplitudeB === 0 || (toneB && !currentSampleB) || (noiseB && !currentSampleN) ? 0 : amplitudeB;
             var sampleC = amplitudeC === 0 || (toneC && !currentSampleC) || (noiseC && !currentSampleN) ? 0 : amplitudeC;
-            var sampleP = pulseSignal ? CHANNEL_MAX_VOLUME : 0;
-
+            var sampleP = 0;
+            if (currentSampleP) {
+                sampleP = CHANNEL_MAX_VOLUME;
+                if (!pulseSignal && audioSocket.getBUSCycles() - pulseSignalOnClock >= MIN_PULSE_ON_CLOCKS) currentSampleP = 0;
+            }
             sampleResult[0] = sampleA * volPanL[0] + sampleB * volPanL[1] + sampleC * volPanL[2] + sampleP * volPanL[3];
             sampleResult[1] = sampleA * volPanR[0] + sampleB * volPanR[1] + sampleC * volPanR[2] + sampleP * volPanR[3];
             return sampleResult;
         } else {
             // Simple Mono path (no VOL/PAN)
-            return  (amplitudeA === 0 || (toneA && !currentSampleA) || (noiseA && !currentSampleN) ? 0 : amplitudeA) +
-                    (amplitudeB === 0 || (toneB && !currentSampleB) || (noiseB && !currentSampleN) ? 0 : amplitudeB) +
-                    (amplitudeC === 0 || (toneC && !currentSampleC) || (noiseC && !currentSampleN) ? 0 : amplitudeC) +
-                    (pulseSignal ? CHANNEL_MAX_VOLUME : 0);
+            var mSampleResult = (amplitudeA === 0 || (toneA && !currentSampleA) || (noiseA && !currentSampleN) ? 0 : amplitudeA) +
+                           (amplitudeB === 0 || (toneB && !currentSampleB) || (noiseB && !currentSampleN) ? 0 : amplitudeB) +
+                           (amplitudeC === 0 || (toneC && !currentSampleC) || (noiseC && !currentSampleN) ? 0 : amplitudeC);
+            if (currentSampleP) {
+                mSampleResult += CHANNEL_MAX_VOLUME;
+                if (!pulseSignal && audioSocket.getBUSCycles() - pulseSignalOnClock >= MIN_PULSE_ON_CLOCKS) currentSampleP = 0;
+            }
+            return mSampleResult;
         }
     };
 
@@ -179,6 +188,12 @@ wmsx.PSGAudio = function(secondary) {
 
     this.setPulseSignal = function(boo) {
         pulseSignal = boo;
+        if (boo) {
+            pulseSignalOnClock = audioSocket.getBUSCycles();
+            currentSampleP = 1;        // Never goes to 0 here, only at nextSample() when minimum BUS clocks have passed
+        }
+
+        // console.log("Pulse:", boo);
     };
 
     this.connectAudio = function() {
@@ -258,6 +273,8 @@ wmsx.PSGAudio = function(secondary) {
     var holdE = false;
 
     var pulseSignal = false;
+    var pulseSignalOnClock = 0;
+    var currentSampleP = 0;
 
     var lfsr = 0x1fffe;                        // Noise generator. 17-bit Linear Feedback Shift Register
 
@@ -273,6 +290,8 @@ wmsx.PSGAudio = function(secondary) {
 
     var CHANNEL_MAX_VOLUME = 0.25;
     var CHANNEL_VOLUME_CURVE_POWER = 30;
+
+    var MIN_PULSE_ON_CLOCKS = 160;
 
     var BASE_VOLUME = 0.66;
     var SAMPLE_RATE = 112005;   // Main CPU clock / 32 = 112005 Hz
@@ -302,7 +321,7 @@ wmsx.PSGAudio = function(secondary) {
         periodC = s.pc; periodCCount = s.pcc; currentSampleC = s.cc; amplitudeC = s.ac; toneC = s.tc; noiseC = s.nc; envelopeC = s.ec;
         periodN = s.pn; periodNCountdown = s.pnc; currentSampleN = s.cn;
         periodE = s.pe; periodECountdown = s.pec; currentValueE = s.ce; directionE = s.de; continueE = s.cne; attackE = s.ate; alternateE = s.ale; holdE = s.he;
-        pulseSignal = s.ps;
+        pulseSignal = s.ps; pulseSignalOnClock = 0; currentSampleP = pulseSignal ? 1 : 0;
         lfsr = s.lf;
     };
 

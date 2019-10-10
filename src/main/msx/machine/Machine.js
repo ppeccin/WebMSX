@@ -978,6 +978,9 @@ wmsx.Machine = function() {
         this.flushAllSignals = function() {
             for (var i = signals.length - 1; i >= 0; --i) signals[i].flush();
         };
+        this.getBUSCycles = function() {
+            return cpu.getBUSCycles();
+        };
         var signals = [];
         var monitor;
         var fps;
