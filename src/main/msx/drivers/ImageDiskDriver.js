@@ -126,7 +126,7 @@ wmsx.ImageDiskDriver = function(dos2) {
         return { HL: (HL & 0xff00) | (F & 0x40 ? 1 : 2) };
     }
 
-    // TODO Call FFCF and FFD4 hooks
+    // TODO Call FFCF and FFD4 hooks?
     function DSKIO(F, A, B, C, DE, HL) {
         if (F & 1) return DSKIOWrite(F, A, B, C, DE, HL);
         else return DSKIORead(F, A, B, C, DE, HL);
