@@ -272,7 +272,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 #wmsx-bar-media-icons {
     margin-left: 10px;
 }
-#wmsx-bar-settings, #wmsx-bar-full-screen, #wmsx-bar-scale-plus, #wmsx-bar-scale-minus {
+#wmsx-bar-settings ,#wmsx-bar-video, #wmsx-bar-full-screen, #wmsx-bar-scale-plus, #wmsx-bar-scale-minus {
     float: right;
     margin: 0;
 }
@@ -422,6 +422,14 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 .wmsx-bar-menu-item-toggle.wmsx-no-op2::after {
     display: none;
+}
+.wmsx-bar-menu-item-toggle-radio::before,
+.wmsx-bar-menu-item-toggle-radio::after {
+    width: 12px  !important;
+    height: 12px  !important;
+    top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 12) / 2) | 0) + `px  !important;
+    left: 10px;
+    border-radius: 100%;
 }
 
 .wmsx-select-dialog {

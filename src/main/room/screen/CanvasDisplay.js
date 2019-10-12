@@ -1094,6 +1094,16 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -1, false, "Settings", null, menu, "Settings");
         defineSettingsMenuExtensions();
 
+        menu = [
+            { label: "Auto",               clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE, toggle: true, radio: true },
+            { label: "Internal VDP",       clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY, toggle: true, radio: true },
+            { label: "V9990 VDP",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_REWIND, toggle: true, radio: true },
+            { label: "Superimposed",       clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, toggle: true, radio: true },
+            { label: "Mixed",              clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, toggle: true, radio: true }
+        ];
+        var videoButton  = addPeripheralControlButton("wmsx-bar-video", -120, -126, false, "Video Output", null, menu, "Video Output");
+        videoButton.classList.add("wmsx-hidden");
+
         if (FULLSCREEN_MODE !== -2) {
             fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -1, false, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
             fullscreenButton.wmsxNeedsUIG = true;
@@ -1526,7 +1536,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
                         // Toggle
                         item.classList.toggle("wmsx-bar-menu-item-toggle", option.toggle !== undefined);
-                        item.classList.toggle("wmsx-no-op2", option.noOp2);
+                        item.classList.toggle("wmsx-bar-menu-item-toggle-radio", !!option.radio);
+                        item.classList.toggle("wmsx-no-op2", option.noOp2 || option.radio);
 
                         // Disabled?
                         if (option.disabled) {
