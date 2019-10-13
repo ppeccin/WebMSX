@@ -12,7 +12,7 @@ wmsx.Machine = function() {
     }
 
     this.socketsConnected = function() {
-        videoSocket.connectMainVideoSignal(vdp.getVideoSignal());
+        videoSocket.connectInternalVideoSignal(vdp.getVideoSignal());
         self.updateMachineType();
         self.setZ80ClockMode(z80ClockMode);
         self.setR800ClockMode(r800ClockMode);
@@ -919,14 +919,14 @@ wmsx.Machine = function() {
         this.connectMonitor = function (pMonitor) {
             monitor = pMonitor;
         };
-        this.connectMainVideoSignal = function(signal) {
-            monitor.connectMainVideoSignal(signal);
+        this.connectInternalVideoSignal = function(signal) {
+            monitor.connectInternalVideoSignal(signal);
         };
-        this.connectSecVideoSignal = function(signal) {
-            monitor.connectSecVideoSignal(signal);
+        this.connectExternalVideoSignal = function(signal) {
+            monitor.connectExternalVideoSignal(signal);
         };
-        this.disconnectSecVideoSignal = function(signal) {
-            monitor.disconnectSecVideoSignal(signal);
+        this.disconnectExternalVideoSignal = function(signal) {
+            monitor.disconnectExternalVideoSignal(signal);
         };
         this.getMonitor = function() {
             return monitor;

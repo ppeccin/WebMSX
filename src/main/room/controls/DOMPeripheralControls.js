@@ -276,9 +276,15 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.SCREEN_OPEN_NETPLAY:
                 screen.openNetPlayDialog();
                 break;
-            case pc.SCREEN_TOGGLE_SIGNAL:
-                screen.getMonitor().toggleActiveSignal();
+            case pc.SCREEN_OUTPUT_AUTO:
+            case pc.SCREEN_OUTPUT_INTERNAL:
+            case pc.SCREEN_OUTPUT_EXTERNAL:
+            case pc.SCREEN_OUTPUT_SUPERIMPOSED:
+            case pc.SCREEN_OUTPUT_MIXED:
+                screen.getMonitor().setOutputMode(control - pc.SCREEN_OUTPUT_AUTO - 1);     // -1..3
                 break;
+            case pc.SCREEN_OUTPUT_TOGGLE:
+                screen.getMonitor().toggleOutputMode(secPort); break;               // secPort for dec
             case pc.KEYBOARD_TOGGLE_HOST_LAYOUT:
                 controllersHub.toggleKeyboardLayout(secPort); break;                // secPort for dec
             case pc.JOYSTICKS_TOGGLE_MODE:
@@ -387,7 +393,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
         keyCodeMap[KEY_FULLSCREEN | k.ALT]  = pc.SCREEN_FULLSCREEN;
 
-        keyCodeMap[KEY_TOGGLE_SIGNAL | k.ALT]  = pc.SCREEN_TOGGLE_SIGNAL;
+        keyCodeMap[KEY_TOGGLE_SIGNAL | k.ALT]  = pc.SCREEN_OUTPUT_TOGGLE;
 
         keyCodeMap[KEY_UP | k.CONTROL | k.ALT]     = pc.SCREEN_SCALE_MINUS;
         keyCodeMap[KEY_DOWN | k.CONTROL | k.ALT]   = pc.SCREEN_SCALE_PLUS;
@@ -558,7 +564,7 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.SCREEN_OPEN_TOUCH_CONFIG,
         pc.SCREEN_TOGGLE_VIRTUAL_KEYBOARD,
         pc.SCREEN_DEFAULTS,
-        pc.SCREEN_TOGGLE_SIGNAL,
+        pc.SCREEN_OUTPUT_TOGGLE,
 
         pc.SPEAKER_BUFFER_TOGGLE,
 

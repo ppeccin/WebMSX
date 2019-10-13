@@ -1,25 +1,41 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Savestate of outputMode
+
 wmsx.Monitor = function(display) {
 "use strict";
 
-    this.connectMainVideoSignal = function(videoSignal) {
-        mainSignal = videoSignal;
-        mainSignal.connectMonitor(this);
-        activeSignal = mainSignal;
+    this.connectInternalVideoSignal = function(videoSignal) {
+        intSignal = videoSignal;
+        intSignal.connectMonitor(this);
     };
 
-    this.connectSecVideoSignal = function(videoSignal) {
-        secSignal = videoSignal;
-        secSignal.connectMonitor(this);
+    this.connectExternalVideoSignal = function(videoSignal) {
+        extSignal = videoSignal;
+        extSignal.connectMonitor(this);
+        this.setOutputMode(outputMode);
     };
 
-    this.disconnectSecVideoSignal = function(videoSignal) {
-        if (secSignal === videoSignal) secSignal = undefined;
+    this.disconnectExternalVideoSignal = function(videoSignal) {
+        if (extSignal === videoSignal) {
+            extSignal = undefined;
+            if (outputMode > -1) this.setOutputMode(-1);
+        }
     };
 
-    this.toggleActiveSignal = function() {
-        activeSignal = activeSignal === mainSignal ? secSignal : mainSignal;
+    this.toggleOutputMode = function(dec) {
+        if (dec) this.setOutputMode(outputMode <= -1 ? 3 : outputMode - 1);
+        else     this.setOutputMode(outputMode >= 3 ? -1 : outputMode + 1);
+    };
+
+    this.setOutputMode = function(mode) {
+        outputMode = !extSignal ? -1 : mode < -1 ? -1 : mode > 3 ? 3 : mode;
+        this.showOSDDirect("Video Output: " + getOutputModeDesc(), true);
+        display.videoOutputModeUpdate(outputMode, !!extSignal);
+    };
+
+    this.getOutputMode = function() {
+        return outputMode;
     };
 
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {
@@ -31,7 +47,7 @@ wmsx.Monitor = function(display) {
         display.videoSignalOff();
     };
 
-    this.showOSD = function(signal, message, overlap, error) {
+    this.showOSD = function(message, overlap, error) {
         this.showOSDDirect(message, overlap, error);
     };
 
@@ -96,7 +112,7 @@ wmsx.Monitor = function(display) {
     };
 
     this.getScreenText = function() {
-        return mainSignal.getScreenText();
+        return intSignal.getScreenText();
     };
 
     this.displayScale = function(aspectX, scaleY) {
@@ -115,12 +131,24 @@ wmsx.Monitor = function(display) {
         return Math.round(ret / wmsx.Monitor.SCALE_STEP) * wmsx.Monitor.SCALE_STEP;
     }
 
-    function isActiveSignal(signal) {
-        return signal === activeSignal;
+    function getOutputModeDesc() {
+        switch (outputMode) {
+            case 0:  return "Internal VDP";
+            case 1:  return "V9990 VDP";
+            case 2:  return "Superimposed";
+            case 3:  return "Mixed";
+            default: return "Auto";
+        }
     }
 
-    var mainSignal, secSignal;
-    var activeSignal;
+    function isActiveSignal(signal) {
+        return outputMode <= 0 ? signal === intSignal : signal === extSignal;
+    }
+
+
+    var outputMode = -1;
+
+    var intSignal, extSignal;
 
     var displayAspectX;
     var displayScaleY;

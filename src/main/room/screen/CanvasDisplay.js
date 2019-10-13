@@ -454,7 +454,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.machinePowerAndUserPauseStateUpdate = function(power, paused) {
-        powerButton.style.backgroundPosition = "" + powerButton.wmsxBX + "px " + (barButtonBackYOffsets[power ? 2 : 1]) + "px";
+        powerButton.style.backgroundPosition = "" + powerButton.wmsxBX + "px " + (powerButton.wmsxBY + barButtonBackYOffset * (power ? 1 : 0)) + "px";
         if (room.netPlayMode === 2) {
             powerButton.wmsxMenu[5].disabled = powerButton.wmsxMenu[6].disabled = powerButton.wmsxMenu[8].disabled = powerButton.wmsxMenu[9].disabled = true;
             powerButton.wmsxMenu[1].disabled = !power;
@@ -648,6 +648,15 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         ledsStatePending = ledsState;
         ledsInfoPending = ledsInfo;
         if (!signalIsOn) updateLeds();
+    };
+
+    this.videoOutputModeUpdate = function(mode, extSignalPresent) {
+        videoOutputButton.classList.toggle("wmsx-hidden", !extSignalPresent);
+        videoOutputButton.style.backgroundPosition = "" + videoOutputButton.wmsxBX + "px " + (videoOutputButton.wmsxBY + barButtonBackYOffset * (mode + 1)) + "px";
+        var menu = videoOutputButton.wmsxMenu;
+        for (var i = 0; i < menu.length; ++i)
+            menu[i].checkedOp = mode === (i - 1) ? 1 : 0;
+        if (barMenuActive === menu) refreshBarMenu(menu);
     };
 
     this.setLoading = function(state) {
@@ -1095,14 +1104,14 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         defineSettingsMenuExtensions();
 
         menu = [
-            { label: "Auto",               clickModif: 0, control: wmsx.PeripheralControls.TAPE_LOAD_FILE, toggle: true, radio: true },
-            { label: "Internal VDP",       clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.TAPE_EMPTY, toggle: true, radio: true },
-            { label: "V9990 VDP",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_REWIND, toggle: true, radio: true },
-            { label: "Superimposed",       clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, toggle: true, radio: true },
-            { label: "Mixed",              clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.TAPE_AUTO_RUN, toggle: true, radio: true }
+            { label: "Auto",               clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OUTPUT_AUTO, toggle: true, radio: true },
+            { label: "Internal VDP",       clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_INTERNAL, toggle: true, radio: true },
+            { label: "V9990 VDP",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_EXTERNAL, toggle: true, radio: true },
+            { label: "Superimposed",       clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_SUPERIMPOSED, toggle: true, radio: true },
+            { label: "Mixed",              clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_MIXED, toggle: true, radio: true }
         ];
-        var videoButton  = addPeripheralControlButton("wmsx-bar-video", -120, -126, false, "Video Output", null, menu, "Video Output");
-        videoButton.classList.add("wmsx-hidden");
+        videoOutputButton  = addPeripheralControlButton("wmsx-bar-video", -120, -176, false, "Video Output", null, menu, "Video Output");
+        videoOutputButton.classList.add("wmsx-hidden");
 
         if (FULLSCREEN_MODE !== -2) {
             fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -1, false, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
@@ -1156,6 +1165,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         but.wmsxControl = control;
         but.style.backgroundPosition = "" + bx + "px " + by + "px";
         but.wmsxBX = bx;
+        but.wmsxBY = by;
         if (menu) {
             but.wmsxMenu = menu;
             menu.wmsxTitle = menuTitle;
@@ -1990,9 +2000,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var scaleDownButton;
     var scaleUpButton;
     var fullscreenButton;
+    var videoOutputButton;
     var settingsButton;
 
-    var barButtonBackYOffsets = [ -51, -26, -1 ];
+    var barButtonBackYOffset = 25;
     var mediaButtonBackYOffsets = [ -72, -48, -24, 0 ];
 
     var OSD_TIME = 4500;

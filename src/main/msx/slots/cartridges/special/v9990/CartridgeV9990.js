@@ -16,12 +16,12 @@ wmsx.CartridgeV9990 = function(rom) {
             this.v9990 = v9990;
         }
         v9990.connect(machine);
-        machine.getVideoSocket().connectSecVideoSignal(v9990.getVideoSignal());
+        machine.getVideoSocket().connectExternalVideoSignal(v9990.getVideoSignal());
     };
 
     this.disconnect = function(machine) {
         v9990.disconnect(machine);
-        machine.getVideoSocket().disconnectSecVideoSignal(v9990.getVideoSignal());
+        machine.getVideoSocket().disconnectExternalVideoSignal(v9990.getVideoSignal());
     };
 
     this.powerOn = function() {
