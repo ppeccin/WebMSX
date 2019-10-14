@@ -2,6 +2,7 @@
 
 // V9990 Video Cartridge
 // Controls a V9990 VDP with included 512KB VRAM
+// And a v7040 Superimpose/Mix chip
 
 wmsx.CartridgeV9990 = function(rom) {
 "use strict";
@@ -17,11 +18,17 @@ wmsx.CartridgeV9990 = function(rom) {
         }
         v9990.connect(machine);
         machine.getVideoSocket().connectExternalVideoSignal(v9990.getVideoSignal());
+
+        // v7040 control port: GenLock, Superimpose, Mixed mode detection
+        machine.bus.connectInputDevice( 0x6f, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.connectOutputDevice(0x6f, this.output6f);
     };
 
     this.disconnect = function(machine) {
         v9990.disconnect(machine);
         machine.getVideoSocket().disconnectExternalVideoSignal(v9990.getVideoSignal());
+        machine.bus.disconnectInputDevice( 0x6f, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.disconnectOutputDevice(0x6f, this.output6f);
     };
 
     this.powerOn = function() {
@@ -30,11 +37,35 @@ wmsx.CartridgeV9990 = function(rom) {
 
     this.powerOff = function() {
         v9990.powerOff();
+        this.output6f(0x10);
     };
 
     this.reset = function() {
         v9990.reset();
+        this.output6f(0x10);
     };
+
+    this.output6f = function(val) {
+        //console.log("v7040 Control:", val.toString(16));
+
+        control = val;
+        updateAutoMode();
+    };
+
+    function updateAutoMode() {
+        var mode;
+        switch (control & 0x1a) {
+            case 0x10: case 0x14:           // GEN = 1, TRAN = 0
+                mode = 0; break;            // Internal
+            case 0x18:                      // GEN = 1, TRAN = 1, MIX = 0
+                mode = 2; break;            // Superimposed
+            case 0x1a:                      // GEN = 1, TRAN = 1, MIX = 1
+                mode = 3; break;            // Mixed
+            default:                        // GEN = 0
+               mode = 1; break;             // V9990
+        }
+        v9990.getVideoSignal().setOutputModeAuto(mode);
+    }
 
 
     this.rom = null;
@@ -43,8 +74,10 @@ wmsx.CartridgeV9990 = function(rom) {
     var v9990;
     this.v9990 = v9990;
 
+    var control = 0x10;
 
-    // Savestate  -------------------------------------------
+
+    // TODO Savestate  -------------------------------------------
 
     this.saveState = function() {
         var light = this.lightState();

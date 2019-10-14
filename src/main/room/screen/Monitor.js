@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Savestate of outputMode
+// TODO Savestate
 
 wmsx.Monitor = function(display) {
 "use strict";
@@ -19,7 +19,8 @@ wmsx.Monitor = function(display) {
     this.disconnectExternalVideoSignal = function(videoSignal) {
         if (extSignal === videoSignal) {
             extSignal = undefined;
-            if (outputMode > -1) this.setOutputMode(-1);
+            outputAuto = 0;
+            this.setOutputMode(-1);
         }
     };
 
@@ -28,14 +29,19 @@ wmsx.Monitor = function(display) {
         else     this.setOutputMode(outputMode >= 3 ? -1 : outputMode + 1);
     };
 
-    this.setOutputMode = function(mode) {
-        outputMode = !extSignal ? -1 : mode < -1 ? -1 : mode > 3 ? 3 : mode;
-        this.showOSDDirect("Video Output: " + getOutputModeDesc(), true);
-        display.videoOutputModeUpdate(outputMode, !!extSignal);
+    this.setOutputModeAuto = function(signal, mode) {
+        //console.log("Video Output Auto: " + mode);
+
+        outputAuto = mode;
+        this.setOutputMode(outputMode);
     };
 
-    this.getOutputMode = function() {
-        return outputMode;
+    this.setOutputMode = function(mode) {
+        outputMode = !extSignal ? -1 : mode < -1 ? -1 : mode > 3 ? 3 : mode;
+        outputEffective = outputMode === -1 ? outputAuto : outputMode;
+        this.showOSDDirect("Video Output: " + getOutputModeDesc(outputMode), true);
+
+        display.videoOutputModeUpdate(outputMode, outputEffective, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc());
     };
 
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {
@@ -131,22 +137,32 @@ wmsx.Monitor = function(display) {
         return Math.round(ret / wmsx.Monitor.SCALE_STEP) * wmsx.Monitor.SCALE_STEP;
     }
 
-    function getOutputModeDesc() {
-        switch (outputMode) {
-            case 0:  return "Internal VDP";
-            case 1:  return "V9990 VDP";
+    function getOutputModeDesc(mode) {
+        switch (mode) {
+            case 0:  return "Internal";
+            case 1:  return extSignal ? extSignal.getSignalDesc() : "External";
             case 2:  return "Superimposed";
             case 3:  return "Mixed";
-            default: return "Auto";
+            default: return "Auto (" + getOutputModeDesc(outputAuto) + ")";
+        }
+    }
+
+    function getOutputModeShortDesc(mode) {
+        switch (mode) {
+            case 0:  return "Internal";
+            case 1:  return extSignal ? extSignal.getSignalShortDesc() : "External";
+            case 2:  return "Superimp";
+            case 3:  return "Mixed";
+            default: return "Auto (" + getOutputModeShortDesc(outputAuto) + ")";
         }
     }
 
     function isActiveSignal(signal) {
-        return outputMode <= 0 ? signal === intSignal : signal === extSignal;
+        return outputEffective <= 0 ? signal === intSignal : signal === extSignal;
     }
 
 
-    var outputMode = -1;
+    var outputMode = -1, outputAuto = 0, outputEffective = 0;
 
     var intSignal, extSignal;
 

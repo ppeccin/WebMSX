@@ -650,12 +650,14 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (!signalIsOn) updateLeds();
     };
 
-    this.videoOutputModeUpdate = function(mode, extSignalPresent) {
-        videoOutputButton.classList.toggle("wmsx-hidden", !extSignalPresent);
-        videoOutputButton.style.backgroundPosition = "" + videoOutputButton.wmsxBX + "px " + (videoOutputButton.wmsxBY + barButtonBackYOffset * (mode + 1)) + "px";
+    this.videoOutputModeUpdate = function(mode, effectiveMode, autoModeDesc, extDesc) {
+        videoOutputButton.classList.toggle("wmsx-hidden", !extDesc);
+        videoOutputButton.style.backgroundPosition = "" + videoOutputButton.wmsxBX + "px " + (videoOutputButton.wmsxBY + barButtonBackYOffset * (effectiveMode + 1)) + "px";
         var menu = videoOutputButton.wmsxMenu;
         for (var i = 0; i < menu.length; ++i)
             menu[i].checkedOp = mode === (i - 1) ? 1 : 0;
+        menu[0].label = autoModeDesc;
+        menu[2].label = extDesc;
         if (barMenuActive === menu) refreshBarMenu(menu);
     };
 
@@ -1105,8 +1107,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         menu = [
             { label: "Auto",               clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OUTPUT_AUTO, toggle: true, radio: true },
-            { label: "Internal VDP",       clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_INTERNAL, toggle: true, radio: true },
-            { label: "V9990 VDP",          clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_EXTERNAL, toggle: true, radio: true },
+            { label: "Internal",           clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_INTERNAL, toggle: true, radio: true },
+            { label: "External",           clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_EXTERNAL, toggle: true, radio: true },
             { label: "Superimposed",       clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_SUPERIMPOSED, toggle: true, radio: true },
             { label: "Mixed",              clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_MIXED, toggle: true, radio: true }
         ];

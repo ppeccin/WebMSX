@@ -2,8 +2,9 @@
 
 // V9990 VDP
 // This implementation is line-accurate
-// Digitize, Superimpose, Color Bus, External Synch, B/W Mode, Wait Function not supported
-// Original base clock: 21477270 Hz (XTAL), same as VDD which is 6x CPU clock. Rectified to real 60Hz: 21504960 Hz
+// Color Bus, External Synch, B/W Mode, Wait Function not supported
+// Gen-lock with Internal VDP is always active
+// Original base clock: 21477270 Hz (XTAL), same as Internal VDP which is 6x CPU clock. Rectified to real 60Hz: 21504960 Hz
 
 wmsx.V9990 = function(machine, vdp, cpu) {
 "use strict";
@@ -11,7 +12,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VideoSignal("V9990", self);
+        videoSignal = new wmsx.VideoSignal(self, "V9990 Video", "V9990");
         initFrameResources(false);
         initDebugPatternTables();
         modeData = modes.SBY;

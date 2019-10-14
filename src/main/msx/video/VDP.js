@@ -11,7 +11,7 @@ wmsx.VDP = function(machine, cpu) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VideoSignal("Internal VDP", self);
+        videoSignal = new wmsx.VideoSignal(self, "Internal", "Internal");
         cpuClockPulses = cpu.clockPulses;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
         initFrameResources(false);
