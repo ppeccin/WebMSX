@@ -607,7 +607,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         if (vSynchMode === 1) {    // ON
             // Will V-synch to host freq if detected and supported, or use optimal timer configuration)
             pulldown = videoStandard.pulldowns[machine.getVideoClockSocket().getVSynchNativeFrequency()] || videoStandard.pulldowns.TIMER;
-        } else {                        // OFF, DISABLED
+        } else {                   // OFF, DISABLED
             // No V-synch. Always use the optimal timer configuration)
             pulldown = videoStandard.pulldowns.TIMER;
         }
