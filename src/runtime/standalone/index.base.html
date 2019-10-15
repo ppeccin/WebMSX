@@ -63,11 +63,11 @@
             }
             html {
                 height: 100%;
-                background: hsl(0, 0%, 88%);
+                background: hsl(0, 0%, 97%);
             }
             body {
                 min-height: 100%;
-                background: hsl(0, 0%, 95%);
+                background: hsl(0, 0%, 97%);
             }
             .container {
                 max-width: 660px;
@@ -145,16 +145,16 @@
                 position: absolute;
                 bottom: 0;
                 left: 0; right: 0;
-                height: 76px;
+                height: 70px;
                 background: hsl(0, 0%, 88%);
                 overflow: hidden;
-                font-size: 15px;
-                line-height: 13px;
+                font-size: 14px;
+                line-height: 12px;
                 white-space: nowrap;
                 text-overflow: ellipsis;
             }
             #footer .container {
-                padding: 2px 50px 0;
+                padding: 2px 20px 0;
                 box-sizing: border-box;
             }
             a {
@@ -165,6 +165,9 @@
             a:hover {
                 color: #0050ba;
                 text-shadow: 0 0 2px hsl(197, 100%, 47%);
+            }
+            .toright {
+                float: right;
             }
             #donate {
                 display: block;
@@ -237,8 +240,10 @@
         <div id="footer">
             <div class="container">
                 <script>WMSX.WEB_EXTENSIONS_PROXY_SERVER = WMSX.WEB_EXTENSIONS_SERVER;</script>
-                <p>Created by <a href="http://twitter.com/ppeccin" target="_blank">Paulo A. Peccin</a></p>
-                <p>v5.4.0 &nbsp;<a href="https://github.com/ppeccin/webmsx" target="_blank">Docs & Project Homepage</a></p>
+                <p><span>Created by <a href="http://twitter.com/ppeccin" target="_blank">Paulo A. Peccin</a></span>
+                    <span class="toright">MSX and the MSX logo are shown here as a tribute.</span></p>
+                <p><span>v6.0.99 &nbsp;<a href="https://github.com/ppeccin/webmsx" target="_blank">Docs & Project Home</a></span>
+                    <span class="toright">All trademarks are property of their respective owners.</span></p>
             </div>
         </div>
 
