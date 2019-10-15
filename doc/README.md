@@ -10,6 +10,9 @@ Please go to **https://webmsx.org** to enjoy it online!
 Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for parameters reference and URL usage examples.
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
+MSX and the MSX logo are shown here as a tribute.
+All trademarks are property of their respective owners.
+
 ### New in Release 5.4
 
 - CapsLock and Kana leds on screen
