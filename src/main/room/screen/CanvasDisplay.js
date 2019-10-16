@@ -1007,6 +1007,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             hideBar();
         }
 
+        if (isMobileDevice) document.documentElement.classList.add("wmsx-bar-mobile");
+
         var menu = [
             { label: "Power",          clickModif: 0, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
             { label: "Reset",          clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
@@ -1117,7 +1119,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (FULLSCREEN_MODE !== -2) {
             fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -1, false, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN, null, "", settingsIconsContainer);
             fullscreenButton.wmsxNeedsUIG = true;
-            if (isMobileDevice) fullscreenButton.classList.add("wmsx-mobile");
         }
 
         menu = [
@@ -1134,10 +1135,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -1, false, "Settings", null, menu, "Settings", settingsIconsContainer);
         defineSettingsMenuExtensions();
 
-        if (isMobileDevice) {
+        if (isMobileDevice)
             var textButton = addPeripheralControlButton("wmsx-bar-text", -53, -51, false, "Toggle Text Input", wmsx.PeripheralControls.OPEN_ENTER_STRING);
-            textButton.classList.add("wmsx-mobile");
-        }
 
         if (isTouchDevice) {
             var keyboardButton = addPeripheralControlButton("wmsx-bar-keyboard", -83, -25, false, "Toggle Virtual Keyboard", wmsx.PeripheralControls.SCREEN_TOGGLE_VIRTUAL_KEYBOARD);
@@ -2023,7 +2022,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var VIRTUAL_KEYBOARD_WIDE_WIDTH = 518, VIRTUAL_KEYBOARD_NARROW_WIDTH = 419, VIRTUAL_KEYBOARD_HEIGHT = 161;
 
-    var NARROW_WIDTH = 500, SEMI_NARROW_WIDTH = 584;
+    var NARROW_WIDTH = 500, SEMI_NARROW_WIDTH = 589;
 
     var domKeys = wmsx.DOMKeys;
 

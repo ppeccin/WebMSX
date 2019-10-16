@@ -280,9 +280,6 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 #wmsx-bar-settings, #wmsx-bar-video, #wmsx-bar-full-screen, #wmsx-bar-scale-plus, #wmsx-bar-scale-minus {
     margin: 0;
 }
-#wmsx-bar-full-screen.wmsx-mobile {
-    margin: 0 6px;
-}
 #wmsx-bar-scale-plus {
     width: 21px;
 }
@@ -290,11 +287,8 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     width: 18px;
 }
 #wmsx-bar-text {
-    float: right;
     width: 32px;
-}
-#wmsx-bar-text.wmsx-mobile {
-    margin: 0 0 0 6px;
+    float: right;
 }
 #wmsx-bar-keyboard {
     position: absolute;
@@ -306,6 +300,12 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     position: static;
     float: right;
 }
+.wmsx-bar-mobile #wmsx-bar-settings-icons > *,
+.wmsx-bar-mobile #wmsx-bar-text,
+.wmsx-bar-mobile #wmsx-bar.wmsx-narrow #wmsx-bar-keyboard {
+    margin: 0 0 0 6px;
+}
+
 #wmsx-bar-logo {
     position: absolute;
     left: 0; right: 0;
@@ -325,15 +325,15 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     text-shadow: 2px 2px 0 black;
     vertical-align: top;
     box-sizing: border-box;
+    cursor: auto;
 }
-#wmsx-bar-turbo     { left: 110px; padding-left: 26px }
+#wmsx-bar-turbo     { left: 110px; padding-left: 26px; cursor: pointer; }
 #wmsx-bar-caps      { left: calc(168px + 10%); height: 29px; background: none; }
 #wmsx-bar-kana      { left: calc(170px + 25%); height: 29px; background: none; }
 
 #wmsx-bar.wmsx-narrow #wmsx-bar-turbo {
     position: static;
-    float: right;
-    margin-right: 8px;
+    margin-right: 2px;
     width: auto;
 }
 
