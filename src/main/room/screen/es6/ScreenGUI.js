@@ -232,7 +232,8 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     }
 }
 
-#wmsx-bar.wmsx-narrow .wmsx-narrow-hidden {
+#wmsx-bar.wmsx-narrow .wmsx-narrow-hidden,
+#wmsx-bar.wmsx-semi-narrow .wmsx-semi-narrow-hidden {
     display: none;
 }
 
@@ -272,12 +273,12 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 #wmsx-bar-media-icons {
     margin-left: 10px;
 }
-#wmsx-bar-settings ,#wmsx-bar-video, #wmsx-bar-full-screen, #wmsx-bar-scale-plus, #wmsx-bar-scale-minus {
+#wmsx-bar-settings-icons {
     float: right;
-    margin: 0;
-}
-#wmsx-bar-settings {
     margin-right: 5px;
+}
+#wmsx-bar-settings, #wmsx-bar-video, #wmsx-bar-full-screen, #wmsx-bar-scale-plus, #wmsx-bar-scale-minus {
+    margin: 0;
 }
 #wmsx-bar-full-screen.wmsx-mobile {
     margin: 0 6px;
@@ -326,8 +327,15 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     box-sizing: border-box;
 }
 #wmsx-bar-turbo     { left: 110px; padding-left: 26px }
-#wmsx-bar-caps      { left: calc(166px + 10%); height: 29px; background: none; }
+#wmsx-bar-caps      { left: calc(168px + 10%); height: 29px; background: none; }
 #wmsx-bar-kana      { left: calc(170px + 25%); height: 29px; background: none; }
+
+#wmsx-bar.wmsx-narrow #wmsx-bar-turbo {
+    position: static;
+    float: right;
+    margin-right: 8px;
+    width: auto;
+}
 
 #wmsx-bar-menu {
     position: absolute;

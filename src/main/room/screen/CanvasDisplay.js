@@ -787,6 +787,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         var fixedWidth = buttonsBarDesiredWidth > 0 ? buttonsBarDesiredWidth : canvasWidth;
         buttonsBar.style.width = buttonsBarDesiredWidth === -1 ? "100%" : "" + fixedWidth + "px";
         buttonsBar.classList.toggle("wmsx-narrow", fixedWidth < NARROW_WIDTH);
+        buttonsBar.classList.toggle("wmsx-semi-narrow", fixedWidth < SEMI_NARROW_WIDTH);
     }
 
     function updateKeyboardWidth(maxWidth) {
@@ -1101,9 +1102,23 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         ];
         tapeButton = addPeripheralControlButton("wmsx-bar-tape", -136, -72, true, "Cassette", null, menu, "Cassette", mediaIconsContainer);
 
-        menu = createSettingsMenuOptions();
-        settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -1, false, "Settings", null, menu, "Settings");
-        defineSettingsMenuExtensions();
+        var settingsIconsContainer = document.createElement("div");
+        settingsIconsContainer.id = "wmsx-bar-settings-icons";
+        settingsIconsContainer.style.display = "inline-block";
+        buttonsBarInner.appendChild(settingsIconsContainer);
+
+        if (!WMSX.SCREEN_RESIZE_DISABLED && !isMobileDevice) {
+            scaleDownButton = addPeripheralControlButton("wmsx-bar-scale-minus", -26, -1, false, "Decrease Screen", wmsx.PeripheralControls.SCREEN_SCALE_MINUS, null, "", settingsIconsContainer);
+            scaleDownButton.classList.add("wmsx-full-screen-hidden");
+            scaleUpButton = addPeripheralControlButton("wmsx-bar-scale-plus", -48, -1, false, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS, null, "", settingsIconsContainer);
+            scaleUpButton.classList.add("wmsx-full-screen-hidden");
+        }
+
+        if (FULLSCREEN_MODE !== -2) {
+            fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -1, false, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN, null, "", settingsIconsContainer);
+            fullscreenButton.wmsxNeedsUIG = true;
+            if (isMobileDevice) fullscreenButton.classList.add("wmsx-mobile");
+        }
 
         menu = [
             { label: "Auto",               clickModif: 0, control: wmsx.PeripheralControls.SCREEN_OUTPUT_AUTO, toggle: true, radio: true },
@@ -1112,21 +1127,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Superimposed",       clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_SUPERIMPOSED, toggle: true, radio: true },
             { label: "Mixed",              clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_MIXED, toggle: true, radio: true }
         ];
-        videoOutputButton  = addPeripheralControlButton("wmsx-bar-video", -120, -176, false, "Video Output", null, menu, "Video Output");
+        videoOutputButton  = addPeripheralControlButton("wmsx-bar-video", -120, -176, false, "Video Output", null, menu, "Video Output", settingsIconsContainer);
         videoOutputButton.classList.add("wmsx-hidden");
 
-        if (FULLSCREEN_MODE !== -2) {
-            fullscreenButton = addPeripheralControlButton("wmsx-bar-full-screen", -71, -1, false, "Full Screen", wmsx.PeripheralControls.SCREEN_FULLSCREEN);
-            fullscreenButton.wmsxNeedsUIG = true;
-            if (isMobileDevice) fullscreenButton.classList.add("wmsx-mobile");
-        }
-
-        if (!WMSX.SCREEN_RESIZE_DISABLED && !isMobileDevice) {
-            scaleUpButton = addPeripheralControlButton("wmsx-bar-scale-plus", -48, -1, false, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS);
-            scaleUpButton.classList.add("wmsx-full-screen-hidden");
-            scaleDownButton = addPeripheralControlButton("wmsx-bar-scale-minus", -26, -1, false, "Decrease Screen", wmsx.PeripheralControls.SCREEN_SCALE_MINUS);
-            scaleDownButton.classList.add("wmsx-full-screen-hidden");
-        }
+        menu = createSettingsMenuOptions();
+        settingsButton = addPeripheralControlButton("wmsx-bar-settings", -96, -1, false, "Settings", null, menu, "Settings", settingsIconsContainer);
+        defineSettingsMenuExtensions();
 
         if (isMobileDevice) {
             var textButton = addPeripheralControlButton("wmsx-bar-text", -53, -51, false, "Toggle Text Input", wmsx.PeripheralControls.OPEN_ENTER_STRING);
@@ -1144,13 +1150,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         turboButton  = addPeripheralControlButton("wmsx-bar-turbo", -46, -114, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
         turboButton.classList.add("wmsx-hidden");
-        turboButton.classList.add("wmsx-narrow-hidden");
 
         capsLed  = addPeripheralControlButton("wmsx-bar-caps", 0, 0);
-        capsLed.classList.add("wmsx-narrow-hidden");
+        capsLed.classList.add("wmsx-semi-narrow-hidden");
 
         kanaLed  = addPeripheralControlButton("wmsx-bar-kana", 0, 0);
-        kanaLed.classList.add("wmsx-narrow-hidden");
+        kanaLed.classList.add("wmsx-semi-narrow-hidden");
 
         // Events for BarButtons and also MenuItems
         wmsx.Util.onTapOrMouseDownWithBlockUIG(buttonsBar, barElementTapOrMouseDown);
@@ -1549,7 +1554,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                         // Toggle
                         item.classList.toggle("wmsx-bar-menu-item-toggle", option.toggle !== undefined);
                         item.classList.toggle("wmsx-bar-menu-item-toggle-radio", !!option.radio);
-                        item.classList.toggle("wmsx-no-op2", option.noOp2 || option.radio);
+                        item.classList.toggle("wmsx-no-op2", option.noOp2 || !!option.radio);
 
                         // Disabled?
                         if (option.disabled) {
@@ -2018,7 +2023,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var VIRTUAL_KEYBOARD_WIDE_WIDTH = 518, VIRTUAL_KEYBOARD_NARROW_WIDTH = 419, VIRTUAL_KEYBOARD_HEIGHT = 161;
 
-    var NARROW_WIDTH = 500;
+    var NARROW_WIDTH = 500, SEMI_NARROW_WIDTH = 584;
 
     var domKeys = wmsx.DOMKeys;
 
