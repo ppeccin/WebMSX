@@ -1152,7 +1152,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         turboButton.classList.add("wmsx-hidden");
 
         capsLed  = addPeripheralControlButton("wmsx-bar-caps", 0, 0);
-        capsLed.classList.add("wmsx-semi-narrow-hidden");
+        capsLed.classList.add("wmsx-narrow-hidden");
 
         kanaLed  = addPeripheralControlButton("wmsx-bar-kana", 0, 0);
         kanaLed.classList.add("wmsx-semi-narrow-hidden");
