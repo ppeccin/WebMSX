@@ -436,7 +436,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     width: 12px  !important;
     height: 12px  !important;
     top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 12) / 2) | 0) + `px  !important;
-    left: 10px;
+    left: 11px;
     border-radius: 100%;
     box-shadow: black 1px 1px 1px 1px;
 }

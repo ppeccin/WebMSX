@@ -45,8 +45,10 @@ wmsx.Monitor = function(display) {
     };
 
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {
-        if (!isActiveSignal(signal)) return;
-        display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight);
+        // Should we display this signal?
+        if ((outputEffective === 0 && signal !== intSignal) || (outputEffective === 1 && signal !== extSignal)) return;
+
+        display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight, signal === intSignal);
     };
 
     this.signalOff = function(signal) {

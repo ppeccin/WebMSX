@@ -2429,7 +2429,7 @@ wmsx.VDP = function(machine, cpu) {
 
     var colors8bitValues = wmsx.ColorCache.getColors8bit9938Values();   // Init now, used by Backdrop
     var colors9bitValues = wmsx.ColorCache.getColors9bit9938Values();   // Init now, used by normal Palette
-    var colorsYJKValues;        // Lazy, used only by mode YJK, YAE
+    var colorsYJKValues;                                                // Lazy, used only by mode YJK, YAE
 
     var color0Solid = false;
     var colorPalette =      new Uint32Array(16);        // 32 bit ABGR palette values ready to paint with transparency pre-computed in position 0, dimmed when in debug

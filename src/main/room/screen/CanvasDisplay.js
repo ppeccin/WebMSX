@@ -79,10 +79,13 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     };
 
-    this.refresh = function(image, sourceX, sourceY, sourceWidth, sourceHeight) {
+    this.refresh = function(image, sourceX, sourceY, sourceWidth, sourceHeight, internal) {
         // Hide mouse cursor if not moving for some time
         if (cursorHideFrameCountdown > 0)
             if (--cursorHideFrameCountdown <= 0) hideCursorAndBar();
+
+        // Update Leds if necessary
+        if (ledsStatePending) updateLeds();
 
         // If needed, turn signal on and hide logo
         if (!signalIsOn) {
@@ -90,7 +93,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             updateLogo();
         }
 
-        // Update frame
+        // Need to clear previous image?
+        if (canvasContext && videoOutputMode === 3 && internal) canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw frame
         if (!canvasContext) createCanvasContext();
         canvasContext.drawImage(
             image,
@@ -98,7 +104,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             0, 0, canvas.width, canvas.height
         );
 
-        // Put Scanlines on top. Only if not in Debug and Signal is not Interlaced
+        // TODO Put Scanlines on top. Only if not in Debug and Signal is not Interlaced
         if (crtScanlines && pixelHeight > 1 && !debugMode)
             canvasContext.drawImage(
                 scanlinesImage,
@@ -107,8 +113,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             );
         //console.log("" + sourceWidth + "x" + sourceHeight + " > " + targetWidth + "x" + targetHeight);
 
-        // Update Leds if necessary
-        if (ledsStatePending) updateLeds();
     };
 
     this.videoSignalOff = function() {
@@ -659,6 +663,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         menu[0].label = autoModeDesc;
         menu[2].label = extDesc;
         if (barMenuActive === menu) refreshBarMenu(menu);
+
+        if (videoOutputMode !== effectiveMode) {
+            videoOutputMode = effectiveMode;
+            canvasContext = null;
+        }
     };
 
     this.setLoading = function(state) {
@@ -801,7 +810,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function updateCanvasContentSize() {
         canvas.width = targetWidth;
-        canvas.height = crtScanlines ? targetHeight * 2 : targetHeight;      // Double Vertical definition when in Scnalines mode so we can blend lines properly
+        canvas.height = crtScanlines ? targetHeight * 2 : targetHeight;      // Double Vertical definition when in Scanlines mode so we can blend lines properly
         canvasContext = null;
     }
 
@@ -854,6 +863,22 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function updateImageComposition() {
+        canvasContext.globalCompositeOperation = videoOutputMode <= 1       // Internal or External
+            ? !debugMode && (crtPhosphorEffective || crtScanlines)
+                ? "source-over"
+                : "copy"
+            : "source-over";                                                // Superimposed or Mixed
+
+        canvasContext.globalAlpha = videoOutputMode <= 1                    // Internal or External
+            ? !debugMode && crtPhosphorEffective
+                ? 0.8
+                : 1
+            : videoOutputMode === 3                                         // Mixed
+                ? 0.5
+                : 1;
+
+        // TODO OLD
+        return;
         if (!debugMode && (crtPhosphorEffective || crtScanlines)) {
             canvasContext.globalCompositeOperation = "source-over";
             canvasContext.globalAlpha = crtPhosphorEffective ? 0.8 : 1;
@@ -1898,6 +1923,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var machine;
 
     var monitor;
+    var videoOutputMode = 0;
+
     var machineControls;
     var peripheralControls;
     var cartridgeSlot;

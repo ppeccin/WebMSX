@@ -23,7 +23,7 @@ wmsx.ColorCache = new function() {
     this.getColors8bit9938Values = function() {
         if (!colors8bit9938Values) {
             colors8bit9938Values = new Uint32Array(256);
-            for (var c = 1; c < 256; ++c)
+            for (var c = 0; c < 256; ++c)
                 colors8bit9938Values[c] = 0xff000000 | (color2to8bits9938[c & 0x3] << 16) | (color3to8bits9938[c >> 5] << 8) | color3to8bits9938[(c >> 2) & 0x7];
         }
         return colors8bit9938Values;
@@ -32,7 +32,7 @@ wmsx.ColorCache = new function() {
     this.getColors9bit9938Values = function() {
         if (!colors9bit9938Values) {
             colors9bit9938Values = new Uint32Array(512);
-            for (var c = 1; c < 512; ++c)
+            for (var c = 0; c < 512; ++c)
                 colors9bit9938Values[c] = 0xff000000 | (color3to8bits9938[c & 0x7] << 16) | (color3to8bits9938[c >> 6] << 8) | color3to8bits9938[(c >>> 3) & 0x7];
         }
         return colors9bit9938Values;
