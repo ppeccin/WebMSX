@@ -13,7 +13,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function init() {
         videoSignal = new wmsx.VideoSignal(self, "V9990 Video", "V9990");
-        initFrameResources(false);
+        initFrameResources(true);
         initDebugPatternTables();
         modeData = modes.SBY;
         typeData = types.SBY;
@@ -274,7 +274,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         vramPointerRead = 0; vramPointerWrite = 0; vramPointerReadInc = true; vramPointerWriteInc = true; vramReadData = 0;
         palettePointer = 0; palettePointerReadInc = true;
         paletteOffsetA = 0; paletteOffsetB = 0; paletteOffset = 0;
-        ysEnabled = false;
         scrollXOffset = 0; scrollYOffset = 0; scrollYOffsetFrame = 0; scrollXBOffset = 0; scrollYBOffset = 0; scrollYBOffsetFrame = 0; scrollYMax = 0;
         scrollYUpdatePending = false; scrollYBUpdatePending = false;
         planeAEnabled = true; planeBEnabled = true;
@@ -284,6 +283,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         horizontalIntLine = 0;
         vramInterleaving = false;
         renderMetricsUpdatePending = false;
+
+        ysEnabled = false;
+        if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);    // update YS Enabled
 
         commandProcessor.reset();
 
@@ -347,7 +349,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     function updateYSEnabled() {
         ysEnabled = (register[8] & 0x20) !== 0;                 // YSE
-        // for (var e = 63; e >= 0; --e) updatePaletteValue(e);
+        updateAllPaletteValues();
+        if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);    // update YS
+
+        // console.log("V9990 YSEnabled:", ysEnabled);
     }
 
     function paletteRAMWrite(entry, val) {
@@ -558,11 +563,16 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         }
     }
 
+    function updateAllPaletteValues() {
+        for (var e = 63; e >= 0; --e) updatePaletteValue(e);
+    }
+
     function updatePaletteValue(entry) {
         //logInfo("updatePaletteValue entry " + entry + ": " + val);
 
         var index = entry << 2;
-        var value = colors16bitValues[((paletteRAM[index] & 0x80) << 8) | ((paletteRAM[index + 1] & 0x1f) << 10) | ((paletteRAM[index] & 0x1f) << 5) | (paletteRAM[index + 2] & 0x1f)];
+        var value = colors16bitValues[((paletteRAM[index + 1] & 0x1f) << 10) | ((paletteRAM[index] & 0x1f) << 5) | (paletteRAM[index + 2] & 0x1f)];
+        if (ysEnabled && (paletteRAM[index] & 0x80)) value &= ~0xff000000;
         paletteValuesReal[entry] = value;
 
         if (debugModeSpriteHighlight) value &= DEBUG_DIM_ALPHA_MASK;
@@ -570,10 +580,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         if (entry === backdropColor) updateBackdropValue();
     }
-    // var value = ysEnabled && (r & 0x80) ? superImposeValue : 0xff000000        // YS
-    //     | (color5to8bits[paletteRAM[index + 2]]) << 16
-    //     | (color5to8bits[paletteRAM[index + 1]]) << 8
-    //     | color5to8bits[r & 0x1f];
 
     this.setDebugMode = function (mode) {
         debugMode = (mode + 8) % 8;
@@ -998,7 +1004,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         backdropValue = value;
         backdropCacheUpdatePending = true;
 
-        // console.error("Backdrop Color: " + backdropColor + ", value: " + backdropValue.toString(16));
+        // console.error("V9990 Backdrop Color: " + backdropColor + ", value: " + backdropValue.toString(16));
     }
 
     function updateBackdropLineCache() {
@@ -1440,6 +1446,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         for (var b = quantBytes; b > 0; b -= 2) {
             v = vram[byteYBase + byteXPos] | (vram[byteYBase + byteXPos + 1] << 8); byteXPos = (byteXPos + 2) & scrollXMaxBytes;
+            if (ysEnabled && (v & 0x8000)) v &= ~0xff000000;
             frameBackBuffer[buffPos] = colors16bitValues[v]; ++buffPos;
         }
     }
@@ -1452,7 +1459,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes;
         var byteYBase, byteXPos, v, pixelB;
 
-        if (!colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values();
+        if (!colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);
 
         realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
@@ -1866,9 +1873,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var backdropValue =    solidBlackValue;
 
     var colors16bitValues = wmsx.ColorCache.getColors16bitValues();     // Init now, used by normal Palette
-    var colors8bitValues;       // Lazy, used only by type BD8
-    var colorsYUVValues;        // Lazy, used only by type YUV
-    var colorsYJKValues;        // Lazy, used only by type YJK
+    var colors8bitValues;                                               // Lazy, used only by type BD8
+    var colorsYUVValues;                                                // Lazy, used only by type YUV
+    var colorsYJKValues;                                                // Lazy, used only by type YJK
 
     var paletteValues =      new Uint32Array(64);     // 32 bit ABGR palette values ready to paint, dimmed when in debug
     var paletteValuesReal =  new Uint32Array(64);     // 32 bit ABGR palette values ready to paint with real solid palette values, used for Sprites, NEVER dimmed for debug

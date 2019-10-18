@@ -93,11 +93,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             updateLogo();
         }
 
+        if (!canvasContext) createCanvasContext();
+
         // Need to clear previous image?
-        if (canvasContext && videoOutputMode === 3 && internal) canvasContext.clearRect(0, 0, canvas.width, canvas.height);
+        if (videoOutputMode === 3 && internal) canvasContext.clearRect(0, 0, canvas.width, canvas.height);
 
         // Draw frame
-        if (!canvasContext) createCanvasContext();
         canvasContext.drawImage(
             image,
             sourceX, sourceY, sourceWidth, sourceHeight,
@@ -111,8 +112,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                   0, 0, 1, sourceHeight * 2,
                   0, 0, canvas.width, canvas.height
             );
-        //console.log("" + sourceWidth + "x" + sourceHeight + " > " + targetWidth + "x" + targetHeight);
 
+        //console.log("Internal: " + internal + ", " + sourceWidth + "x" + sourceHeight + " > " + targetWidth + "x" + targetHeight);
     };
 
     this.videoSignalOff = function() {
@@ -863,19 +864,23 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function updateImageComposition() {
-        canvasContext.globalCompositeOperation = videoOutputMode <= 1       // Internal or External
+        canvasContext.globalCompositeOperation = videoOutputMode <= 1       // Internal or External?
             ? !debugMode && (crtPhosphorEffective || crtScanlines)
                 ? "source-over"
                 : "copy"
-            : "source-over";                                                // Superimposed or Mixed
+            : videoOutputMode === 3                                         // Mixed?
+                ? "lighten"
+                : "source-over";
 
-        canvasContext.globalAlpha = videoOutputMode <= 1                    // Internal or External
+        canvasContext.globalAlpha = videoOutputMode <= 1                    // Internal or External?
             ? !debugMode && crtPhosphorEffective
                 ? 0.8
                 : 1
-            : videoOutputMode === 3                                         // Mixed
-                ? 0.5
+            : videoOutputMode === 3                                         // Mixed?
+                ? 0.66
                 : 1;
+
+        // console.log("Image Composition: ", canvasContext.globalCompositeOperation, canvasContext.globalAlpha);
 
         // TODO OLD
         return;

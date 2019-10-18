@@ -38,13 +38,13 @@ wmsx.ColorCache = new function() {
         return colors9bit9938Values;
     };
 
-    this.getColors8bit9990Values = function() {
+    this.getColors8bit9990Values = function(ysEnabled) {
         if (!colors8bit9990Values) {
             colors8bit9990Values = new Uint32Array(256);
-            colors8bit9990Values[0] = 0x00000000;    // YS, alpha = 0
-            for (var c = 1; c < 256; ++c)
+            for (var c = 0; c < 256; ++c)
                 colors8bit9990Values[c] = 0xff000000 | (color2to8bits9990[c & 0x3] << 16) | (color3to8bits9990[c >> 5] << 8) | color3to8bits9990[(c >> 2) & 0x7];
         }
+        colors8bit9990Values[0] = ysEnabled ? 0x00000000 : 0xff000000;
         return colors8bit9990Values;
     };
 
