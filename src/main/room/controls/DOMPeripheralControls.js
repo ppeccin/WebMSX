@@ -239,7 +239,7 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.SCREEN_CRT_FILTER:
                 monitor.crtFilterToggle(secPort); break;                // secPort for dec
             case pc.SCREEN_CRT_SCANLINES:
-                monitor.crtScanlinesToggle(secPort); break;              // secPort for dec
+                monitor.crtScanlinesToggle(secPort); break;             // secPort for dec
             case pc.SCREEN_CRT_PHOSPHOR:
                 monitor.crtPhosphorToggle(secPort); break;              // secPort for dec
             case pc.SCREEN_FULLSCREEN:
@@ -277,12 +277,17 @@ wmsx.DOMPeripheralControls = function(room) {
                 screen.openNetPlayDialog();
                 break;
             case pc.SCREEN_OUTPUT_AUTO:
+                // TODO Middle Click to SCREEN_OUTPUT_RESET_AUTO
+                screen.getMonitor().setOutputMode(-1);
+                break;
             case pc.SCREEN_OUTPUT_INTERNAL:
             case pc.SCREEN_OUTPUT_EXTERNAL:
             case pc.SCREEN_OUTPUT_SUPERIMPOSED:
             case pc.SCREEN_OUTPUT_MIXED:
                 screen.getMonitor().setOutputMode(control - pc.SCREEN_OUTPUT_AUTO - 1);     // -1..3
                 break;
+            case pc.SCREEN_OUTPUT_RESET_AUTO:
+                screen.getMonitor().resetOutputAutoMode(); break;
             case pc.SCREEN_OUTPUT_TOGGLE:
                 screen.getMonitor().toggleOutputMode(secPort); break;               // secPort for dec
             case pc.KEYBOARD_TOGGLE_HOST_LAYOUT:

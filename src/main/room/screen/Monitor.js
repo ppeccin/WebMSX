@@ -29,7 +29,13 @@ wmsx.Monitor = function(display) {
         else     this.setOutputMode(outputMode >= 3 ? -1 : outputMode + 1);
     };
 
-    this.setOutputModeAuto = function(signal, mode) {
+    this.resetOutputAutoMode = function() {
+        intSignal.resetOutputAutoMode();
+        if (extSignal) extSignal.resetOutputAutoMode();
+        this.setOutputMode(-1);
+    };
+
+    this.setOutputAutoMode = function(signal, mode) {
         //console.log("Video Output Auto: " + mode);
 
         outputAuto = mode;
@@ -41,7 +47,7 @@ wmsx.Monitor = function(display) {
         outputEffective = outputMode === -1 ? outputAuto : outputMode;
         this.showOSDDirect("Video Output: " + getOutputModeDesc(outputMode), true);
 
-        display.videoOutputModeUpdate(outputMode, outputEffective, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc());
+        display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc());
     };
 
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {

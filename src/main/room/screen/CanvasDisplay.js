@@ -655,7 +655,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (!signalIsOn) updateLeds();
     };
 
-    this.videoOutputModeUpdate = function(mode, effectiveMode, autoModeDesc, extDesc) {
+    this.videoOutputModeUpdate = function(mode, effectiveMode, autoInternal, autoModeDesc, extDesc) {
         videoOutputButton.classList.toggle("wmsx-hidden", !extDesc);
         videoOutputButton.style.backgroundPosition = "" + videoOutputButton.wmsxBX + "px " + (videoOutputButton.wmsxBY + barButtonBackYOffset * (effectiveMode + 1)) + "px";
         var menu = videoOutputButton.wmsxMenu;
@@ -663,6 +663,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             menu[i].checkedOp = mode === (i - 1) ? 1 : 0;
         menu[0].label = autoModeDesc;
         menu[2].label = extDesc;
+        menu[6].disabled = autoInternal;
         if (barMenuActive === menu) refreshBarMenu(menu);
 
         if (videoOutputMode !== effectiveMode) {
@@ -1156,7 +1157,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Internal",           clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_INTERNAL, toggle: true, radio: true },
             { label: "External",           clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_EXTERNAL, toggle: true, radio: true },
             { label: "Superimposed",       clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_SUPERIMPOSED, toggle: true, radio: true },
-            { label: "Mixed",              clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_MIXED, toggle: true, radio: true }
+            { label: "Mixed",              clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_MIXED, toggle: true, radio: true },
+            { label: "",                   divider: true },
+            { label: "Reset Auto Internal",            control: wmsx.PeripheralControls.SCREEN_OUTPUT_RESET_AUTO }
         ];
         videoOutputButton  = addPeripheralControlButton("wmsx-bar-video", -120, -176, false, "Video Output", null, menu, "Video Output", settingsIconsContainer);
         videoOutputButton.classList.add("wmsx-hidden");

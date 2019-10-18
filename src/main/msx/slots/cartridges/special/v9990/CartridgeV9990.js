@@ -7,7 +7,9 @@
 wmsx.CartridgeV9990 = function(rom) {
 "use strict";
 
-    function init(self) {
+    var self = this;
+
+    function init() {
         self.rom = rom;
     }
 
@@ -18,6 +20,7 @@ wmsx.CartridgeV9990 = function(rom) {
         }
         v9990.connect(machine);
         machine.getVideoSocket().connectExternalVideoSignal(v9990.getVideoSignal());
+        v9990.getVideoSignal().setResetOutputModeFunc(this.resetOutputAutoMode);
 
         // v7040 control port: GenLock, Superimpose, Mixed mode detection
         machine.bus.connectInputDevice( 0x6f, wmsx.DeviceMissing.inputPortIgnored);
@@ -27,6 +30,7 @@ wmsx.CartridgeV9990 = function(rom) {
     this.disconnect = function(machine) {
         v9990.disconnect(machine);
         machine.getVideoSocket().disconnectExternalVideoSignal(v9990.getVideoSignal());
+        v9990.getVideoSignal().setResetOutputModeFunc(undefined);
         machine.bus.disconnectInputDevice( 0x6f, wmsx.DeviceMissing.inputPortIgnored);
         machine.bus.disconnectOutputDevice(0x6f, this.output6f);
     };
@@ -52,6 +56,10 @@ wmsx.CartridgeV9990 = function(rom) {
         updateAutoMode();
     };
 
+    this.resetOutputAutoMode = function() {
+        self.output6f(0x10);
+    };
+
     function updateAutoMode() {
         var mode;
         switch (control & 0x1a) {
@@ -64,7 +72,7 @@ wmsx.CartridgeV9990 = function(rom) {
             default:                        // GEN = 0
                mode = 1; break;             // V9990
         }
-        v9990.getVideoSignal().setOutputModeAuto(mode);
+        v9990.getVideoSignal().setOutputAutoMode(mode);
     }
 
 
@@ -96,7 +104,7 @@ wmsx.CartridgeV9990 = function(rom) {
     };
 
 
-    if (rom) init(this);
+    if (rom) init();
 
 };
 

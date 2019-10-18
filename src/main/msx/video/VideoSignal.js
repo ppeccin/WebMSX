@@ -27,8 +27,17 @@ wmsx.VideoSignal = function(source, name, shortName) {
         if (monitor) monitor.setPixelMetrics(this, pixelWidth, pixelHeight);
     };
 
-    this.setOutputModeAuto = function(mode) {
-        if (monitor) monitor.setOutputModeAuto(this, mode);
+    this.setResetOutputModeFunc = function(func) {
+        resetOutputModeFunc = func;
+    };
+
+    // Called back by Monitor
+    this.resetOutputAutoMode = function() {
+        if (resetOutputModeFunc) resetOutputModeFunc();
+    };
+
+    this.setOutputAutoMode = function(mode) {
+        if (monitor) monitor.setOutputAutoMode(this, mode);
     };
 
     this.getSignalDesc = function() {
@@ -51,5 +60,6 @@ wmsx.VideoSignal = function(source, name, shortName) {
     this.name = name;
 
     var monitor;
+    var resetOutputModeFunc;
 
 };
