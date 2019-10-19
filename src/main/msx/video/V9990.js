@@ -253,6 +253,11 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         self.setSpriteDebugMode(STARTING_SPRITES_DEBUG_MODE);
     };
 
+    this.setSuperimposeActive = function(state) {
+        superimposeActive = state;
+        updateYSEnabled();
+    };
+
     this.reset = function() {
         systemControl = 0; status = 0; softResetON = false;
         registerSelect = 0; registerSelectReadInc = true; registerSelectWriteInc = true;
@@ -284,9 +289,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         vramInterleaving = false;
         renderMetricsUpdatePending = false;
 
-        ysEnabled = false;
-        if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);    // update YS Enabled
-
         commandProcessor.reset();
 
         initRegisters();
@@ -296,6 +298,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         updateBackdropColor();
         updateSynchronization();
         commandProcessor.setV9990DisplayAndSpritesEnabled(dispEnabled, spritesEnabled);
+
+        updateYSEnabled();
+        if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);
     }
 
     this.updateCycles = function() {
@@ -348,11 +353,14 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     }
 
     function updateYSEnabled() {
-        ysEnabled = (register[8] & 0x20) !== 0;                 // YSE
+        var newValue = superimposeActive && (register[8] & 0x20) !== 0;     // YSE
+        if (ysEnabled === newValue) return;
+
+        ysEnabled = newValue;
         updateAllPaletteValues();
         if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);    // update YS
 
-        // console.log("V9990 YSEnabled:", ysEnabled);
+        console.log("V9990 YSEnabled:", ysEnabled);
     }
 
     function paletteRAMWrite(entry, val) {
@@ -1809,7 +1817,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var vramPointerRead = 0, vramPointerWrite = 0, vramPointerReadInc = true, vramPointerWriteInc = true, vramReadData = 0;
     var palettePointer = 0, palettePointerReadInc = true;
     var paletteOffsetA = 0, paletteOffsetB = 0, paletteOffset = 0;
-    var ysEnabled = false;
+    var ysEnabled = false, superimposeActive = false;
 
     var register = new Array(64);
     var paletteRAM = new Array(256);          // 64 entries x 3+1 bytes (R, G, B, unused)

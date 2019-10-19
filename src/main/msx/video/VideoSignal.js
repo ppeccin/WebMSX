@@ -31,9 +31,18 @@ wmsx.VideoSignal = function(source, name, shortName) {
         resetOutputModeFunc = func;
     };
 
+    this.setSetSuperimposeFuunc = function(func) {
+        setSuperimposeFuunc = func;
+    };
+
     // Called back by Monitor
     this.resetOutputAutoMode = function() {
         if (resetOutputModeFunc) resetOutputModeFunc();
+    };
+
+    // Called back by Monitor
+    this.setSuperimposeActive = function(state) {
+        if (setSuperimposeFuunc) setSuperimposeFuunc(state);
     };
 
     this.setOutputAutoMode = function(mode) {
@@ -61,5 +70,6 @@ wmsx.VideoSignal = function(source, name, shortName) {
 
     var monitor;
     var resetOutputModeFunc;
+    var setSuperimposeFuunc;
 
 };

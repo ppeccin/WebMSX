@@ -45,9 +45,12 @@ wmsx.Monitor = function(display) {
     this.setOutputMode = function(mode) {
         outputMode = !extSignal ? -1 : mode < -1 ? -1 : mode > 3 ? 3 : mode;
         outputEffective = outputMode === -1 ? outputAuto : outputMode;
-        this.showOSDDirect("Video Output: " + getOutputModeDesc(outputMode), true);
 
+        intSignal.setSuperimposeActive(outputEffective === 2);
+        if (extSignal) extSignal.setSuperimposeActive(outputEffective === 2);
         display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc());
+
+        this.showOSDDirect("Video Output: " + getOutputModeDesc(outputMode), true);
     };
 
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {

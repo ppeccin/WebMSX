@@ -277,8 +277,8 @@ wmsx.DOMPeripheralControls = function(room) {
                 screen.openNetPlayDialog();
                 break;
             case pc.SCREEN_OUTPUT_AUTO:
-                // TODO Middle Click to SCREEN_OUTPUT_RESET_AUTO
-                screen.getMonitor().setOutputMode(-1);
+                if (altPower) applyControlActivated(pc.SCREEN_OUTPUT_RESET_AUTO);
+                else screen.getMonitor().setOutputMode(-1);
                 break;
             case pc.SCREEN_OUTPUT_INTERNAL:
             case pc.SCREEN_OUTPUT_EXTERNAL:

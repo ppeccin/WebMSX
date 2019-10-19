@@ -19,8 +19,9 @@ wmsx.CartridgeV9990 = function(rom) {
             this.v9990 = v9990;
         }
         v9990.connect(machine);
-        machine.getVideoSocket().connectExternalVideoSignal(v9990.getVideoSignal());
         v9990.getVideoSignal().setResetOutputModeFunc(this.resetOutputAutoMode);
+        v9990.getVideoSignal().setSetSuperimposeFuunc(this.setSuperimposeActive);
+        machine.getVideoSocket().connectExternalVideoSignal(v9990.getVideoSignal());
 
         // v7040 control port: GenLock, Superimpose, Mixed mode detection
         machine.bus.connectInputDevice( 0x6f, wmsx.DeviceMissing.inputPortIgnored);
@@ -30,7 +31,7 @@ wmsx.CartridgeV9990 = function(rom) {
     this.disconnect = function(machine) {
         v9990.disconnect(machine);
         machine.getVideoSocket().disconnectExternalVideoSignal(v9990.getVideoSignal());
-        v9990.getVideoSignal().setResetOutputModeFunc(undefined);
+
         machine.bus.disconnectInputDevice( 0x6f, wmsx.DeviceMissing.inputPortIgnored);
         machine.bus.disconnectOutputDevice(0x6f, this.output6f);
     };
@@ -41,12 +42,20 @@ wmsx.CartridgeV9990 = function(rom) {
 
     this.powerOff = function() {
         v9990.powerOff();
-        this.output6f(0x10);
+        this.resetOutputAutoMode();
     };
 
     this.reset = function() {
         v9990.reset();
-        this.output6f(0x10);
+        this.resetOutputAutoMode();
+    };
+
+    this.resetOutputAutoMode = function() {
+        self.output6f(0x10);
+    };
+
+    this.setSuperimposeActive = function(state) {
+        v9990.setSuperimposeActive(state);
     };
 
     this.output6f = function(val) {
@@ -54,10 +63,6 @@ wmsx.CartridgeV9990 = function(rom) {
 
         control = val;
         updateAutoMode();
-    };
-
-    this.resetOutputAutoMode = function() {
-        self.output6f(0x10);
     };
 
     function updateAutoMode() {
