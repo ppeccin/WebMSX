@@ -882,16 +882,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                 : 1;
 
         // console.log("Image Composition: ", canvasContext.globalCompositeOperation, canvasContext.globalAlpha);
-
-        // TODO OLD
-        return;
-        if (!debugMode && (crtPhosphorEffective || crtScanlines)) {
-            canvasContext.globalCompositeOperation = "source-over";
-            canvasContext.globalAlpha = crtPhosphorEffective ? 0.8 : 1;
-        } else {
-            canvasContext.globalCompositeOperation = "copy";
-            canvasContext.globalAlpha = 1;
-        }
     }
 
     function updateImageSmoothing() {
