@@ -663,7 +663,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             menu[i].checkedOp = mode === (i - 1) ? 1 : 0;
         menu[0].label = autoModeDesc;
         menu[2].label = extDesc;
-        menu[6].disabled = autoInternal;
+        menu[6].disabled = autoInternal && mode === -1;
         if (barMenuActive === menu) refreshBarMenu(menu);
 
         if (videoOutputMode !== effectiveMode) {
