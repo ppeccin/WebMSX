@@ -254,7 +254,7 @@ wmsx.VDP = function(machine, cpu) {
         setSpriteDebugMode(STARTING_SPRITES_DEBUG_MODE);
     };
 
-    this.setSuperimposeActive = function(state) {
+    this.superimposeStateUpdate = function(state) {
         // Ignore
     };
 

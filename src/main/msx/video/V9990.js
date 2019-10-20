@@ -255,7 +255,9 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         self.setSpriteDebugMode(STARTING_SPRITES_DEBUG_MODE);
     };
 
-    this.setSuperimposeActive = function(state) {
+    this.superimposeStateUpdate = function(state) {
+        if (superimposeActive === state) return;
+
         superimposeActive = state;
         updateYSEnabled();
     };
@@ -366,7 +368,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         updateAllPaletteValues();
         if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);    // update YS
 
-        console.log("V9990 YSEnabled:", ysEnabled);
+        //console.log("V9990 YSEnabled:", ysEnabled);
     }
 
     function paletteRAMWrite(entry, val) {
