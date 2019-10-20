@@ -254,6 +254,14 @@ wmsx.VDP = function(machine, cpu) {
         setSpriteDebugMode(STARTING_SPRITES_DEBUG_MODE);
     };
 
+    this.setSuperimposeActive = function(state) {
+        // Ignore
+    };
+
+    this.resetOutputAutoMode = function() {
+        // Ignore
+    };
+
     this.reset = function() {
         frame = cycles = lastBUSCyclesComputed = 0;
         dataFirstWrite = null; dataPreRead = 0; vramPointer = 0; paletteFirstWrite = null;

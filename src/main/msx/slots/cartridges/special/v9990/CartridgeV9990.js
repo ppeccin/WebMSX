@@ -18,9 +18,7 @@ wmsx.CartridgeV9990 = function(rom) {
             v9990 = new wmsx.V9990(machine, machine.vdp, machine.cpu);
             this.v9990 = v9990;
         }
-        v9990.connect(machine);
-        v9990.getVideoSignal().setResetOutputModeFunc(this.resetOutputAutoMode);
-        v9990.getVideoSignal().setSetSuperimposeFuunc(this.setSuperimposeActive);
+        v9990.connect(machine, this);
         machine.getVideoSocket().connectExternalVideoSignal(v9990.getVideoSignal());
 
         // v7040 control port: GenLock, Superimpose, Mixed mode detection
@@ -52,10 +50,6 @@ wmsx.CartridgeV9990 = function(rom) {
 
     this.resetOutputAutoMode = function() {
         self.output6f(0x10);
-    };
-
-    this.setSuperimposeActive = function(state) {
-        v9990.setSuperimposeActive(state);
     };
 
     this.output6f = function(val) {

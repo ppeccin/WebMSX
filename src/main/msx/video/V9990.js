@@ -23,7 +23,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         commandProcessor.setV9990ModeData(modeData, typeData, imageWidth, imageHeight);
     }
 
-    this.connect = function(machine) {
+    this.connect = function(machine, cart) {
         machine.vdp.connectSlave(this);
         machine.bus.connectInputDevice( 0x60, this.input60);
         machine.bus.connectOutputDevice(0x60, this.output60);
@@ -42,6 +42,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         machine.bus.connectInputDevice( 0x67, wmsx.DeviceMissing.inputPortIgnored);
         machine.bus.connectOutputDevice(0x67, this.output67);
         // 0x68 - 0x6f not used
+        cartridge = cart;
     };
 
     this.disconnect = function(machine) {
@@ -63,6 +64,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         machine.bus.disconnectInputDevice( 0x67, wmsx.DeviceMissing.inputPortIgnored);
         machine.bus.disconnectOutputDevice(0x67, this.output67);
         // 0x68 - 0x6f not used
+        cartridge = undefined;
     };
 
     this.powerOn = function() {
@@ -256,6 +258,10 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     this.setSuperimposeActive = function(state) {
         superimposeActive = state;
         updateYSEnabled();
+    };
+
+    this.resetOutputAutoMode = function() {
+        if (cartridge) cartridge.resetOutputAutoMode();
     };
 
     this.reset = function() {
@@ -1905,6 +1911,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     // Connections
 
+    var cartridge;
     var videoSignal;
     var commandProcessor;
 
