@@ -13,14 +13,15 @@ wmsx.Monitor = function(display) {
     this.connectExternalVideoSignal = function(videoSignal) {
         extSignal = videoSignal;
         extSignal.connectMonitor(this);
-        this.setOutputMode(outputMode);
+        updateOutputMode();
     };
 
     this.disconnectExternalVideoSignal = function(videoSignal) {
         if (extSignal === videoSignal) {
             extSignal = undefined;
             outputAuto = 0;
-            this.setOutputMode(-1);
+            outputMode = -1;
+            updateOutputMode();
         }
     };
 
@@ -32,26 +33,28 @@ wmsx.Monitor = function(display) {
     this.resetOutputAutoMode = function() {
         intSignal.resetOutputAutoMode();
         if (extSignal) extSignal.resetOutputAutoMode();
-        this.setOutputMode(-1);
+        if (outputMode !== -1) this.setOutputMode(-1);
     };
 
     this.setOutputAutoMode = function(signal, mode) {
-        //console.log("Video Output Auto: " + mode);
-
+        var oldEffective = outputEffective;
         outputAuto = mode;
-        this.setOutputMode(outputMode);
+        updateOutputMode();
+        if (oldEffective !== outputEffective) showOutputModeOSD();
     };
 
     this.setOutputMode = function(mode) {
         outputMode = !extSignal ? -1 : mode < -1 ? -1 : mode > 3 ? 3 : mode;
-        outputEffective = outputMode === -1 ? outputAuto : outputMode;
+        updateOutputMode();
+        showOutputModeOSD();
+    };
 
+    function updateOutputMode() {
+        outputEffective = outputMode === -1 ? outputAuto : outputMode;
         intSignal.superimposeStateUpdate(outputEffective === 2);
         if (extSignal) extSignal.superimposeStateUpdate(outputEffective === 2);
         display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc());
-
-        this.showOSDDirect("Video Output: " + getOutputModeDesc(outputMode), true);
-    };
+    }
 
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {
         // Should we display this signal?
@@ -146,6 +149,10 @@ wmsx.Monitor = function(display) {
     function normalizeScaleY(scaleY) {
         var ret = scaleY < 0.5 ? 0.5 : scaleY;
         return Math.round(ret / wmsx.Monitor.SCALE_STEP) * wmsx.Monitor.SCALE_STEP;
+    }
+
+    function showOutputModeOSD() {
+        display.showOSD("Video Output: " + getOutputModeDesc(outputMode), true);
     }
 
     function getOutputModeDesc(mode) {

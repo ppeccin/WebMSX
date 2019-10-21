@@ -1,8 +1,8 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // V9990 Video Cartridge
-// Controls a V9990 VDP with included 512KB VRAM
-// And a v7040 Superimpose/Mix chip
+// Adds a V9990 VDP with included 512KB VRAM
+// Also responds to the v7040 Superimpose/Mix chip control port, then switchs modes on Monitor
 
 wmsx.CartridgeV9990 = function(rom) {
 "use strict";
@@ -69,7 +69,7 @@ wmsx.CartridgeV9990 = function(rom) {
             case 0x1a:                      // GEN = 1, TRAN = 1, MIX = 1
                 mode = 3; break;            // Mixed
             default:                        // GEN = 0
-               mode = 1; break;             // V9990
+                mode = 1; break;            // V9990
         }
         v9990.getVideoSignal().setOutputAutoMode(mode);
     }

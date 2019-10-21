@@ -2,7 +2,7 @@
 
 // V9990 VDP
 // This implementation is line-accurate
-// Color Bus, External Synch, B/W Mode, Wait Function not supported
+// Color Bus, B/W Mode, Wait Function not supported
 // Gen-lock with Internal VDP is always active
 // Original base clock: 21477270 Hz (XTAL), same as Internal VDP which is 6x CPU clock. Rectified to real 60Hz: 21504960 Hz
 
