@@ -33,8 +33,8 @@ wmsx.VideoSignal = function(source, name, shortName) {
     };
 
     // Called back by Monitor
-    this.superimposeStateUpdate = function(state) {
-        source.superimposeStateUpdate(state);
+    this.videoSignalDisplayStateUpdate = function(displayed, superimposeActive) {
+        source.videoSignalDisplayStateUpdate(displayed, superimposeActive);
     };
 
     this.setOutputAutoMode = function(mode) {

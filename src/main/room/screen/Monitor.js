@@ -8,6 +8,7 @@ wmsx.Monitor = function(display) {
     this.connectInternalVideoSignal = function(videoSignal) {
         intSignal = videoSignal;
         intSignal.connectMonitor(this);
+        updateOutputMode();
     };
 
     this.connectExternalVideoSignal = function(videoSignal) {
@@ -51,8 +52,8 @@ wmsx.Monitor = function(display) {
 
     function updateOutputMode() {
         outputEffective = outputMode === -1 ? outputAuto : outputMode;
-        intSignal.superimposeStateUpdate(outputEffective === 2);
-        if (extSignal) extSignal.superimposeStateUpdate(outputEffective === 2);
+        intSignal.videoSignalDisplayStateUpdate(outputEffective !== 1, outputEffective === 2);
+        if (extSignal) extSignal.videoSignalDisplayStateUpdate(outputEffective !== 0, outputEffective === 2);
         display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc());
     }
 

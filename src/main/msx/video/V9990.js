@@ -255,11 +255,15 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         self.setSpriteDebugMode(STARTING_SPRITES_DEBUG_MODE);
     };
 
-    this.superimposeStateUpdate = function(state) {
-        if (superimposeActive === state) return;
+    this.videoSignalDisplayStateUpdate = function(displayed, pSuperimposeActive) {
+        //console.log("V9990 displayed:", displayed);
 
-        superimposeActive = state;
-        updateYSEnabled();
+        videoDisplayed = displayed;
+
+        if (superimposeActive !== pSuperimposeActive) {
+            superimposeActive = pSuperimposeActive;
+            updateYSEnabled();
+        }
     };
 
     this.resetOutputAutoMode = function() {
@@ -655,8 +659,8 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     };
 
     this.lineEventRenderLine = function() {
-        if (currentScanline >= startingVisibleTopBorderScanline
-            && currentScanline < startingInvisibleScanline) renderLine();                       // Only render if visible
+        if (videoDisplayed && currentScanline >= startingVisibleTopBorderScanline
+            && currentScanline < startingInvisibleScanline) renderLine();                       // Only render if visible and displayed
     };
 
     this.lineEventEndActiveDisplay = function() {
@@ -1914,7 +1918,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     // Connections
 
     var cartridge;
-    var videoSignal;
+    var videoSignal, videoDisplayed = false;
     var commandProcessor;
 
 

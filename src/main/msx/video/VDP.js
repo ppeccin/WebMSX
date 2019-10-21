@@ -254,8 +254,10 @@ wmsx.VDP = function(machine, cpu) {
         setSpriteDebugMode(STARTING_SPRITES_DEBUG_MODE);
     };
 
-    this.superimposeStateUpdate = function(state) {
-        // Ignore
+    this.videoSignalDisplayStateUpdate = function(displayed, superimposeActive) {
+        videoDisplayed = displayed;
+
+        //console.log("VDP displayed:", displayed);
     };
 
     this.resetOutputAutoMode = function() {
@@ -652,7 +654,7 @@ wmsx.VDP = function(machine, cpu) {
         // ~ Middle of Active Line
 
         if (currentScanline >= startingVisibleTopBorderScanline
-            && currentScanline < startingInvisibleScanline) renderLine();                           // Only render if visible
+            && currentScanline < startingInvisibleScanline /*&& videoDisplayed*/) renderLine();         // Only render if visible and displayed
 
         if (slave) slave.lineEventRenderLine();
 
@@ -2468,7 +2470,7 @@ wmsx.VDP = function(machine, cpu) {
 
     // Connections
 
-    var videoSignal;
+    var videoSignal, videoDisplayed = true;
     var cpuClockPulses, audioClockPulse32;
     var commandProcessor;
 
