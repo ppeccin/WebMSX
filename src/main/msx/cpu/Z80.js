@@ -124,7 +124,7 @@ wmsx.Z80 = function() {
     this.setR800ClockMulti = function(multi) {
         // console.log("R800 CLOCK MULTI:" + multi);
 
-        r800ClockMulti = 2 * (multi <= 0 ? 1 : multi > 2 ? 2 : multi);    // (0..2]
+        r800ClockMulti = 2 * (multi <= 0 ? 1 : multi > 2 ? 2 : multi);    // 2 * (0..2]
         if (r800) clockMulti = r800ClockMulti;
     };
 
@@ -2769,7 +2769,7 @@ wmsx.Z80 = function() {
         }
     }
 
-    // TODO Savestate  -------------------------------------------
+    // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
@@ -2777,6 +2777,8 @@ wmsx.Z80 = function() {
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
             c: busCycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extCurrRunning, eei: extExtraIter,
+            r8: r800,
+            bs: modeBackState,
             tcm: z80ClockMulti,
             rcm: r800ClockMulti
         };
@@ -2788,8 +2790,11 @@ wmsx.Z80 = function() {
         setINT(s.nINT ? s.INT : s.INT ? 0xff : 0xfe);   // Backward compatibility
         busCycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
         extCurrRunning = s.ecr; extExtraIter = s.eei;
-        z80ClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;  // Backward compatibility
-        r800ClockMulti = s.rcm !== undefined ? s.rcm : 2;                 // Backward compatibility
+        r800 = !!s.r8;
+        if (s.bs) modeBackState = s.bs;                                     // Backward compatibility
+        z80ClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;    // Backward compatibility
+        r800ClockMulti = s.rcm !== undefined ? s.rcm : 2;                   // Backward compatibility
+        clockMulti = r800 ? r800ClockMulti : z80ClockMulti;
     };
 
 
