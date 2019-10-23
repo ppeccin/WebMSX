@@ -130,24 +130,27 @@ wmsx.SlotRAMMapper = function(rom) {
     var VALID_SIZES = [64, 128, 256, 512, 1024, 2048, 4096];
 
 
-    // TODO Savestate  -------------------------------------------
+    // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
             b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
-            p0: page0Offset, p1: page1Offset, p2: page2Offset, p3: page3Offset
+            p0: page0Offset, p1: page1Offset, p2: page2Offset, p3: page3Offset,
+            dr: !dramModeOff
         };
     };
 
-    this.loadState = function(state) {
-        this.rom = wmsx.ROM.loadState(state.r);
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(state.b, bytes);
+    this.loadState = function(s) {
+        this.rom = wmsx.ROM.loadState(s.r);
+        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
         this.bytes = bytes;
         pageMask = (bytes.length >> 14) - 1;
-        page0Offset = state.p0; page1Offset = state.p1; page2Offset = state.p2; page3Offset = state.p3;
+        page0Offset = s.p0; page1Offset = s.p1; page2Offset = s.p2; page3Offset = s.p3;
         pageReadBackOR = 0xff & ~pageMask;
+        dramModeStart = bytes.length - 65536;
+        dramModeOff = !s.dr;                // Backward compatibility, will be true in old states
     };
 
 

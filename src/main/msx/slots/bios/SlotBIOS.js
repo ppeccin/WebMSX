@@ -100,7 +100,7 @@ wmsx.SlotBIOS = function(rom) {
 
     var topAddress;
 
-    var dramMode = false, ramBytes, ramBase = 0;
+    var dramMode = false, ramBytes, ramBase = 0;        // TODO Reconnection on loadState()
 
     var cassetteDriver = new wmsx.ImageCassetteDriver();
     var keyboardExtension = new wmsx.BIOSKeyboardExtension();
@@ -112,7 +112,7 @@ wmsx.SlotBIOS = function(rom) {
     this.originalVideoStandard = null;
 
 
-    // TODO Savestate  -------------------------------------------
+    // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
@@ -121,7 +121,8 @@ wmsx.SlotBIOS = function(rom) {
             v: this.originalVideoStandard.name,
             b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             ke: keyboardExtension.saveState(),
-            td: turboDriver.saveState()
+            td: turboDriver.saveState(),
+            dr: dramMode
         };
     };
 
@@ -140,6 +141,7 @@ wmsx.SlotBIOS = function(rom) {
         topAddress = bytes.length;
         if (s.ke) keyboardExtension.loadState(s.ke);
         turboDriver.loadState(s.td);
+        dramMode = !!s.dr;                // Backward compatibility, will be false in old states
     };
 
 

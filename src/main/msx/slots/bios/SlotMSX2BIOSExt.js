@@ -51,7 +51,7 @@ wmsx.SlotMSX2BIOSExt = function(rom) {
     var bytes;
     this.bytes = null;
 
-    var dramMode = false, ramBytes, ramBase = 0;
+    var dramMode = false, ramBytes, ramBase = 0;        // TODO Reconnection on loadState()
 
     var topAddress;
 
@@ -59,13 +59,14 @@ wmsx.SlotMSX2BIOSExt = function(rom) {
     this.format = wmsx.SlotFormats.MSX2BIOSExt;
 
 
-    // TODO Savestate  -------------------------------------------
+    // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes)
+            b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            dr: dramMode
         };
     };
 
@@ -80,6 +81,7 @@ wmsx.SlotMSX2BIOSExt = function(rom) {
         }
         this.bytes = bytes;
         topAddress = bytes.length;
+        dramMode = !!s.dr;                // Backward compatibility, will be false in old states
     };
 
 
