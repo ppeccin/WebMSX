@@ -723,11 +723,9 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function STOP() {
-
         // console.log("STOP: " + (writeHandler && writeHandler.name));
 
         finish(true);
-        // SDSnatcher Melancholia fix: TR not reset when command ends
     }
 
     function normalPGETX(sx, sy, dx) {       // 16 bits based
@@ -1006,7 +1004,7 @@ wmsx.V9990CommandProcessor = function() {
         } else {
             var bppInfo = timing[modeData.cmdTiming][dispAndSpritesMode];
             var blocksPerFrame = bppInfo[typeBPP] || bppInfo;
-            var cyclesPerPixel = BASE_CLOCK / 50 / 256 / blocksPerFrame;                                                // / 50 / 256 because timing is for 256 pixel blocks per PAL frame
+            var cyclesPerPixel = BASE_CLOCK / 50 / 256 / blocksPerFrame;                                                     // / 50 / 256 because timing is for 256 pixel blocks per PAL frame
             var duration = ((pixels * cyclesPerPixel * self.COMMAND_PER_PIXEL_DURATION_FACTOR) / turboClockMulti) | 0;       // no cycles per line info available
             finishingCycle = v9990.updateCycles() + duration;
 
@@ -1061,19 +1059,16 @@ wmsx.V9990CommandProcessor = function() {
     var v9990, vram, register;
 
     var CE = 0;
-    var SX = 0, SY = 0, SYP1Off = 0, DX = 0, DY = 0, DYP1Off = 0, NX = 0, NY = 0, ENY = 0, EDX = 0, ESX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, WM = 0, destPos = 0, LOP;
+    var SX = 0, SY = 0, SYP1Off = 0, DX = 0, DY = 0, DYP1Off = 0, NX = 0, NY = 0, ESX = 0, EDX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, WM = 0, LOP;
     var readData = 0, writeDataPending = null, readDataPending = null, writeHandler = null, readHandler = null;
     var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
 
-    var modeData, typeData, isP1 = false;
-
-    var dispAndSpritesMode = 0;  // 0: DISP off, 1: DISP on SPD off, 2: DISP on SPD on
-
-    var typeBPP = 8, colosPPBShift = 0, colorPPBMask = 0;
-    var imageWidth = 0, imageHeight = 0, imageWidthMask = 0, imageHeightMask = 0;
-    var imageWidthBytes = 0;
-
+    var dispAndSpritesMode = 0;     // 0: DISP off, 1: DISP on SPD off, 2: DISP on SPD on
     var turboClockMulti = 1;
+
+    var modeData, typeData, isP1 = false;
+    var typeBPP = 8, colosPPBShift = 0, colorPPBMask = 0;
+    var imageWidth = 0, imageHeight = 0, imageWidthMask = 0, imageHeightMask = 0, imageWidthBytes = 0;
 
 
     var LOGICAL_OPERATIONS = [
@@ -1116,7 +1111,7 @@ wmsx.V9990CommandProcessor = function() {
     // Number of 256 pixel blocks transferable in 1 PAL frame for each Mode/Type, BPP, and Sprites ON / Sprites OFF / Display OFF
     // No information available about additional cycles per line. Only per pixel average will be used
     // Therefore => Cycles Per Pixel = BaseClock / 50 / 256 / value
-    // No info for LINE, PSET, SRCH. Using LMMV timing or those
+    // No info for LINE, PSET, SRCH. Using LMMV timing for those
 
     var LMMVTiming = [
         /* Normal Bitmap  */  [ /* DISP off SPD --- */  { 2: 0x02d3, 4: 0x0219, 8: 0x0190, 16: 0x00c8 }, /* DISP on  SPD off */ { 2: 0x02d0, 4: 0x020e, 8: 0x018a, 16: 0x00c7 }, /* DISP on  SPD on  */ { 2: 0x02ab, 4: 0x01f6, 8: 0x0174, 16: 0x00bc }],
@@ -1154,24 +1149,26 @@ wmsx.V9990CommandProcessor = function() {
     ];
 
 
-    // TODO Savestate  -------------------------------------------
+    // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
             ce: CE,
+            rd: readData, rdp: readDataPending, wdp: writeDataPending,
             wh: writeHandler && writeHandler.name, rh: readHandler && readHandler.name, fc: finishingCycle,
-            SX: SX, SY: SY, DX: DX, DY: DY, NX: NX, NY: NY, ENY: ENY,
-            DIX: DIX, DIY: DIY, CX: CX, CY: CY, LOP: LOP && LOGICAL_OPERATIONS.indexOf(LOP), dp: destPos,
-            tcm: turboClockMulti
+            SX: SX, SY: SY, SYP1O: SYP1Off, DX: DX, DY: DY, DYP1O: DYP1Off, NX: NX, NY: NY,
+            ESX: ESX, EDX: EDX, DIX: DIX, DIY: DIY, CX: CX, CY: CY, WM: WM, LOP: LOP && LOGICAL_OPERATIONS.indexOf(LOP),
+            dsm: dispAndSpritesMode, tcm: turboClockMulti
         };
     };
 
     this.loadState = function(s) {
         CE = s.ce;
+        readData = s.rd; readDataPending = s.rdp; writeDataPending = s.wdp;
         writeHandler = COMMAND_HANDLERS[s.wh]; readHandler = COMMAND_HANDLERS[s.rh]; finishingCycle = s.fc;
-        SX = s.SX; SY = s.SY; DX = s.DX; DY = s.DY; NX = s.NX; NY = s.NY; ENY = s.ENY;
-        DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; LOP = s.LOP >= 0 ? LOGICAL_OPERATIONS[s.LOP] : undefined; destPos = s.dp;
-        turboClockMulti = s.tcm !== undefined ? s.tcm : 1;
+        SX = s.SX; SY = s.SY; SYP1Off = s.SYP1O; DX = s.DX; DY = s.DY; DYP1Off = s.DYP1O; NX = s.NX; NY = s.NY;
+        ESX = s.ESX; EDX = s.EDX; DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; WM = s.WM; LOP = s.LOP >= 0 ? LOGICAL_OPERATIONS[s.LOP] : undefined;
+        dispAndSpritesMode = s.dsm; turboClockMulti = s.tcm !== undefined ? s.tcm : 1;
     };
 
 
@@ -1185,7 +1182,6 @@ wmsx.V9990CommandProcessor = function() {
 
 
 /*
-
                      RAW DATA PAL                     CODE 42MHz                     COMPUTED 42MHz
 
                 LMMM BMLL BMXL BMLX LMMV       LMMM BMLL BMXL BMLX LMMV         LMMM BMLL BMXL BMLX LMMV

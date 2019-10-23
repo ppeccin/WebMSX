@@ -277,12 +277,12 @@ wmsx.FileCassetteDeck = function(room) {
         };
     };
 
-    this.loadState = function(state) {
-        tapeFileName = state.f;
-        tapeContent = state.c && wmsx.Util.uncompressStringBase64ToInt8BitArray(state.c, tapeContent);
-        tapePosition = state.p;
-        motor = state.m;
-        modif = !!state.d;
+    this.loadState = function(s) {
+        tapeFileName = s.f;
+        tapeContent = s.c && wmsx.Util.uncompressStringBase64ToInt8BitArray(s.c, tapeContent);
+        tapePosition = s.p;
+        motor = s.m;
+        modif = !!s.d;
         fireStateUpdate();
     };
 

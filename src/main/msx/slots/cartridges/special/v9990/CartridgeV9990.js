@@ -14,10 +14,6 @@ wmsx.CartridgeV9990 = function(rom) {
     }
 
     this.connect = function(machine) {
-        if (!v9990) {
-            v9990 = new wmsx.V9990(machine, machine.vdp, machine.cpu);
-            this.v9990 = v9990;
-        }
         v9990.connect(machine, this);
         machine.getVideoSocket().connectExternalVideoSignal(v9990.getVideoSignal());
 
@@ -78,7 +74,8 @@ wmsx.CartridgeV9990 = function(rom) {
     this.rom = null;
     this.format = wmsx.SlotFormats.V9990;
 
-    var v9990;
+
+    var v9990 = new wmsx.V9990();
     this.v9990 = v9990;
 
     var control = 0x10;
@@ -91,13 +88,16 @@ wmsx.CartridgeV9990 = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            vdp: v9990.saveState()
+            vdp: v9990.saveState(),
+            c: control
         };
     };
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
+        control = s.c;
         v9990.loadState(s.vdp);
+        updateAutoMode();
 
         //console.log("V9990 LoadState length:", JSON.stringify(s).length);
     };

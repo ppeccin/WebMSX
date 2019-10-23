@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Savestate
-
 wmsx.Monitor = function(display) {
 "use strict";
 
@@ -179,6 +177,24 @@ wmsx.Monitor = function(display) {
     function isActiveSignal(signal) {
         return outputEffective <= 0 ? signal === intSignal : signal === extSignal;
     }
+
+
+    // TODO Savestate  -------------------------------------------
+
+    this.saveState = function() {
+        return {
+            m: outputMode, me: outputEffective, ma: outputAuto
+        };
+    };
+
+    this.loadState = function(s) {
+        if (s) {
+            outputMode = s.m; outputAuto = s.ma;
+        } else {
+            outputMode = -1; outputAuto = 0;
+        }
+        updateOutputMode();
+    };
 
 
     var outputMode = -1, outputAuto = 0, outputEffective = 0;

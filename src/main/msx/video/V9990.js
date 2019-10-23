@@ -6,14 +6,14 @@
 // Gen-lock with Internal VDP is always active
 // Original base clock: 21477270 Hz (XTAL), same as Internal VDP which is 6x CPU clock. Rectified to real 60Hz: 21504960 Hz
 
-wmsx.V9990 = function(machine, vdp, cpu) {
+wmsx.V9990 = function() {
 "use strict";
 
     var self = this;
 
     function init() {
         videoSignal = new wmsx.VideoSignal(self, "V9990 Video", "V9990");
-        initFrameResources(true);
+        initFrameResources(false);
         initDebugPatternTables();
         modeData = modes.SBY;
         typeData = types.SBY;
@@ -23,7 +23,12 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         commandProcessor.setV9990ModeData(modeData, typeData, imageWidth, imageHeight);
     }
 
-    this.connect = function(machine, cart) {
+    this.connect = function(pMachine, cart) {
+        machine = pMachine;
+        vdp = machine.vdp;
+        cpu = machine.cpu;
+        cartridge = cart;
+
         machine.vdp.connectSlave(this);
         machine.bus.connectInputDevice( 0x60, this.input60);
         machine.bus.connectOutputDevice(0x60, this.output60);
@@ -42,29 +47,31 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         machine.bus.connectInputDevice( 0x67, wmsx.DeviceMissing.inputPortIgnored);
         machine.bus.connectOutputDevice(0x67, this.output67);
         // 0x68 - 0x6f not used
-        cartridge = cart;
+
+        updateIRQ();    // Needed to update here from loadState()
     };
 
-    this.disconnect = function(machine) {
-        machine.vdp.connectSlave(undefined);
-        machine.bus.disconnectInputDevice( 0x60, this.input60);
-        machine.bus.disconnectOutputDevice(0x60, this.output60);
-        machine.bus.disconnectInputDevice( 0x61, this.input61);
-        machine.bus.disconnectOutputDevice(0x61, this.output61);
-        machine.bus.disconnectInputDevice( 0x62, this.input62);
-        machine.bus.disconnectOutputDevice(0x62, this.output62);
-        machine.bus.disconnectInputDevice( 0x63, this.input63);
-        machine.bus.disconnectOutputDevice(0x63, this.output63);
-        machine.bus.disconnectInputDevice( 0x64, wmsx.DeviceMissing.inputPortIgnored);
-        machine.bus.disconnectOutputDevice(0x64, this.output64);
-        machine.bus.disconnectInputDevice( 0x65, this.input65);
-        machine.bus.disconnectOutputDevice(0x65, wmsx.DeviceMissing.outputPortIgnored);
-        machine.bus.disconnectInputDevice( 0x66, this.input66);
-        machine.bus.disconnectOutputDevice(0x66, this.output66);
-        machine.bus.disconnectInputDevice( 0x67, wmsx.DeviceMissing.inputPortIgnored);
-        machine.bus.disconnectOutputDevice(0x67, this.output67);
+    this.disconnect = function(pMachine) {
+        machine = vdp = cpu = cartridge = undefined;
+
+        pMachine.vdp.connectSlave(undefined);
+        pMachine.bus.disconnectInputDevice( 0x60, this.input60);
+        pMachine.bus.disconnectOutputDevice(0x60, this.output60);
+        pMachine.bus.disconnectInputDevice( 0x61, this.input61);
+        pMachine.bus.disconnectOutputDevice(0x61, this.output61);
+        pMachine.bus.disconnectInputDevice( 0x62, this.input62);
+        pMachine.bus.disconnectOutputDevice(0x62, this.output62);
+        pMachine.bus.disconnectInputDevice( 0x63, this.input63);
+        pMachine.bus.disconnectOutputDevice(0x63, this.output63);
+        pMachine.bus.disconnectInputDevice( 0x64, wmsx.DeviceMissing.inputPortIgnored);
+        pMachine.bus.disconnectOutputDevice(0x64, this.output64);
+        pMachine.bus.disconnectInputDevice( 0x65, this.input65);
+        pMachine.bus.disconnectOutputDevice(0x65, wmsx.DeviceMissing.outputPortIgnored);
+        pMachine.bus.disconnectInputDevice( 0x66, this.input66);
+        pMachine.bus.disconnectOutputDevice(0x66, this.output66);
+        pMachine.bus.disconnectInputDevice( 0x67, wmsx.DeviceMissing.inputPortIgnored);
+        pMachine.bus.disconnectOutputDevice(0x67, this.output67);
         // 0x68 - 0x6f not used
-        cartridge = undefined;
     };
 
     this.powerOn = function() {
@@ -262,6 +269,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         if (superimposeActive !== pSuperimposeActive) {
             superimposeActive = pSuperimposeActive;
+            if (superimposeActive) initFrameResources(true);
             updateYSEnabled();
         }
     };
@@ -298,7 +306,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         verticalAdjust = horizontalAdjust = 0;
         dispEnabled = false; dispAndSpritesUpdatePending = false; spritesEnabled = true;
         horizontalIntLine = 0;
-        vramInterleaving = false;
         renderMetricsUpdatePending = false;
 
         commandProcessor.reset();
@@ -370,7 +377,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         ysEnabled = newValue;
         updateAllPaletteValues();
-        if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);    // update YS
+        if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);    // update color 0 (transparent when YS)
 
         //console.log("V9990 YSEnabled:", ysEnabled);
     }
@@ -614,7 +621,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         debugModePatternInfoBlocks = debugMode === 6;
         debugModePatternInfoNames = debugMode === 7;
         if (oldDebugModeSpriteHighlight !== debugModeSpriteHighlight || oldDebugModePatternInfo !== debugModePatternInfo) debugAdjustPalette();
-        initFrameResources(debugModeSpriteHighlight);
+        if (debugModeSpriteHighlight) initFrameResources(true);
         updateLineActiveType();
         updateSpritePattAddress();
     };
@@ -711,48 +718,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         }
     }
 
-    function updateVRAMInterleaving() {
-        return;
-
-        if (modeData.vramInter === true && !vramInterleaving) vramEnterInterleaving();
-        else if (modeData.vramInter === false && vramInterleaving) vramExitInterleaving();
-    }
-
-    function vramEnterInterleaving() {
-        return;
-
-        var e = 0;
-        var o = VRAM_SIZE >> 1;
-        var aux = vram.slice(0, o);                 // Only first halt needs to be saved. Verify: Optimize slice?
-        for (var i = 0; i < VRAM_SIZE; i += 2, ++e, ++o) {
-            vram[i] = aux[e];
-            vram[i + 1] = vram[o];
-        }
-        vramInterleaving = true;
-
-        //console.log("VRAM ENTERING Interleaving");
-    }
-
-    function vramExitInterleaving() {
-        return;
-
-        var h = VRAM_SIZE >> 1;
-        var e = 0;
-        var o = h;
-        var aux = vram.slice(h);                    // Only last half needs to be saved. Verify: Optimize slice?
-        for (var i = 0; i < h; i += 2, ++e, ++o) {
-            vram[e] = vram[i];
-            vram[o] = vram[i + 1];
-        }
-        for (i = 0; i < h; i += 2, ++e, ++o) {
-            vram[e] = aux[i];
-            vram[o] = aux[i + 1];
-        }
-        vramInterleaving = false;
-
-        //console.log("VRAM EXITING Interleaving");
-    }
-
     function updateMode() {
         var newMode;
         switch (register[6] >>  6) {                                    // DSPM
@@ -785,7 +750,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
         updateType();              // Also updateImageSize()
         updateSpritePattAddress();
-        updateVRAMInterleaving();
         updateLineActiveType();
         updateSignalMetrics(false);
         updateRenderMetrics(false);
@@ -1734,7 +1698,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
 
     var LINE_WIDTH = wmsx.V9990.SIGNAL_MAX_WIDTH;
-    var PAINT_WIDTH = LINE_WIDTH + 64;                      // 64 additional pixels for Right-overflow during painting
+    var PAINT_WIDTH = LINE_WIDTH + 64;             // 64 additional pixels for Right-overflow during painting
 
     var SPRITE_MAX_PRIORITY = 9000000000000000;    // 0x3fffffff;   (v8 sint?)
     var DEBUG_DIM_ALPHA_MASK = 0x40ffffff;
@@ -1792,6 +1756,7 @@ wmsx.V9990 = function(machine, vdp, cpu) {
         0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff      // 56 - 63  Invalid
     ];
 
+
     // Frame as off-screen canvas
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
     var backdropLineCache, standByLineCache, backdrop64, backdrop256, backdrop512;        // Cached full line backdrop and standby values, will share the same buffer as the frame itself for fast copying
@@ -1799,7 +1764,6 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     var vram = new Uint8Array(VRAM_TOTAL_SIZE);   // wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
     this.vram = vram;
-    var vramInterleaving = false;
 
     var frame = 0;
 
@@ -1822,24 +1786,23 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     var horizontalIntLine = 0;
 
-    var oldStatus = wmsx.Util.arrayFill(new Array(10), 0);
-
     var status = 0, interruptFlags = 0, systemControl = 0, softResetON = false;
     var registerSelect = 0, registerSelectReadInc = true, registerSelectWriteInc = true;
     var vramPointerRead = 0, vramPointerWrite = 0, vramPointerReadInc = true, vramPointerWriteInc = true, vramReadData = 0;
     var palettePointer = 0, palettePointerReadInc = true;
     var paletteOffsetA = 0, paletteOffsetB = 0, paletteOffset = 0;
+
     var ysEnabled = false, superimposeActive = false;
 
     var register = new Array(64);
     var paletteRAM = new Array(256);          // 64 entries x 3+1 bytes (R, G, B, unused)
 
     var modeData, typeData;
+    var imageWidth = 0, imageHeight = 0;
 
     var backdropColor = 0;
     var backdropCacheUpdatePending = true;
 
-    var imageWidth = 0, imageHeight = 0;
     var scrollXOffset = 0, scrollYOffset = 0, scrollYOffsetFrame = 0, scrollXBOffset = 0, scrollYBOffset = 0, scrollYBOffsetFrame = 0, scrollYMax = 0;
     var scrollYUpdatePending = false, scrollYBUpdatePending = false;
     var planeAEnabled = true, planeBEnabled = true;
@@ -1847,10 +1810,11 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     var verticalAdjust = 0, horizontalAdjust = 0;
 
     var spritePattAddress = 0;
-    var spritesGlobalPriority = SPRITE_MAX_PRIORITY;        // Decreasing value for priority control. Never resets and lasts for years!
+    var spritesGlobalPriority = SPRITE_MAX_PRIORITY;                                                        // Decreasing value for priority control. Never resets and lasts for years!
     var spritesLinePriorities = wmsx.Util.arrayFill(new Array(512 + 16 + 16 + 8), SPRITE_MAX_PRIORITY);     // Max P2 res + 16 for Left-overflow + 16 for Right-overflow + 8 slack
 
-    var dispAndSpritesUpdatePending = false, dispEnabled = false, spritesEnabled = true;
+    var dispEnabled = false, spritesEnabled = true, dispAndSpritesUpdatePending = false;
+
     var renderMetricsUpdatePending = false, renderWidth = 0, renderHeight = 0;
     var refreshWidth = 0, refreshHeight = 0;
 
@@ -1917,24 +1881,33 @@ wmsx.V9990 = function(machine, vdp, cpu) {
 
     // Connections
 
+    var machine, vdp, cpu;
     var cartridge;
     var videoSignal, videoDisplayed = false;
     var commandProcessor;
 
 
-    // TODO Savestate  -------------------------------------------
+    // Savestate  -------------------------------------------
 
     this.saveState = function(extended) {
         var s = {
+            s: status, if: interruptFlags, sc: systemControl, sro: softResetON,
+            rs: registerSelect, rri: registerSelectReadInc, rwi: registerSelectWriteInc,
+            vr: vramPointerRead, vw: vramPointerWrite, vri: vramPointerReadInc, vwi: vramPointerWriteInc, vrd: vramReadData,
+            pp: palettePointer, pri: palettePointerReadInc,
+            poa: paletteOffsetA, pob: paletteOffsetB, po: paletteOffset,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
             fs: frameStartingActiveScanline,
             f: frame, c: cycles, cc: lastBUSCyclesComputed,
-            vp: vramPointerWrite,
+            sx: scrollXOffset, sy: scrollYOffset, syf: scrollYOffsetFrame, sxb: scrollXBOffset, syb: scrollYBOffset, sybf: scrollYBOffsetFrame, sym: scrollYMax,
+            syu: scrollYUpdatePending, sybu: scrollYBUpdatePending,
+            pa: planeAEnabled, pb: planeBEnabled,
+            de: dispEnabled, se: spritesEnabled, dsu: dispAndSpritesUpdatePending,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
+            eos: vramEOLineShift, eoa: vramEOLineAdd,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register),
-            p: wmsx.Util.storeInt16BitArrayToStringBase64(paletteRAM),
+            p: wmsx.Util.storeInt8BitArrayToStringBase64(paletteRAM),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_SIZE),
-            vrint: vramInterleaving,
             cp: commandProcessor.saveState()
         };
         if (extended) {
@@ -1945,21 +1918,29 @@ wmsx.V9990 = function(machine, vdp, cpu) {
     };
 
     this.loadState = function(s) {
+        status = s.s; interruptFlags = s.if; systemControl = s.sc; softResetON = s.sro;
+        registerSelect = s.rs; registerSelectReadInc = s.rri; registerSelectWriteInc = s.rwi;
+        vramPointerRead = s.vr; vramPointerWrite = s.vw; vramPointerReadInc = s.vri; vramPointerWriteInc = s.vwi; vramReadData = s.vrd;
+        palettePointer = s.pp; palettePointerReadInc = s.pri;
+        paletteOffsetA = s.poa; paletteOffsetB = s.pob; paletteOffset = s.po;
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
-        paletteRAM = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteRAM);
+        paletteRAM = wmsx.Util.restoreStringBase64ToInt8BitArray(s.p, paletteRAM);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         if (s.ad) setActiveDisplay(); else setBorderDisplay();
         frame = s.f || 0; cycles = s.c; lastBUSCyclesComputed = s.cc;
-        vramPointerWrite = s.vp;
+        scrollXOffset = s.sx; scrollYOffset = s.sy; scrollYOffsetFrame = s.syf; scrollXBOffset = s.sxb; scrollYBOffset = s.syb; scrollYBOffsetFrame = s.sybf; scrollYMax = s.sym;
+        scrollYUpdatePending = s.syu; scrollYBUpdatePending = s.sybu;
+        planeAEnabled = s.pa; planeBEnabled = s.pb;
+        dispEnabled = s.de; spritesEnabled = s.se; dispAndSpritesUpdatePending = s.dsu;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
-        vramInterleaving = s.vrint;
+        vramEOLineShift = s.eos; vramEOLineAdd = s.eoa;
         commandProcessor.loadState(s.cp);
         commandProcessor.connectV9990(this, vram, register);
         frameVideoStandard = videoStandard; framePulldown = pulldown;
         updateSignalMetrics(true);
         if (s.fs !== undefined) frameStartingActiveScanline = s.fs;       // backward compatibility
-        updateIRQ();
+        if (cpu) updateIRQ();
         updateMode();
         debugAdjustPalette();
         updateBackdropColor();

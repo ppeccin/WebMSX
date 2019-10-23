@@ -453,8 +453,9 @@ wmsx.Machine = function() {
             br: basicAutoRunDone,
             bc: basicAutoRunCommand || "",
             vss: videoStandardSoft && videoStandardSoft.name,
-            dd: diskDriveSocket.getDrive().saveState(),
-            ct: cassetteSocket.getDeck().saveState(),
+            vm: videoSocket.saveState(),
+            dd: diskDriveSocket.saveState(),
+            ct: cassetteSocket.saveState(),
             cs: controllersSocket.saveState()
         };
         if (extended) {
@@ -495,8 +496,9 @@ wmsx.Machine = function() {
         syf.loadState(s.sf);
         trd.loadState(s.td);        // s.td may be undefined. Treated correctly by trd.loadState()
         bus.loadState(s.b);
-        diskDriveSocket.getDrive().loadState(s.dd);
-        cassetteSocket.getDeck().loadState(s.ct);
+        videoSocket.loadState(s.vm);
+        diskDriveSocket.loadState(s.dd);
+        cassetteSocket.loadState(s.ct);
         if (s.cs) controllersSocket.loadState(s.cs);
         machineTypeSocket.fireMachineTypeStateUpdate();
         cartridgeSocket.fireCartridgesStateUpdate();        // Will perform a complete Extensions refresh from Slots
@@ -931,6 +933,12 @@ wmsx.Machine = function() {
         this.getMonitor = function() {
             return monitor;
         };
+        this.saveState = function() {
+            return monitor.saveState();
+        };
+        this.loadState = function(s) {
+            monitor.loadState(s);
+        };
         var monitor;
     }
 
@@ -1010,6 +1018,12 @@ wmsx.Machine = function() {
         this.typeAutoRunCommand = function () {
             if (driver) driver.typeCurrentAutoRunCommand();
         };
+        this.saveState = function() {
+            return deck.saveState();
+        };
+        this.loadState = function(s) {
+            deck.loadState(s);
+        };
         var deck;
         var driver;
     }
@@ -1069,6 +1083,12 @@ wmsx.Machine = function() {
         };
         this.hasAnyMediaInserted = function() {
             return this.getDrive().hasAnyMediaInserted();
+        };
+        this.saveState = function() {
+            return drive.saveState();
+        };
+        this.loadState = function(s) {
+            drive.loadState(s);
         };
         var diskInterfaces = new Set(), hardDiskInterfaces = new Set(), dos2ROMs = new Set();
         var interfacesChangeListener;

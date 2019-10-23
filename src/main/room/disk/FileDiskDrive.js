@@ -583,14 +583,14 @@ wmsx.FileDiskDrive = function(room) {
         };
     };
 
-    this.loadState = function(state) {
-        deserializeStack(state.s[0], driveStack[0]);
-        deserializeStack(state.s[1], driveStack[1]);
-        if (state.s[2]) deserializeStack(state.s[2], driveStack[2]);
+    this.loadState = function(s) {
+        deserializeStack(s.s[0], driveStack[0]);
+        deserializeStack(s.s[1], driveStack[1]);
+        if (s.s[2]) deserializeStack(s.s[2], driveStack[2]);
         else clearHardDrive();
-        curDisk = state.c;
-        driveDiskChanged = state.g;
-        driveMotor = state.m;
+        curDisk = s.c;
+        driveDiskChanged = s.g;
+        driveMotor = s.m;
         fireMediaStateUpdate(0); fireMediaStateUpdate(1); fireMediaStateUpdate(2);
         this.allMotorsOff(true);
     };
