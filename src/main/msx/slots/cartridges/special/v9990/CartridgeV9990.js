@@ -81,15 +81,15 @@ wmsx.CartridgeV9990 = function(rom) {
     var control = 0x10;
 
 
-    // TODO Savestate  -------------------------------------------
+    // Savestate  -------------------------------------------
 
     this.saveState = function() {
         var light = this.lightState();
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            vdp: v9990.saveState(),
-            c: control
+            c: control,
+            vdp: v9990.saveState()
         };
     };
 

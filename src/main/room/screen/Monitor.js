@@ -179,7 +179,7 @@ wmsx.Monitor = function(display) {
     }
 
 
-    // TODO Savestate  -------------------------------------------
+    // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
