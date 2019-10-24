@@ -167,13 +167,14 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     var bios, biosExt, ram;
 
 
-    // TODO Savestate  -------------------------------------------
+    // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
             a: active,
             ld: leds,
             rs: registerSelect,
+            r5: register5,
             r6: register6,
             cb: counterBase
         };
@@ -190,12 +191,13 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         active =  s.a;
         leds = s.ld;
         registerSelect = s.rs;
+        register5 = s.r5;
         register6 = s.r6;
         counterBase = s.cb;
         updateLeds();
     };
 
 
-    window.TRPAUSE = 0;
+    window.TRPAUSE = 0;      // TODO Global
 
 };

@@ -4,6 +4,7 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 // TODO Bug when loading states and already in Scanlines modes
+// TODO Bug on aspect when in V9990 and loading MSX1 savestate
 
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";

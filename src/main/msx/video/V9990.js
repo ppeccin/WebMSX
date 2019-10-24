@@ -1976,7 +1976,8 @@ wmsx.V9990 = function() {
     this.register = register;
     this.registerWrite = registerWrite;
 
-    window.V9990 = this;
+
+    window.V9990 = this;      // TODO Global
 
 };
 

@@ -15,7 +15,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
         self.bytes = bytes;
         baseAddress = rom.content.length === 0x4000 ? 0x4000 : (WMSX.DISK_ROM_START_PAGE || 0) * 0x4000;
         topAddress = baseAddress + bytes.length;
-        driver.patchDiskBIOS(bytes, baseAddress === 0x4000 ? -0x4000 : 0x0000, 0x4000, 0x576f, 0x5850, 0x7893);
+        patchDiskBIOS();
     }
 
     this.connect = function(machine) {
@@ -47,6 +47,10 @@ wmsx.CartridgeDiskPatched = function(rom) {
         // Receive all CPU Extensions and pass to the Disk Driver
         return driver.cpuExtensionFinish(s);
     };
+
+    function patchDiskBIOS() {
+        driver.patchDiskBIOS(bytes, baseAddress === 0x4000 ? -0x4000 : 0x0000, 0x4000, 0x576f, 0x5850, 0x7893);
+    }
 
 
     var bytes;
@@ -82,7 +86,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
             var len = this.rom.content.length;
             if (!bytes || bytes.length !== len) bytes = new Array(len);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
-            driver.patchDiskBIOS(bytes, baseAddress === 0x4000 ? -0x4000 : 0x0000, 0x4000, 0x576f, 0x5850, 0x7893);
+            patchDiskBIOS();
         }
         this.bytes = bytes;
         topAddress = baseAddress + bytes.length;

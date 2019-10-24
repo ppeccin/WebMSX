@@ -2561,7 +2561,8 @@ wmsx.VDP = function(machine, cpu) {
         return eval(str);
     };
 
-    window.VDP = this;
+
+    window.VDP = this;      // TODO Global
 
 };
 

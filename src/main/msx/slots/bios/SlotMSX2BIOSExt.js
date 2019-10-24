@@ -51,7 +51,7 @@ wmsx.SlotMSX2BIOSExt = function(rom) {
     var bytes;
     this.bytes = null;
 
-    var dramMode = false, ramBytes, ramBase = 0;        // TODO Reconnection on loadState()
+    var dramMode = false, ramBytes, ramBase = 0;
 
     var topAddress;
 

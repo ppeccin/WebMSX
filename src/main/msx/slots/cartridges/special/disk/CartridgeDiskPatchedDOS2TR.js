@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Patched DOS2 + Disk ROM content = 64K, starting at 0x4000
-// Disk ROM will be patched at 0x0000
+// Disk ROM will be patched at 0x0000 (DOS2) and 0xc0000 (DOS1)
 // 0x4000 - 0x7FFF
 
 wmsx.CartridgeDiskPatchedDOS2TR = function(rom) {
@@ -12,10 +12,7 @@ wmsx.CartridgeDiskPatchedDOS2TR = function(rom) {
         bytes = new Array(rom.content.length);
         wmsx.Util.arrayCopy(rom.content, 0, bytes);
         self.bytes = bytes;
-        // DOS2 Disk Driver on the first page at 0x0000
-        driver.patchDiskBIOS(bytes, -0x4000, 0x4000, 0x47d6, 0x48c6, 0x7824);
-        // DOS1 Disk Driver on the last page at 0xc000
-        driver.patchDiskBIOS(bytes, 0x8000, 0x4000, 0x576f, 0x5850, 0x782a);
+        patchDiskBIOS();
     }
 
     this.connect = function(machine) {
@@ -63,6 +60,13 @@ wmsx.CartridgeDiskPatchedDOS2TR = function(rom) {
         return driver.cpuExtensionFinish(s);
     };
 
+    function patchDiskBIOS() {
+        // DOS2 Disk Driver on the first page at 0x0000
+        driver.patchDiskBIOS(bytes, -0x4000, 0x4000, 0x47d6, 0x48c6, 0x7824);
+        // DOS1 Disk Driver on the last page at 0xc000
+        driver.patchDiskBIOS(bytes, 0x8000, 0x4000, 0x576f, 0x5850, 0x782a);
+    }
+
 
     var bytes;
     this.bytes = null;
@@ -75,7 +79,7 @@ wmsx.CartridgeDiskPatchedDOS2TR = function(rom) {
     var bankOffset;
 
 
-    // TODO Test Savestate  -------------------------------------------
+    // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
@@ -96,8 +100,7 @@ wmsx.CartridgeDiskPatchedDOS2TR = function(rom) {
             var len = this.rom.content.length;
             if (!bytes || bytes.length !== len) bytes = new Array(len);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
-            driver.patchDiskBIOS(bytes, -0x4000, 0x4000, 0x47d6, 0x48c6, 0x7824);
-            driver.patchDiskBIOS(bytes, 0x8000, 0x4000, 0x576f, 0x5850, 0x782a);
+            patchDiskBIOS();
         }
         this.bytes = bytes;
         bankOffset = s.b1;

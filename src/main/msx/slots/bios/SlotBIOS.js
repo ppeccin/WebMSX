@@ -100,7 +100,7 @@ wmsx.SlotBIOS = function(rom) {
 
     var topAddress;
 
-    var dramMode = false, ramBytes, ramBase = 0;        // TODO Reconnection on loadState()
+    var dramMode = false, ramBytes, ramBase = 0;
 
     var cassetteDriver = new wmsx.ImageCassetteDriver();
     var keyboardExtension = new wmsx.BIOSKeyboardExtension();
