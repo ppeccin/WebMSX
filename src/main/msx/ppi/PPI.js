@@ -74,7 +74,7 @@ wmsx.PPI = function(psgAudioChannel, controllersSocket, ledsSocket) {
     }
 
     function updateCapsLed() {
-        ledsSocket.ledStateChanged(0, (registerC & 0x40) === 0);
+        ledsSocket.ledStateChanged(0, (~registerC & 0x40) >> 6);
     }
 
 

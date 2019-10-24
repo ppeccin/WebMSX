@@ -99,8 +99,8 @@ WMSX = {
     MEGARAM_SIZE:                   2048,                       // 256, 512, 1024, 2048: MegaRAM size in KB
     DISK_ROM_START_PAGE:            0,                          // 0..1: Change starting page for ROMs > 16KB when format is DiskPatch
     LIGHT_STATES:                   true,
-    FAKE_PANA:                      0,
-    FAKE_TR:                        0,
+    PANA_TURBO:                     0,
+    FAKE_TR_TURBO:                  0,
 
     PSG_VOL:                        "f",                        // 0..f (hex digit):       PSG Volume adjust. Set globally or for each channel (4 values)
     PSG_PAN:                        "8",                        // 0; 1..8..f (hex digit): PSG PanPot adjust. Set globally or for each channel (4 values)
@@ -303,8 +303,8 @@ WMSX.PRESETS_CONFIG = {
     },
     _MSX2PBASE: {
         _INCLUDE:           "_MSX2BASE",
-        FAKE_PANA:          1,
-        FAKE_TR:            1
+        PANA_TURBO:         1,
+        FAKE_TR_TURBO:      1
     },
 
     // MSX2 Machine Presets. Do not use directly
@@ -369,8 +369,8 @@ WMSX.PRESETS_CONFIG = {
         _INCLUDE:           "DISKEXTN",
         Z80_CLOCK_MODE:     0,
         VDP_CLOCK_MODE:     0,
-        FAKE_PANA:          0,
-        FAKE_TR:            0,
+        PANA_TURBO:         0,
+        FAKE_TR_TURBO:      0,
         VDP_TYPE:           -1,
         RTC_ACTIVE:         -1
     }

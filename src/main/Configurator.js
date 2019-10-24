@@ -183,8 +183,8 @@ wmsx.Configurator = {
         WMSX.VOL = Number(WMSX.VOL) || 1;
         WMSX.HARDDISK_MIN_SIZE_KB |= 0;
         WMSX.MEGARAM_SIZE |= 0;
-        WMSX.FAKE_PANA |= 0;
-        WMSX.FAKE_TR |= 0;
+        WMSX.PANA_TURBO |= 0;
+        WMSX.FAKE_TR_TURBO |= 0;
 
         // Boolean parameters (only single parameters known)
         WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED === "true";

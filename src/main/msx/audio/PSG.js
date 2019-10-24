@@ -104,7 +104,7 @@ wmsx.PSG = function(controllersSocket, ledsSocket, secondary) {
     };
 
     function updateKanaLed() {
-        if (ledsSocket) ledsSocket.ledStateChanged(1, (register[15] & 0x80) === 0);
+        if (ledsSocket) ledsSocket.ledStateChanged(1, (~register[15] & 0x80) >> 7);
     }
 
 

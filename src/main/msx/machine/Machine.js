@@ -1192,7 +1192,7 @@ wmsx.Machine = function() {
         this.fireLedsStateUpdate = function() {
             if (ledsStateListener) ledsStateListener.ledsStateUpdate(ledsState, ledsInfo);
         };
-        var ledsState = [ false, false, false, false ];     // Caps, Kana, Turbo, TurboR
+        var ledsState = [ 0, 0, 0, 0 ];                     // Caps, Kana, Turbo, TurboR
         var ledsInfo = [ "", "", "", "" ];                  //             Turbo, TurboR
         var ledsStateListener;
     }

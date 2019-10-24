@@ -106,7 +106,8 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
 
         if (registerSelect === 6) {
             var newVal = val & 0x60;
-            if (register6 === newVal) return;
+            var mod = newVal ^ register6;
+            if (!mod) return;
             register6 = newVal;
 
             cpu.setR800Mode((register6 & 0x20) === 0);
@@ -114,6 +115,8 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
             bios.setDRAMMode(dramMode);
             biosExt.setDRAMMode(dramMode);
             ram.setDRAMMode(dramMode);
+
+            if (mod & 0x40) updateLeds();
         }
     };
     this.inputE5 = function() {
@@ -151,7 +154,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     }
 
     function updateLeds() {
-        ledsSocket.ledStateChanged(3, (leds & 0x80) !== 0);
+        ledsSocket.ledStateChanged(3, (leds & 0x80) ? 1 + ((register6 & 0x40) >> 6) : 0);
     }
 
 

@@ -38,10 +38,10 @@ wmsx.TurboDriver = function() {
     };
 
     this.turboModesUpdate = function() {
-        if (WMSX.FAKE_TR) patchBIOS(); else unPatchBIOS();
-        if (WMSX.FAKE_PANA) machine.bus.connectSwitchedDevice(0x08, this); else machine.bus.disconnectSwitchedDevice(0x08, this);
+        if (WMSX.FAKE_TR_TURBO) patchBIOS(); else unPatchBIOS();
+        if (WMSX.PANA_TURBO) machine.bus.connectSwitchedDevice(0x08, this); else machine.bus.disconnectSwitchedDevice(0x08, this);
 
-        var softTurbo = WMSX.FAKE_TR || WMSX.FAKE_PANA;
+        var softTurbo = WMSX.FAKE_TR_TURBO || WMSX.PANA_TURBO;
         var z80Mode = machine.getZ80ClockMode();
         var r800Mode = machine.getR800ClockMode();
         var vdpMode = machine.getVDPClockMode();
@@ -52,11 +52,11 @@ wmsx.TurboDriver = function() {
         machine.vdp.setVDPTurboMulti(vdpMode === 0 && softTurbo && softTurboON ? WMSX.VDP_SOFT_TURBO_MULTI : vdpMode > 0 ? vdpMode : 1);
 
         var r800Multi = machine.cpu.getR800ClockMulti();
-        ledsSocket.ledStateChanged(2, z80Multi !== 1);
+        ledsSocket.ledStateChanged(2, z80Multi !== 1 ? 1 : 0);
         ledsSocket.ledInfoChanged(2, "" + z80Multi + "x");
         ledsSocket.ledInfoChanged(3, r800Multi !== 1 ? "" + r800Multi + "x" : "");
 
-        // console.log("TurboDriver modes update. z80Multi:", z80Multi);
+        // console.error("TurboDriver modes update. z80Multi:", z80Multi);
     };
 
     this.cpuExtensionBegin = function(s) {

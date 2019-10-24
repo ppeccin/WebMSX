@@ -315,7 +315,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 #wmsx-bar-turbo, #wmsx-bar-caps, #wmsx-bar-kana {
     position: absolute;
     left: 0; right: 0;
-    width: 47px;
+    width: 20px;
     margin: 0 auto;
     padding: 8px 0 0 0;
     color: hsl(0, 100%, 64%);
@@ -327,9 +327,9 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     box-sizing: border-box;
     cursor: auto;
 }
-#wmsx-bar-turbo     { left: 110px; padding-left: 26px; cursor: pointer; }
-#wmsx-bar-caps      { left: calc(168px + 10%); height: 29px; background: none; }
-#wmsx-bar-kana      { left: calc(170px + 25%); height: 29px; background: none; }
+#wmsx-bar-turbo     { left: 88px; padding-left: 25px; cursor: pointer; }
+#wmsx-bar-caps      { left: calc(141px + 10%); height: 29px; background: none; }
+#wmsx-bar-kana      { left: calc(143px + 25%); height: 29px; background: none; }
 
 #wmsx-bar.wmsx-narrow #wmsx-bar-turbo {
     position: static;
