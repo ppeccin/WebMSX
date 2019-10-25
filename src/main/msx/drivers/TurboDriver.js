@@ -156,7 +156,7 @@ wmsx.TurboDriver = function() {
     };
 
 
-    // TODO Savestate  -------------------------------------------
+    // Savestate  -------------------------------------------
 
     this.saveState = function() {
         return {
