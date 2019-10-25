@@ -729,7 +729,7 @@ wmsx.Machine = function() {
                 vSynchModeToggle();
                 break;
             case controls.CPU_CLOCK_MODE:
-                cpu.getR800Mode() ? self.toggleR800ClockMode(altFunc) : self.toggleZ80ClockMode(altFunc);
+                trd.isR800LedOn() ? self.toggleR800ClockMode(altFunc) : self.toggleZ80ClockMode(altFunc);
                 break;
             case controls.Z80_CLOCK_MODE:
                 self.toggleZ80ClockMode(altFunc);

@@ -56,10 +56,6 @@ wmsx.Z80 = function() {
         swapModeState();
     };
 
-    this.getR800Mode = function() {
-        return r800;
-    };
-
     this.clockPulses = function(busPulses) {
         // if (self.HALT) return;
 

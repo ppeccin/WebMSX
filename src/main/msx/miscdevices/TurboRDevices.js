@@ -65,6 +65,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
 
     this.reset = function() {
         leds = 0x00;
+        ledR800Type = 1;
         registerSelect = 0;
         register6 = 0x60;
         this.outputE6(0);       // reset counter
@@ -106,17 +107,20 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
 
         if (registerSelect === 6) {
             var newVal = val & 0x60;
-            var mod = newVal ^ register6;
-            if (!mod) return;
-            register6 = newVal;
+            if (register6 === newVal) return;
 
+            register6 = newVal;
             cpu.setR800Mode((register6 & 0x20) === 0);
             var dramMode = (register6 & 0x40) === 0;
             bios.setDRAMMode(dramMode);
             biosExt.setDRAMMode(dramMode);
             ram.setDRAMMode(dramMode);
 
-            if (mod & 0x40) updateLeds();
+            // Update led type only if both the led and R800 is on
+            if ((register6 & 0x20) === 0) {
+                ledR800Type = 1 + ((register6 & 0x40) >> 6);
+                if (leds & 0x80) updateLeds();
+            }
         }
     };
     this.inputE5 = function() {
@@ -149,12 +153,16 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         return active ? getCounterValue() >> 8 : 0xff;
     };
 
+    this.isR800LedOn = function() {
+        return (leds & 0x80) !== 0;
+    };
+
     function getCounterValue() {
         return ((cpu.getBUSCycles() - counterBase) / 14) & 0xffff;
     }
 
     function updateLeds() {
-        ledsSocket.ledStateChanged(3, (leds & 0x80) ? 1 + ((register6 & 0x40) >> 6) : 0);
+        ledsSocket.ledStateChanged(3, (leds & 0x80) ? ledR800Type : 0);
     }
 
 
@@ -162,6 +170,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     var active = false;
 
     var leds = 0x00;                // bit 7: R800 LED (1 = on), bit 1: Z80 pause??? (1 = yes), bit 0: pause LED (1 = on)
+    var ledR800Type = 1;
     var registerSelect = 0;
     var register5 = 0x00;           // bit 6: Firmware Switch (0=right(OFF), 1=left(ON))  NEVER CHANGED, firmware always inactive
     var register6 = 0x60;          	// bit 6: ROM mode (0=DRAM, 1=ROM), bit 5: Processor mode (0=R800, 1=Z80)
@@ -176,6 +185,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         return {
             a: active,
             ld: leds,
+            lr: ledR800Type,
             rs: registerSelect,
             r5: register5,
             r6: register6,
@@ -193,6 +203,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
 
         active =  s.a;
         leds = s.ld;
+        ledR800Type = s.lr;
         registerSelect = s.rs;
         register5 = s.r5;
         register6 = s.r6;
