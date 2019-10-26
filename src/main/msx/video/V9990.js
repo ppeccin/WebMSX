@@ -263,7 +263,7 @@ wmsx.V9990 = function() {
     };
 
     this.videoSignalDisplayStateUpdate = function(displayed, pSuperimposeActive) {
-        //console.log("V9990 displayed:", displayed);
+        // console.error("V9990 displayUpdate:", displayed, pSuperimposeActive);
 
         videoDisplayed = displayed;
 
@@ -319,7 +319,6 @@ wmsx.V9990 = function() {
         commandProcessor.setV9990DisplayAndSpritesEnabled(dispEnabled, spritesEnabled);
 
         updateYSEnabled();
-        if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);
     }
 
     this.updateCycles = function() {
@@ -371,15 +370,15 @@ wmsx.V9990 = function() {
         paletteOffset = (paletteOffsetB << 2) | paletteOffsetA;
     }
 
-    function updateYSEnabled() {
+    function updateYSEnabled(force) {
         var newValue = superimposeActive && (register[8] & 0x20) !== 0;     // YSE
-        if (ysEnabled === newValue) return;
+        if (!force && ysEnabled === newValue) return;
 
         ysEnabled = newValue;
         updateAllPaletteValues();
         if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);    // update color 0 (transparent when YS)
 
-        //console.log("V9990 YSEnabled:", ysEnabled);
+        // console.error("V9990 YSEnabled:", ysEnabled, (register[8] & 0x20).toString(16), superimposeActive);
     }
 
     function paletteRAMWrite(entry, val) {
@@ -620,7 +619,7 @@ wmsx.V9990 = function() {
         debugModePatternInfo = debugMode >= 5;
         debugModePatternInfoBlocks = debugMode === 6;
         debugModePatternInfoNames = debugMode === 7;
-        if (oldDebugModeSpriteHighlight !== debugModeSpriteHighlight || oldDebugModePatternInfo !== debugModePatternInfo) debugAdjustPalette();
+        if (oldDebugModeSpriteHighlight !== debugModeSpriteHighlight || oldDebugModePatternInfo !== debugModePatternInfo) updateAllPaletteValues();
         if (debugModeSpriteHighlight) initFrameResources(true);
         updateLineActiveType();
         updateSpritePattAddress();
@@ -630,10 +629,6 @@ wmsx.V9990 = function() {
         spriteDebugMode = mode >= 0 ? mode % 4 : 4 + mode;
         spriteDebugModeLimit = (spriteDebugMode === 0) || (spriteDebugMode === 2);
     };
-
-    function debugAdjustPalette() {
-        for (var entry = 0; entry < 64; entry++) updatePaletteValue(entry);
-    }
 
     function updateSynchronization() {
         // According to the native video frequency detected, target Video Standard and vSynchMode, use a specific pulldown configuration
@@ -1430,7 +1425,7 @@ wmsx.V9990 = function() {
 
         for (var b = quantBytes; b > 0; b -= 2) {
             v = vram[byteYBase + byteXPos] | (vram[byteYBase + byteXPos + 1] << 8); byteXPos = (byteXPos + 2) & scrollXMaxBytes;
-            if (ysEnabled && (v & 0x8000)) v &= ~0xff000000;
+            if (!ysEnabled) v &= ~0x8000;
             frameBackBuffer[buffPos] = colors16bitValues[v]; ++buffPos;
         }
     }
@@ -1942,7 +1937,7 @@ wmsx.V9990 = function() {
         if (s.fs !== undefined) frameStartingActiveScanline = s.fs;       // backward compatibility
         if (cpu) updateIRQ();
         updateMode();
-        debugAdjustPalette();
+        updateYSEnabled(true);
         updateBackdropColor();
         updateRenderMetrics(true);
 
