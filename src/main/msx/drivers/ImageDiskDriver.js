@@ -73,41 +73,40 @@ wmsx.ImageDiskDriver = function(dos2) {
         bytes[patchBase + drives + 1] = 0xe2;
         bytes[patchBase + drives + 2] = 0x00;  // NOP
 
-        // DOS Kernel Jump Table for Disk Driver routines. Patched at the ROUTINE location + offset
+        // DOS Kernel Jump Table for Disk Driver routines. Patched at the ROUTINE location
         // DSKIO routine (EXT 4)
-        addr = (patchBase + driverStart + 16 + 0) || ((patchBase + driverStart + 16 + 0 + 1) << 8);
+        addr = patchBase + (bytes[patchBase + driverStart + 16 + 0 + 1] | (bytes[patchBase + driverStart + 16 + 0 + 2] << 8));
         bytes[addr + 0] = 0xed;
         bytes[addr + 1] = 0xe4;
         bytes[addr + 2] = 0xc9;
         // DSKCHG routine (EXT 5)
-        addr = (patchBase + driverStart + 16 + 3) || ((patchBase + driverStart + 16 + 3 + 1) << 8);
+        addr = patchBase + (bytes[patchBase + driverStart + 16 + 3 + 1] | (bytes[patchBase + driverStart + 16 + 3 + 2] << 8));
         bytes[addr + 0] = 0xed;
         bytes[addr + 1] = 0xe5;
         bytes[addr + 2] = 0xc9;
         // GETDPB routine (EXT 6)
-        addr = (patchBase + driverStart + 16 + 6) || ((patchBase + driverStart + 16 + 6 + 1) << 8);
+        addr = patchBase + (bytes[patchBase + driverStart + 16 + 6 + 1] | (bytes[patchBase + driverStart + 16 + 6 + 2] << 8));
         bytes[addr + 0] = 0xed;
         bytes[addr + 1] = 0xe6;
         bytes[addr + 2] = 0xc9;
         // CHOICE routine (EXT 7)
-        choiceAddr = addr = (patchBase + driverStart + 16 + 9) || ((patchBase + driverStart + 16 + 9 + 1) << 8);
+        addr = patchBase + (bytes[patchBase + driverStart + 16 + 9 + 1] | (bytes[patchBase + driverStart + 16 + 9 + 2] << 8));
+        choiceAddr = addr - patchBase;
         bytes[addr + 0] = 0xed;
         bytes[addr + 1] = 0xe7;
         bytes[addr + 2] = 0xc9;
         // DSKFMT routine (EXT 8)
-        addr = (patchBase + driverStart + 16 + 12) || ((patchBase + driverStart + 16 + 12 + 1) << 8);
+        addr = patchBase + (bytes[patchBase + driverStart + 16 + 12 + 1] | (bytes[patchBase + driverStart + 16 + 12 + 2] << 8));
         bytes[addr + 0] = 0xed;
         bytes[addr + 1] = 0xe8;
         bytes[addr + 2] = 0xc9;
         // MTOFF routine (EXT a)
-        addr = (patchBase + driverStart + 16 + 15) || ((patchBase + driverStart + 16 + 15 + 1) << 8);
+        addr = patchBase + (bytes[patchBase + driverStart + 16 + 15 + 1] | (bytes[patchBase + driverStart + 16 + 15 + 2] << 8));
         bytes[addr + 0] = 0xed;
         bytes[addr + 1] = 0xea;
         bytes[addr + 2] = 0xc9;
 
-        // It seems the Disk BIOS routines just assume the CHOICE message will reside in the same slot as the Disk BIOS itself.
-        // So we must put the message in the same slot and make that memory region readable
-        // Lets use a memory space in page 2 of this same slot and hope it works
+        // CHOICE message string
         if (choiceStrAddr >= 0) {
             choiceStringAddress[choiceAddr] = choiceStrAddr;
             for (var i = 0; i < CHOICE_STRING.length; i++)

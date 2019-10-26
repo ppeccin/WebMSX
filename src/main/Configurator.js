@@ -366,19 +366,19 @@ wmsx.Configurator = {
         WMSX.EXTENSIONS_CONFIG = JSON.parse(this.originalConfig.EXTENSIONS_CONFIG);
         WMSX.PRESETS_CONFIG = JSON.parse(this.originalConfig.PRESETS_CONFIG);
         if (s.v < 50) {
-            WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT = [2, 2];
-            WMSX.EXTENSIONS_CONFIG.DISK.SLOT =     [2, 2];
-            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT = [2, 3];
-            WMSX.EXTENSIONS_CONFIG.KANJI.SLOT =    [3, 1];
-            WMSX.EXPANSION1_SLOT =                 [3, 2];
-            WMSX.EXPANSION2_SLOT =                 [3, 3];
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT =  [2, 2];
+            WMSX.EXTENSIONS_CONFIG.DISK.SLOT =      [2, 2];
+            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT =  [2, 3];
+            WMSX.EXTENSIONS_CONFIG.KANJI.SLOT =     [3, 1];
+            WMSX.EXPANSION1_SLOT =                  [3, 2];
+            WMSX.EXPANSION2_SLOT =                  [3, 3];
         } else if (s.v < 51) {
-            WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT = [2, 3];
-            WMSX.EXTENSIONS_CONFIG.DISK.SLOT =     [2, 3];
-            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT = [3, 2];
-            WMSX.EXTENSIONS_CONFIG.KANJI.SLOT =    [2, 1];
-            WMSX.EXPANSION1_SLOT =                 [2, 2];
-            WMSX.EXPANSION2_SLOT =                 [2, 3];
+            WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT2 = [3, 3];
+            WMSX.EXTENSIONS_CONFIG.DISK.SLOT2 =     [3, 3];
+            WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT =  [3, 2];
+            WMSX.EXTENSIONS_CONFIG.KANJI.SLOT =     [2, 1];
+            WMSX.EXPANSION1_SLOT =                  [2, 2];
+            WMSX.EXPANSION2_SLOT =                  [2, 3];
         } else if (s.v < 60) {
             WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT2 = [3, 3];
             WMSX.EXTENSIONS_CONFIG.DISK.SLOT2 =     [3, 3];

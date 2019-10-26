@@ -78,10 +78,11 @@ wmsx.CartridgeDiskPatched = function(rom) {
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        baseAddress = s.ba !== undefined ? s.ba : 0x4000;     // backward compatibility
-        if (s.b)
+        baseAddress = s.ba !== undefined ? s.ba : 0x4000;       // backward compatibility
+        if (s.b) {
             bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
-        else {
+            bytes.length = bytes.length & ~0x3fff;              // backward compatibility: trunc to multiple of 16KB pages, thus removing extra CHOICE bytes of old impl
+        } else {
             this.rom.reloadEmbeddedContent();
             var len = this.rom.content.length;
             if (!bytes || bytes.length !== len) bytes = new Array(len);
