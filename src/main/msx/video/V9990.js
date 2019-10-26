@@ -375,6 +375,7 @@ wmsx.V9990 = function() {
         if (!force && ysEnabled === newValue) return;
 
         ysEnabled = newValue;
+        ys16BitColorMask = ysEnabled ? 0xffff : 0x7fff;
         updateAllPaletteValues();
         if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ysEnabled);    // update color 0 (transparent when YS)
 
@@ -597,8 +598,8 @@ wmsx.V9990 = function() {
         //logInfo("updatePaletteValue entry " + entry + ": " + val);
 
         var index = entry << 2;
-        var value = colors16bitValues[((paletteRAM[index + 1] & 0x1f) << 10) | ((paletteRAM[index] & 0x1f) << 5) | (paletteRAM[index + 2] & 0x1f)];
-        if (ysEnabled && (paletteRAM[index] & 0x80)) value &= ~0xff000000;
+        var v = ys16BitColorMask & (((paletteRAM[index] & 0x80) << 8) | ((paletteRAM[index + 1] & 0x1f) << 10) | ((paletteRAM[index] & 0x1f) << 5) | (paletteRAM[index + 2] & 0x1f));
+        var value = colors16bitValues[v];
         paletteValuesReal[entry] = value;
 
         if (debugModeSpriteHighlight) value &= DEBUG_DIM_ALPHA_MASK;
@@ -1424,8 +1425,7 @@ wmsx.V9990 = function() {
         buffPos = bufferPosition;
 
         for (var b = quantBytes; b > 0; b -= 2) {
-            v = vram[byteYBase + byteXPos] | (vram[byteYBase + byteXPos + 1] << 8); byteXPos = (byteXPos + 2) & scrollXMaxBytes;
-            if (!ysEnabled) v &= ~0x8000;
+            v = ys16BitColorMask & (vram[byteYBase + byteXPos] | (vram[byteYBase + byteXPos + 1] << 8)); byteXPos = (byteXPos + 2) & scrollXMaxBytes;
             frameBackBuffer[buffPos] = colors16bitValues[v]; ++buffPos;
         }
     }
@@ -1787,7 +1787,7 @@ wmsx.V9990 = function() {
     var palettePointer = 0, palettePointerReadInc = true;
     var paletteOffsetA = 0, paletteOffsetB = 0, paletteOffset = 0;
 
-    var ysEnabled = false, superimposeActive = false;
+    var ysEnabled = false, ys16BitColorMask = 0x7fff, superimposeActive = false;
 
     var register = new Array(64);
     var paletteRAM = new Array(256);          // 64 entries x 3+1 bytes (R, G, B, unused)
