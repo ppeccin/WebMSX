@@ -35,6 +35,12 @@ wmsx.V9990CommandProcessor = function() {
                 LMCM(); break;
             case 0x40:
                 LMMM(); break;
+            case 0x50:
+                CMMC(); break;
+            case 0x60:
+                CMMK(); break;
+            case 0x70:
+                CMMM(); break;
             case 0x80:
                 BMXL(); break;
             case 0x90:
@@ -52,7 +58,7 @@ wmsx.V9990CommandProcessor = function() {
             case 0xf0:
                 ADVN(); break;
             default:
-                // wmsx.Util.error("Unsupported V9938 Command: " + val.toString(16));
+                wmsx.Util.error("Unsupported V9990 Command: " + val.toString(16));
         }
     };
 
@@ -215,12 +221,19 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function getFC(yP1Offset) {
-        // return (register[48] << 8) | register[49];   // FC H/L swapped
         return isP1
             ? yP1Offset === 0
                 ? (register[48] << 8) | register[48]    // Only High byte for VRAM0
                 : (register[49] << 8) | register[49]    // Only Low byte for VRAM1
-            : (register[48] << 8) | register[49];       // All 16 bits range
+            : (register[48] << 8) | register[49];       // All 16 bits range, H/L swapped
+    }
+
+    function getBC(yP1Offset) {
+        return isP1
+            ? yP1Offset === 0
+                ? (register[50] << 8) | register[50]    // Only High byte for VRAM0
+                : (register[51] << 8) | register[51]    // Only Low byte for VRAM1
+            : (register[50] << 8) | register[51];       // All 16 bits range, H/L swapped
     }
 
     function getAYME() {
@@ -301,12 +314,10 @@ wmsx.V9990CommandProcessor = function() {
         if (CX >= NX) {
             EDX = DX;
             CX = 0; ++CY; DY = (DY + DIY) & imageHeightMask;
-            if (CY >= NY) {
+            if (CY >= NY)
                 finish();
-            }
-        } else {
+        } else
             EDX = (EDX + DIX) & imageWidthMask;
-        }
     }
 
     function LMMV() {
@@ -398,10 +409,10 @@ wmsx.V9990CommandProcessor = function() {
         if (CX >= NX) {
             ESX = SX;
             CX = 0; ++CY; SY = (SY + DIY) & imageHeightMask;
-            if (CY >= NY) finish();
-        } else {
+            if (CY >= NY)
+                finish();
+        } else
             ESX = (ESX + DIX) & imageWidthMask;
-        }
 
         return sc;
     }
@@ -438,6 +449,125 @@ wmsx.V9990CommandProcessor = function() {
         setDY(dy);
 
         start(LMMMTiming, nx * ny, ny);
+    }
+
+    function CMMC() {
+        // Collect parameters
+        DX = getDX();
+        DYP1Off = getDYP1Offset();
+        DY = getDY();
+        NX = getNX();
+        NY = getNY();
+        DIX = getDIX();
+        DIY = getDIY();
+        LOP = getLOP();
+        WM = getWM(DYP1Off);
+        FBC = (getFC(DYP1Off) << 16) | getBC(DYP1Off);     // combined so we can get desired color by shifting instead of condition
+
+        // console.log("CMMC START x: " + DX + ", y: " + DY + " + " + DYP1Off + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
+
+        EDX = DX;
+        CX = 0; CY = 0;
+
+        writeStart(CMMCNextWrite);
+    }
+
+    function CMMCNextWrite(pd) {
+        // console.log("CMMC Write CX: " + CX + ", CY: " + CY);
+
+        for (var b = 7; b >= 0; --b) {
+            var p = (pd >> b) & 1;
+            logicalPSETX(EDX, DY | DYP1Off, EDX, (FBC >> (p << 4)) & 0xffff, LOP, WM);
+
+            ++CX;
+            if (CX >= NX) {
+                EDX = DX;
+                CX = 0; ++CY; DY = (DY + DIY) & imageHeightMask;
+                if (CY >= NY) {
+                    finish();
+                    break;
+                }
+            } else
+                EDX = (EDX + DIX) & imageWidthMask;
+        }
+
+        // Set changed register state after finishing
+        if (!CE) {
+            setDY(DY);
+            v9990.setStatusTR(0);
+        }
+    }
+
+    function CMMM() {
+        // Collect parameters
+        var sa = getSA();
+        var dx = getDX();
+        var dyP1Off = getDYP1Offset();
+        var dy = getDY();
+        var nx = getNX();
+        var ny = getNY();
+        var dix = getDIX();
+        var diy = getDIY();
+        var op = getLOP();
+        var wm = getWM(dyP1Off);
+        var fbc = (getFC(DYP1Off) << 16) | getBC(DYP1Off);     // combined so we can get desired color by shifting instead of condition
+
+        // console.log("CMMM sa: " + sa.toString(16) + ", dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+
+        // Perform operation
+        var pd = 0, cp = 0, p = 0;                 // cp counts pixels
+        for (var cy = ny; cy > 0; --cy) {
+            var edx = dx;
+            for (var cx = 0; cx < nx; ++cx) {
+                // Only read when new BYTE needed
+                if ((cp & 0x07) === 0) {
+                    pd = vram[sa]; sa = (sa + 1) & VRAM_LIMIT;
+                }
+                p = (pd >> (7 - (cp & 0x07))) & 1;
+                logicalPSETX(edx, dy | dyP1Off, edx, (fbc >> (p << 4)) & 0xffff, op, wm);
+                edx = (edx + dix) & imageWidthMask; ++cp;
+            }
+            dy = (dy + diy) & imageHeightMask;
+        }
+
+        // Set changed register state after finishing
+        setSA(sa);
+        setDY(dy);
+
+        start(BMXLTiming, nx * ny, ny);
+    }
+
+    function CMMK() {
+        // Collect parameters
+        // No Source data since there is no Kanji ROM. All input bytes will be 0
+        var dx = getDX();
+        var dyP1Off = getDYP1Offset();
+        var dy = getDY();
+        var nx = getNX();
+        var ny = getNY();
+        var dix = getDIX();
+        var diy = getDIY();
+        var op = getLOP();
+        var wm = getWM(dyP1Off);
+        var bc = getBC(DYP1Off);        // dont get FC since only BC will be used
+
+        // console.log("CMMK dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+
+        // Perform operation
+        for (var cy = ny; cy > 0; --cy) {
+            var edx = dx;
+            for (var cx = 0; cx < nx; ++cx) {
+                // Never read bytes. Input byte is always 0
+                logicalPSETX(edx, dy | dyP1Off, edx, bc, op, wm);     // Will always paint with BC
+                edx = (edx + dix) & imageWidthMask;
+            }
+            dy = (dy + diy) & imageHeightMask;
+        }
+
+        // Set changed register state after finishing
+        setDY(dy);
+
+        start(BMXLTiming, nx * ny, ny);
     }
 
     function BMXL() {
@@ -550,7 +680,7 @@ wmsx.V9990CommandProcessor = function() {
         var wm = getWM(dyP1Off);
         var fc = getFC(dyP1Off);
 
-        // console.log("LINE dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", mj: " + mj + ", mi: " + mi + ", dix: " + dix + ", diy: " + diy + ", maj: " + maj + ", fc: " + fc.toString(16)  + ", wm: " + wm.toString(16));
+        // console.log("LINE dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", mj: " + mj + ", mi: " + mi + ", dix: " + dix + ", diy: " + diy + ", maj: " + maj + ", fc: " + fc.toString(16)  + ", wm: " + wm.toString(16) + ", lop: " + op.name);
 
         // Timming control
         var nMinor = 0;
@@ -558,7 +688,7 @@ wmsx.V9990CommandProcessor = function() {
         // Perform operation
         var e = 0;
         if (maj === 0) {
-            for (var n = mj; n > 0; --n) {
+            for (var n = mj; n >= 0; --n) {
                 logicalPSETX(dx, dy | dyP1Off, dx, fc, op, wm);
                 dx = (dx + dix) & imageWidthMask;
                 if (mi > 0) {
@@ -569,7 +699,7 @@ wmsx.V9990CommandProcessor = function() {
                 }
             }
         } else {
-            for (n = mj; n > 0; --n) {
+            for (n = mj; n >= 0; --n) {
                 logicalPSETX(dx, dy | dyP1Off, dx, fc, op, wm);
                 dy = (dy + diy) & imageHeightMask;
                 if (mi > 0) {
@@ -1059,7 +1189,7 @@ wmsx.V9990CommandProcessor = function() {
     var v9990, vram, register;
 
     var CE = 0;
-    var SX = 0, SY = 0, SYP1Off = 0, DX = 0, DY = 0, DYP1Off = 0, NX = 0, NY = 0, ESX = 0, EDX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, WM = 0, LOP;
+    var SX = 0, SY = 0, SYP1Off = 0, DX = 0, DY = 0, DYP1Off = 0, NX = 0, NY = 0, ESX = 0, EDX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, WM = 0, FBC = 0, LOP;
     var readData = 0, writeDataPending = null, readDataPending = null, writeHandler = null, readHandler = null;
     var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
 
@@ -1157,7 +1287,7 @@ wmsx.V9990CommandProcessor = function() {
             rd: readData, rdp: readDataPending, wdp: writeDataPending,
             wh: writeHandler && writeHandler.name, rh: readHandler && readHandler.name, fc: finishingCycle,
             SX: SX, SY: SY, SYP1O: SYP1Off, DX: DX, DY: DY, DYP1O: DYP1Off, NX: NX, NY: NY,
-            ESX: ESX, EDX: EDX, DIX: DIX, DIY: DIY, CX: CX, CY: CY, WM: WM, LOP: LOP && LOGICAL_OPERATIONS.indexOf(LOP),
+            ESX: ESX, EDX: EDX, DIX: DIX, DIY: DIY, CX: CX, CY: CY, WM: WM, FBC: FBC, LOP: LOP && LOGICAL_OPERATIONS.indexOf(LOP),
             dsm: dispAndSpritesMode, tcm: turboClockMulti
         };
     };
@@ -1167,7 +1297,7 @@ wmsx.V9990CommandProcessor = function() {
         readData = s.rd; readDataPending = s.rdp; writeDataPending = s.wdp;
         writeHandler = COMMAND_HANDLERS[s.wh]; readHandler = COMMAND_HANDLERS[s.rh]; finishingCycle = s.fc;
         SX = s.SX; SY = s.SY; SYP1Off = s.SYP1O; DX = s.DX; DY = s.DY; DYP1Off = s.DYP1O; NX = s.NX; NY = s.NY;
-        ESX = s.ESX; EDX = s.EDX; DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; WM = s.WM; LOP = s.LOP >= 0 ? LOGICAL_OPERATIONS[s.LOP] : undefined;
+        ESX = s.ESX; EDX = s.EDX; DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; WM = s.WM; FBC = s.FBC; LOP = s.LOP >= 0 ? LOGICAL_OPERATIONS[s.LOP] : undefined;
         dispAndSpritesMode = s.dsm; turboClockMulti = s.tcm !== undefined ? s.tcm : 1;
     };
 
