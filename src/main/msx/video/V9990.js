@@ -371,7 +371,8 @@ wmsx.V9990 = function() {
         paletteOffset = (paletteOffsetB << 2) | paletteOffsetA;
     }
 
-    function updateCursorPaletteOffset() {
+    function updatePaletteOffsetCursor() {
+        paletteOffsetCursor = (register[28] & 0x0f) << 2;       // CSPO5-2
     }
 
     function updateYSEnabled(force) {
@@ -488,7 +489,7 @@ wmsx.V9990 = function() {
                 if (mod & 0x0f) updatePriorities();             // PRY, PRX
                 break;
             case 28:
-                if (mod & 0x0f) updateCursorPaletteOffset();    // CSPO5-2
+                if (mod & 0x0f) updatePaletteOffsetCursor();    // CSPO5-2
                 break;
             case 52:
                 commandProcessor.startCommand(val);
@@ -1081,6 +1082,7 @@ wmsx.V9990 = function() {
         bufferPosition += bufferLineAdvance;
     }
 
+    // TODO Cursor wrapping X will fail in B7
     function renderLineModeB7() {       // Quarter pixel width
         // Line
         typeData.renderLine(bufferPosition + (horizontalAdjust << 2) + 32, 1024);
@@ -1229,7 +1231,7 @@ wmsx.V9990 = function() {
     function renderSpritesLine(bufferPosition, line, pr1, width, atrPos) {
         if (!spritesEnabled || debugModeSpritesHidden) return;
 
-        var palOff = 0, name = 0, info = 0, y = 0, spriteLine = 0, x = 0, pattPixelPos = 0, s = 0, f = 0;
+        var palOff = 0, name = 0, info = 0, y = 0, spriteLine = 0, x = 0, pattPixelPos = 0;
         spritesGlobalPriority -= 128;
 
         var limit = 16;
@@ -1312,6 +1314,8 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = colorValues[((v3 & 0xf8) << 9) | chroma]; ++buffPos;
             frameBackBuffer[buffPos] = colorValues[((v4 & 0xf8) << 9) | chroma]; ++buffPos;
         }
+
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
     }
 
     function renderLineTypeBYxxP(colorValues, bufferPosition, quantPixels) {
@@ -1342,6 +1346,8 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = (v3 & 0x8) ? paletteValues[palOffsetBEven | (v3 >> 4)] : colorValues[((v3 & 0xf8) << 9) | chroma]; ++buffPos;
             frameBackBuffer[buffPos] = (v4 & 0x8) ? paletteValues[palOffsetBOdd  | (v4 >> 4)] : colorValues[((v4 & 0xf8) << 9) | chroma]; ++buffPos;
         }
+
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
     }
 
     function renderLineTypeBD16(bufferPosition, quantPixels) {
@@ -1362,11 +1368,9 @@ wmsx.V9990 = function() {
             v = ys16BitColorMask & (vram[byteYBase + byteXPos] | (vram[byteYBase + byteXPos + 1] << 8)); byteXPos = (byteXPos + 2) & scrollXMaxBytes;
             frameBackBuffer[buffPos] = colors16bitValues[v]; ++buffPos;
         }
+
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
     }
-    // frameBackBuffer[buffPos++] = 0xff000000
-    //     | (color5to8bits[v & 0x1f] << 16)               // B
-    //     | (color5to8bits[(v >> 10) & 0x1f]) << 8        // G
-    //     | color5to8bits[(v >> 5) & 0x1f];               // R
 
     function renderLineTypeBD8(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes;
@@ -1386,11 +1390,9 @@ wmsx.V9990 = function() {
             v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
             frameBackBuffer[buffPos] = colors8bitValues[v]; ++buffPos;
         }
+
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
     }
-    // frameBackBuffer[buffPos++] = 0xff000000
-    //     | (color2to8bits[v & 0x03] << 16)               // B
-    //     | (color3to8bits[(v >> 5) & 0x07]) << 8         // G
-    //     | color3to8bits[(v >> 2) & 0x07];               // R
 
     function renderLineTypeBP6(bufferPosition, quantPixels) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes;
@@ -1408,6 +1410,8 @@ wmsx.V9990 = function() {
             v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
             frameBackBuffer[buffPos] = paletteValues[v & 0x3f]; ++buffPos;
         }
+
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
     }
 
     function renderLineTypeBP4(bufferPosition, quantPixels) {
@@ -1432,6 +1436,8 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = paletteValues[palOffsetBEven | (v >> 4)];   ++buffPos;
             frameBackBuffer[buffPos] = paletteValues[palOffsetBOdd  | (v & 0x0f)]; ++buffPos;
         }
+
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
     }
 
     function renderLineTypeBP2(bufferPosition, quantPixels) {
@@ -1458,27 +1464,51 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = paletteValues[palOffsetEven | ((v >> 2) & 0x03)]; ++buffPos;
             frameBackBuffer[buffPos] = paletteValues[palOffsetOdd  | (v & 0x03)];        ++buffPos;
         }
+
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
     }
 
-    function stretchCurrentLine() {
-        var end = 256 + 8*2;
-        var s = bufferPosition + end - 1, d = bufferPosition + (end << 1) - 2;
-        for (var i = end; i > 0; --i, --s, d = d - 2)
-            frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
+    function renderCursorsLine(bufferPosition, line, width) {
+        if (!spritesEnabled || debugModeSpritesHidden) return;
 
-        //logInfo("Stretch currentLine");
-    }
+        var color = 0, eor = false, name = 0, info = 0, y = 0, cursorLine = 0, x = 0, pattPixelPos = 0;
 
-    function stretchFromCurrentToTopScanline() {
-        var end = 256 + 8*2;
-        var pos = bufferPosition;
-        for (var line = currentScanline; line >= startingVisibleTopBorderScanline; --line, pos -= bufferLineAdvance) {
-            var s = pos + end - 1, d = pos + (end << 1) - 2;
-            for (var i = end; i > 0; --i, --s, d = d - 2)
-                frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
+        var atrPos = 0x7fe00;
+        for (var cursor = 0; cursor < 2; ++cursor, atrPos += 8) {
+            y = vram[atrPos] | ((vram[atrPos + 2] & 1) << 8);
+            cursorLine = (line - y - 1) & 511;
+            if (cursorLine >= 32) continue;                                 // Not visible at line
+
+            info = vram[atrPos + 6];
+            if ((info & 0x10) === 0) {                                      // PR0 === 0 (shown)
+                x = vram[atrPos + 4] | ((info & 0x03) << 8);
+                if (x < width || x >= 1024 - 32) {                          // Only if not out to the right, or wrapping
+                    color = paletteOffsetCursor | ((info & 0xc0) >> 6);
+                    eor = (info & 0x20) !== 0;
+                    name = debugModeSpriteInfoNumbers ? cursor << 2 : cursor;
+                    pattPixelPos = 0x7ff00 + (cursorLine << 2) + (name << 7);
+
+                    if (x >= width) x -= 1024;
+                    paintCursor(bufferPosition, x, pattPixelPos, color, eor);
+                }
+            }
         }
+    }
 
-        //logInfo("Stretch to top");
+    function paintCursor(bufferPosition, x, pattPixelPos, color, eor) {
+        var v = 0;
+        var buffPos = bufferPosition + x;
+        for (var i = 4; i > 0; --i) {
+            v = vram[pattPixelPos]; ++pattPixelPos;
+            if (v & 0x80) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
+            if (v & 0x40) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
+            if (v & 0x20) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
+            if (v & 0x10) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
+            if (v & 0x08) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
+            if (v & 0x04) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
+            if (v & 0x02) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
+            if (v & 0x01) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
+        }
     }
 
     function cleanFrameBuffer() {
@@ -1719,7 +1749,7 @@ wmsx.V9990 = function() {
     var registerSelect = 0, registerSelectReadInc = true, registerSelectWriteInc = true;
     var vramPointerRead = 0, vramPointerWrite = 0, vramPointerReadInc = true, vramPointerWriteInc = true, vramReadData = 0;
     var palettePointer = 0, palettePointerReadInc = true;
-    var paletteOffsetA = 0, paletteOffsetB = 0, paletteOffset = 0;
+    var paletteOffsetA = 0, paletteOffsetB = 0, paletteOffset = 0, paletteOffsetCursor = 0;
 
     var ys16BitColorMask = 0x7fff, superimposeActive = false;
 
@@ -1825,7 +1855,7 @@ wmsx.V9990 = function() {
             rs: registerSelect, rri: registerSelectReadInc, rwi: registerSelectWriteInc,
             vr: vramPointerRead, vw: vramPointerWrite, vri: vramPointerReadInc, vwi: vramPointerWriteInc, vrd: vramReadData,
             pp: palettePointer, pri: palettePointerReadInc,
-            poa: paletteOffsetA, pob: paletteOffsetB, po: paletteOffset,
+            poa: paletteOffsetA, pob: paletteOffsetB, po: paletteOffset, poc: paletteOffsetCursor,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
             fs: frameStartingActiveScanline,
             f: frame, c: cycles, cc: lastBUSCyclesComputed,
@@ -1853,7 +1883,7 @@ wmsx.V9990 = function() {
         registerSelect = s.rs; registerSelectReadInc = s.rri; registerSelectWriteInc = s.rwi;
         vramPointerRead = s.vr; vramPointerWrite = s.vw; vramPointerReadInc = s.vri; vramPointerWriteInc = s.vwi; vramReadData = s.vrd;
         palettePointer = s.pp; palettePointerReadInc = s.pri;
-        paletteOffsetA = s.poa; paletteOffsetB = s.pob; paletteOffset = s.po;
+        paletteOffsetA = s.poa; paletteOffsetB = s.pob; paletteOffset = s.po; paletteOffsetCursor = s.poc;
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
         paletteRAM = wmsx.Util.restoreStringBase64ToInt8BitArray(s.p, paletteRAM);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
