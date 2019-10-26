@@ -1093,8 +1093,8 @@ wmsx.V9990 = function() {
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineTypeSBY(bufferPosition, quantPixels) {
-        for (var b = 0; b < quantPixels; ++b) {
+    function renderLineTypeSBY(bufferPosition, width) {
+        for (var p = 0; p < width; ++p) {
             frameBackBuffer[bufferPosition] = standByValue; ++bufferPosition;
         }
     }
@@ -1270,27 +1270,27 @@ wmsx.V9990 = function() {
         }
     }
 
-    function renderLineTypeBYUV(bufferPosition, quantPixels) {
+    function renderLineTypeBYUV(bufferPosition, width) {
         if (!colorsYUVValues) colorsYUVValues = wmsx.ColorCache.getColorsYUVValues();
-        renderLineTypeBYxx(colorsYUVValues, bufferPosition, quantPixels);
+        renderLineTypeBYxx(colorsYUVValues, bufferPosition, width);
     }
 
-    function renderLineTypeBYUVP(bufferPosition, quantPixels) {
+    function renderLineTypeBYUVP(bufferPosition, width) {
         if (!colorsYUVValues) colorsYUVValues = wmsx.ColorCache.getColorsYUVValues();
-        renderLineTypeBYxxP(colorsYUVValues, bufferPosition, quantPixels);
+        renderLineTypeBYxxP(colorsYUVValues, bufferPosition, width);
     }
 
-    function renderLineTypeBYJK(bufferPosition, quantPixels) {
+    function renderLineTypeBYJK(bufferPosition, width) {
         if (!colorsYJKValues) colorsYJKValues = wmsx.ColorCache.getColorsYJKValues();
-        renderLineTypeBYxx(colorsYJKValues, bufferPosition, quantPixels);
+        renderLineTypeBYxx(colorsYJKValues, bufferPosition, width);
     }
 
-    function renderLineTypeBYJKP(bufferPosition, quantPixels) {
+    function renderLineTypeBYJKP(bufferPosition, width) {
         if (!colorsYJKValues) colorsYJKValues = wmsx.ColorCache.getColorsYJKValues();
-        renderLineTypeBYxxP(colorsYJKValues, bufferPosition, quantPixels);
+        renderLineTypeBYxxP(colorsYJKValues, bufferPosition, width);
     }
 
-    function renderLineTypeBYxx(colorValues, bufferPosition, quantPixels) {
+    function renderLineTypeBYxx(colorValues, bufferPosition, width) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v1, v2, v3, v4, chroma;
 
@@ -1299,11 +1299,8 @@ wmsx.V9990 = function() {
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = (scrollXOffset & ~0x03) & scrollXMaxBytes;   // 4 pixel blocks
 
-        quantBytes = quantPixels;                               // 1 ppb
-        buffPos = bufferPosition;
-
         leftPixels = scrollXOffset & 3;                         // 4 pixel blocks
-        quantBytes = quantPixels + (leftPixels ? 4 : 0);        // 1 ppb, 4 pixel blocks
+        quantBytes = width + (leftPixels ? 4 : 0);              // 1 ppb, 4 pixel blocks
         buffPos = bufferPosition - leftPixels;
 
         for (var b = quantBytes; b > 0; b -= 4) {
@@ -1315,10 +1312,10 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = colorValues[((v4 & 0xf8) << 9) | chroma]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
     }
 
-    function renderLineTypeBYxxP(colorValues, bufferPosition, quantPixels) {
+    function renderLineTypeBYxxP(colorValues, bufferPosition, width) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v1, v2, v3, v4, chroma;
 
@@ -1327,16 +1324,13 @@ wmsx.V9990 = function() {
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = (scrollXOffset & ~0x03) & scrollXMaxBytes;   // 4 pixel blocks
 
-        quantBytes = quantPixels;                               // 1 ppb
-        buffPos = bufferPosition;
-
         leftPixels = scrollXOffset & 3;                         // 4 pixel blocks
-        quantBytes = quantPixels + (leftPixels ? 4 : 0);        // 1 ppb, 4 pixel blocks
+        quantBytes = width + (leftPixels ? 4 : 0);              // 1 ppb, 4 pixel blocks
         buffPos = bufferPosition - leftPixels;
 
         // Even/Odd pixel special offsets for modes >= B4. Ignore PLTO5 bit and use even: 0, odd: 1
-        var palOffsetBEven = quantPixels > 512 ? paletteOffsetB & ~0x20 : paletteOffsetB;
-        var palOffsetBOdd  = quantPixels > 512 ? paletteOffsetB | 0x20  : paletteOffsetB;
+        var palOffsetBEven = width > 512 ? paletteOffsetB & ~0x20 : paletteOffsetB;
+        var palOffsetBOdd  = width > 512 ? paletteOffsetB | 0x20  : paletteOffsetB;
 
         for (var b = quantBytes; b > 0; b -= 4) {
             v1 = vram[byteYBase + byteXPos]; v2 = vram[byteYBase + byteXPos + 1]; v3 = vram[byteYBase + byteXPos + 2]; v4 = vram[byteYBase + byteXPos + 3]; byteXPos = (byteXPos + 4) & scrollXMaxBytes;
@@ -1347,10 +1341,10 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = (v4 & 0x8) ? paletteValues[palOffsetBOdd  | (v4 >> 4)] : colorValues[((v4 & 0xf8) << 9) | chroma]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
     }
 
-    function renderLineTypeBD16(bufferPosition, quantPixels) {
+    function renderLineTypeBD16(bufferPosition, width) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes;
         var byteYBase, byteXPos, v;
 
@@ -1361,7 +1355,7 @@ wmsx.V9990 = function() {
             ? ((scrollXOffset & ~1) << 1) & scrollXMaxBytes     // 0.5 ppb, ignore bit 0
             : (scrollXOffset << 1) & scrollXMaxBytes;           // 0.5 ppb
 
-        quantBytes = quantPixels << 1;                          // 0.5 ppb
+        quantBytes = width << 1;                                // 0.5 ppb
         buffPos = bufferPosition;
 
         for (var b = quantBytes; b > 0; b -= 2) {
@@ -1369,10 +1363,10 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = colors16bitValues[v]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
     }
 
-    function renderLineTypeBD8(bufferPosition, quantPixels) {
+    function renderLineTypeBD8(bufferPosition, width) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes;
         var byteYBase, byteXPos, v, pixelB;
 
@@ -1383,7 +1377,7 @@ wmsx.V9990 = function() {
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
 
-        quantBytes = quantPixels;                               // 1 ppb
+        quantBytes = width;                                     // 1 ppb
         buffPos = bufferPosition;
 
         for (var b = quantBytes; b > 0; --b) {
@@ -1391,10 +1385,10 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = colors8bitValues[v]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
     }
 
-    function renderLineTypeBP6(bufferPosition, quantPixels) {
+    function renderLineTypeBP6(bufferPosition, width) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes;
         var byteYBase, byteXPos, v;
 
@@ -1403,7 +1397,7 @@ wmsx.V9990 = function() {
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
 
-        quantBytes = quantPixels;                               // 1 ppb
+        quantBytes = width;                                     // 1 ppb
         buffPos = bufferPosition;
 
         for (var b = quantBytes; b > 0; --b) {
@@ -1411,10 +1405,10 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = paletteValues[v & 0x3f]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
     }
 
-    function renderLineTypeBP4(bufferPosition, quantPixels) {
+    function renderLineTypeBP4(bufferPosition, width) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v;
 
@@ -1424,12 +1418,12 @@ wmsx.V9990 = function() {
         byteXPos = (scrollXOffset >> 1) & scrollXMaxBytes;      // 2 ppb
 
         leftPixels = scrollXOffset & 1;                         // 2 ppb
-        quantBytes = (quantPixels >> 1) + leftPixels;           // 2 ppb
+        quantBytes = (width >> 1) + leftPixels;                 // 2 ppb
         buffPos = bufferPosition - leftPixels;
 
         // Even/Odd pixel special offsets for modes >= B4. Ignore PLTO5 bit and use even: 0, odd: 1
-        var palOffsetBEven = quantPixels > 512 ? paletteOffsetB & ~0x20 : paletteOffsetB;
-        var palOffsetBOdd  = quantPixels > 512 ? paletteOffsetB | 0x20  : paletteOffsetB;
+        var palOffsetBEven = width > 512 ? paletteOffsetB & ~0x20 : paletteOffsetB;
+        var palOffsetBOdd  = width > 512 ? paletteOffsetB | 0x20  : paletteOffsetB;
 
         for (var b = quantBytes; b > 0; --b) {
             v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
@@ -1437,10 +1431,10 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = paletteValues[palOffsetBOdd  | (v & 0x0f)]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
     }
 
-    function renderLineTypeBP2(bufferPosition, quantPixels) {
+    function renderLineTypeBP2(bufferPosition, width) {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v;
 
@@ -1450,12 +1444,12 @@ wmsx.V9990 = function() {
         byteXPos = (scrollXOffset >> 2) & scrollXMaxBytes;      // 4 ppb
 
         leftPixels = scrollXOffset & 3;                         // 4 ppb
-        quantBytes = (quantPixels >> 2) + (leftPixels ? 1 : 0); // 4 ppb
+        quantBytes = (width >> 2) + (leftPixels ? 1 : 0);       // 4 ppb
         buffPos = bufferPosition - leftPixels;
 
         // Even/Odd pixel special offsets for modes >= B4. Ignore PLTO5 bit and use even: 0, odd: 1
-        var palOffsetEven = quantPixels > 512 ? paletteOffset & ~0x20 : paletteOffset;
-        var palOffsetOdd  = quantPixels > 512 ? paletteOffset | 0x20  : paletteOffset;
+        var palOffsetEven = width > 512 ? paletteOffset & ~0x20 : paletteOffset;
+        var palOffsetOdd  = width > 512 ? paletteOffset | 0x20  : paletteOffset;
 
         for (var b = quantBytes; b > 0; --b) {
             v = vram[byteYBase + byteXPos]; byteXPos = (byteXPos + 1) & scrollXMaxBytes;
@@ -1465,7 +1459,7 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = paletteValues[palOffsetOdd  | (v & 0x03)];        ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, quantPixels);
+        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
     }
 
     function renderCursorsLine(bufferPosition, line, width) {
