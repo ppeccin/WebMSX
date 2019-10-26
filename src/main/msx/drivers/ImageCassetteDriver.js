@@ -60,7 +60,7 @@ wmsx.ImageCassetteDriver = function() {
         // No Finish operation
     };
 
-    this.patchBIOS = function(bytes) {
+    this.patchTapeBIOS = function(bytes) {
         // TAPION routine (EXT 0)
         bytes[0x00e1] = 0xed;
         bytes[0x00e2] = 0xe0;

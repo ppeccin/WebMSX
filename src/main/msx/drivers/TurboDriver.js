@@ -37,6 +37,7 @@ wmsx.TurboDriver = function() {
         this.turboModesUpdate();
     };
 
+    // TODO Re Patch for new Extension numbers
     this.turboModesUpdate = function() {
         if (WMSX.FAKE_TR_TURBO) patchBIOS(); else unPatchBIOS();
         if (WMSX.PANA_TURBO) machine.bus.connectSwitchedDevice(0x08, this); else machine.bus.disconnectSwitchedDevice(0x08, this);

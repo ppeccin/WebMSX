@@ -82,6 +82,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
         if (s.b) {
             bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
             bytes.length = bytes.length & ~0x3fff;              // backward compatibility: trunc to multiple of 16KB pages, thus removing extra CHOICE bytes of old impl
+            // TODO Re Patch for new Extension numbers
         } else {
             this.rom.reloadEmbeddedContent();
             var len = this.rom.content.length;

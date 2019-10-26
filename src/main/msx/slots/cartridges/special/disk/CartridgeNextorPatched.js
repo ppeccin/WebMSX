@@ -91,8 +91,8 @@ wmsx.CartridgeNextorPatched = function(rom) {
             this.rom.reloadEmbeddedContent();
             if (!bytes || bytes.length !== this.rom.content.length) bytes = new Array(this.rom.content.length);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
-            driver.patchNextorKernel(bytes);
         }
+        driver.patchNextorKernel(bytes);        // Backward compatibility, always re-patch Kernel to correct CPU Extensions used
         this.bytes = bytes;
         bankOffset = s.b1;
         driver.loadState(s.d);

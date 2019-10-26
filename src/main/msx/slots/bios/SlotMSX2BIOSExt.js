@@ -81,7 +81,7 @@ wmsx.SlotMSX2BIOSExt = function(rom) {
         }
         this.bytes = bytes;
         topAddress = bytes.length;
-        dramMode = !!s.dr;                // Backward compatibility, will be false in old states
+        dramMode = !!s.dr;                // Backward compatibility, will be false for old states
     };
 
 

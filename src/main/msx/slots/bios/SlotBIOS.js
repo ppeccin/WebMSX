@@ -13,7 +13,7 @@ wmsx.SlotBIOS = function(rom) {
         self.bytes = bytes;
         topAddress = bytes.length;
         self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? wmsx.VideoStandard.NTSC : wmsx.VideoStandard.PAL;
-        cassetteDriver.patchBIOS(bytes);
+        cassetteDriver.patchTapeBIOS(bytes);
     }
 
     this.connect = function(machine) {
@@ -135,13 +135,13 @@ wmsx.SlotBIOS = function(rom) {
             this.rom.reloadEmbeddedContent();
             if (!bytes || bytes.length !== this.rom.content.length) bytes = new Array(this.rom.content.length);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
-            cassetteDriver.patchBIOS(bytes);
         }
+        cassetteDriver.patchTapeBIOS(bytes);    // Backward compatibility, always re-patch BIOS to correct CPU Extensions used
         this.bytes = bytes;
         topAddress = bytes.length;
         if (s.ke) keyboardExtension.loadState(s.ke);
         turboDriver.loadState(s.td);
-        dramMode = !!s.dr;                // Backward compatibility, will be false in old states
+        dramMode = !!s.dr;                      // Backward compatibility, will be false for old states
     };
 
 
