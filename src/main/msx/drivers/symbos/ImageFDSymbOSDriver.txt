@@ -44,7 +44,7 @@ DRVIMP      1020    f5              ; push af
             1029    4f              ; ld c, a
             102a    af              ; xor a         ( A = 0 Device Unavailable )
             102b    37              ; scf           ( Error if EXT not processed )
-            102c    ed f3           ; EXT F3        ( Enters with C=device (0-7), IY,IX=logical sector number, B=number of sectors, HL=dest address )
+            102c    ed f4           ; EXT F4        ( Enters with C=device (0-7), IY,IX=logical sector number, B=number of sectors, HL=dest address )
             102e    cd 06 02        ; call bnkmofx
             1031    c9              ; RET
             1032    00 x14          ; filler
@@ -57,7 +57,7 @@ DRVOUT      1040    f5              ; push af
             1049    4f              ; ld c, a
             104a    af              ; xor a         ( A = 0 Device Unavailable )
             104b    37              ; scf           ( Error if EXT not processed )
-            104c    ed f4           ; EXT F4        ( Enters with C=device (0-7), IY,IX=logical sector number, B=number of sectors, HL=source address )
+            104c    ed f5           ; EXT F5        ( Enters with C=device (0-7), IY,IX=logical sector number, B=number of sectors, HL=source address )
             104e    cd 06 02        ; call bnkmofx
             1051    c9              ; RET
             1052    00 x14          ; filler
@@ -68,7 +68,7 @@ DRVACT      1060    f5              ; push af
             1065    4f              ; ld c, a
             106a    af              ; xor a         ( A = 0 Device Unavailable )
             106b    37              ; scf           ( Error if EXT not processed )
-            1068    ed f5           ; EXT F5        ( Enters with C=device (0-7), HL=device info block address )
+            1068    ed f6           ; EXT F6        ( Enters with C=device (0-7), HL=device info block address )
             106a    c9              ; RET
             106b    00 x4           ; filler
 
@@ -102,7 +102,7 @@ DRVIMP      1020    f5              ; push af
             1037    dd e1           ; pop ix
             1039    c1              ; pop bc
             103a    f1              ; pop af
-            103b    ed f3           ; EXT F3
+            103b    ed f4           ; EXT F4
             103d    cd 06 02        ; call bnkmofx
             1040    c9              ; RET
             1041    00 x15          ; filler
@@ -124,7 +124,7 @@ DRVOUT      1050    f5              ; push af
             1067    dd e1           ; pop ix
             1069    c1              ; pop bc
             106a    f1              ; pop af
-            106b    ed f4           ; EXT F4
+            106b    ed f5           ; EXT F5
             106d    cd 06 02        ; call bnkmofx
             1070    c9              ; RET
             1071    00 x15          ; filler
@@ -132,6 +132,6 @@ DRVOUT      1050    f5              ; push af
 DRVACT      1080    f5              ; push af
             1081    cd 0c 02        ; call stoadrx
             1084    f1              ; pop af
-            1085    ed f5           ; EXT F5
+            1085    ed f6           ; EXT F6
             1087    c9              ; RET
             1088    00 x8           ; filler
