@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Turbo R Pause and S1990 devices
+// TODO RAM connection problem when loading state from RAM at different slot
 
 wmsx.TurboRDevices = function(cpu, ledsSocket) {
 "use strict";

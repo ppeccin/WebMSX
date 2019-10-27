@@ -49,7 +49,7 @@ wmsx.CartridgeDiskPatched = function(rom) {
     };
 
     function patchDiskBIOS() {
-        driver.patchDiskBIOS(bytes, baseAddress === 0x4000 ? -0x4000 : 0x0000, 0x4000, 0x576f, 0x5850, 0x7893);
+        driver.patchDiskBIOS(bytes, 0 - baseAddress, 0x4000, 0x576f, 0x5850, 0x7893);
     }
 
 
@@ -81,8 +81,9 @@ wmsx.CartridgeDiskPatched = function(rom) {
         baseAddress = s.ba !== undefined ? s.ba : 0x4000;       // backward compatibility
         if (s.b) {
             bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
-            bytes.length = bytes.length & ~0x3fff;              // backward compatibility: trunc to multiple of 16KB pages, thus removing extra CHOICE bytes of old impl
-            // TODO Re Patch for new Extension numbers
+            // backward compatibility for old states: trunc to multiple of 16KB pages, thus removing extra CHOICE bytes of old impl and fix CPU Extension numbers
+            bytes.length = bytes.length & ~0x3fff;
+            driver.rePatchDiskBIOSOldStateForExtensions(bytes, 0 - baseAddress, 0x4000, 0x576f, 0x5850);
         } else {
             this.rom.reloadEmbeddedContent();
             var len = this.rom.content.length;

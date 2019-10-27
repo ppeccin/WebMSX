@@ -114,6 +114,19 @@ wmsx.ImageDiskDriver = function(dos2) {
         }
     };
 
+    this.rePatchDiskBIOSOldStateForExtensions = function (bytes, patchBase, driverStart, inihrd, drives,) {
+        if (bytes[patchBase + driverStart + 16 + 0 + 1] === 0xe4) return;       // already correct
+
+        bytes[patchBase + inihrd  + 1] =               0xe0;
+        bytes[patchBase + drives  + 1] =               0xe2;
+        bytes[patchBase + driverStart + 16 + 0 + 1] =  0xe4;
+        bytes[patchBase + driverStart + 16 + 3 + 1] =  0xe5;
+        bytes[patchBase + driverStart + 16 + 6 + 1] =  0xe6;
+        bytes[patchBase + driverStart + 16 + 9 + 1] =  0xe7;
+        bytes[patchBase + driverStart + 16 + 12 + 1] = 0xe8;
+        bytes[patchBase + driverStart + 16 + 15 + 1] = 0xea;
+    };
+
     function INIHRD(F, HL) {
         // wmsx.Util.log("INIHRD");
         // no real initialization required
@@ -362,8 +375,8 @@ wmsx.ImageDiskDriver = function(dos2) {
     };
 
     this.loadState = function(s) {
-        symbOSDeviceDrive = (s && s.sd) !== undefined ? s.sd : { };         // backward compatibility
-        choiceStringAddress = s.csa !== undefined ? s.csa : { };            // backward compatibility: No options, force 720KB
+        symbOSDeviceDrive = (s && s.sd !== undefined) ? s.sd : { };             // backward compatibility
+        choiceStringAddress = (s && s.csa !== undefined) ? s.csa : { };         // backward compatibility: No options, force 720KB
     };
 
 
