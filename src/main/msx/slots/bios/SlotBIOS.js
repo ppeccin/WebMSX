@@ -14,12 +14,13 @@ wmsx.SlotBIOS = function(rom) {
         topAddress = bytes.length;
         self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? wmsx.VideoStandard.NTSC : wmsx.VideoStandard.PAL;
         cassetteDriver.patchTapeBIOS(bytes);
+        turboDriver.patchFakeTurboBIOS();
     }
 
     this.connect = function(machine) {
         keyboardExtension.connect(machine);
         cassetteDriver.connect(this, machine);
-        turboDriver.connect(this, machine);
+        turboDriver.connect(machine);
         machine.trd.connectBIOS(this);
         machine.setBIOS(this);
     };
@@ -104,7 +105,7 @@ wmsx.SlotBIOS = function(rom) {
 
     var cassetteDriver = new wmsx.ImageCassetteDriver();
     var keyboardExtension = new wmsx.BIOSKeyboardExtension();
-    var turboDriver = new wmsx.TurboDriver();
+    var turboDriver = new wmsx.TurboDriver(this);
 
     this.rom = null;
     this.format = wmsx.SlotFormats.BIOS;

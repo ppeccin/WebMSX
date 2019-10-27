@@ -3,14 +3,12 @@
 // Turbo Control Driver
 // Implements BIOS routines CHGCPU/GETCPU using the CPU extension protocol and the Panasonic MSX2+ Switched I/O Port for 1.5x CPU Turbo
 
-wmsx.TurboDriver = function() {
+wmsx.TurboDriver = function(bios) {
 "use strict";
 
     var self = this;
 
-    this.connect = function(pBios, pMachine) {
-        bios = pBios;
-        biosSocket = pMachine.getBIOSSocket();
+    this.connect = function(pMachine) {
         machine = pMachine;
         ledsSocket = machine.getLedsSocket();
         this.turboModesUpdate();
@@ -37,9 +35,8 @@ wmsx.TurboDriver = function() {
         this.turboModesUpdate();
     };
 
-    // TODO Re Patch for new Extension numbers
+    // TODO WMSX.FAKE_TR_TURBO and WMSX.PANA_TURBO may not represent current Machine when loading states
     this.turboModesUpdate = function() {
-        if (WMSX.FAKE_TR_TURBO) patchBIOS(); else unPatchBIOS();
         if (WMSX.PANA_TURBO) machine.bus.connectSwitchedDevice(0x08, this); else machine.bus.disconnectSwitchedDevice(0x08, this);
 
         var softTurbo = WMSX.FAKE_TR_TURBO || WMSX.PANA_TURBO;
@@ -74,10 +71,10 @@ wmsx.TurboDriver = function() {
         // No Finish operation
     };
 
-    function patchBIOS() {
-        var bytes = bios.bytes;
+    function patchFakeTurboBIOS() {
+        if (!WMSX.FAKE_TR_TURBO) return;
 
-        if (bytes[0x190] === 0xed) return;      // already patched
+        var bytes = bios.bytes;
 
         // CHGCPU routine JUMP
         bytes[0x0180] = 0xc3;
@@ -99,20 +96,9 @@ wmsx.TurboDriver = function() {
         bytes[0x0191] = 0xef;
         bytes[0x0192] = 0xc9;
 
-        // console.log("Turbo BIOS Patched");
+        console.error("Fake Turbo BIOS Patched");
     }
-
-    function unPatchBIOS() {
-        var bytes = bios.bytes;
-        if (bytes[0x190] !== 0xed) return;      // already un-patched
-
-        bytes[0x0180] = bytes[0x0181] = bytes[0x0182] =
-        bytes[0x0183] = bytes[0x0184] = bytes[0x0185] =
-        bytes[0x018d] = bytes[0x018e] = bytes[0x018f] =
-        bytes[0x0190] = bytes[0x0191] = bytes[0x0192] = 0xc9;
-
-        // console.log("Turbo BIOS UN-Patched");
-    }
+    this.patchFakeTurboBIOS = patchFakeTurboBIOS;
 
     function CHGCPU(A) {
         // console.log("CHGCPU: " + A.toString(16));
@@ -167,13 +153,13 @@ wmsx.TurboDriver = function() {
     };
 
     this.loadState = function(s) {
-        softTurboON = s ? s.st : false;
-        chgCpuValue = s ? s.cv : 0;
+        softTurboON = s && s.st ? s.st : false;
+        chgCpuValue = s && s.cv ? s.cv : 0;
+        this.patchFakeTurboBIOS();
     };
 
 
-    var bios;
-    var biosSocket, ledsSocket;
+    var ledsSocket;
     var machine;
 
     var chgCpuValue = 0;
