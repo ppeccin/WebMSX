@@ -99,8 +99,8 @@ WMSX = {
     MEGARAM_SIZE:                   2048,                       // 256, 512, 1024, 2048: MegaRAM size in KB
     DISK_ROM_START_PAGE:            0,                          // 0..1: Change starting page for ROMs > 16KB when format is DiskPatch
     LIGHT_STATES:                   true,
-    PANA_TURBO:                     0,
-    FAKE_TR_TURBO:                  0,
+    FAKE_TR_TURBO:                  -1,
+    PANA_TURBO:                     -1,
 
     PSG_VOL:                        "f",                        // 0..f (hex digit):       PSG Volume adjust. Set globally or for each channel (4 values)
     PSG_PAN:                        "8",                        // 0; 1..8..f (hex digit): PSG PanPot adjust. Set globally or for each channel (4 values)
@@ -123,28 +123,28 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
-    MSXTR:    { DESCX: "MSX tR Auto Detect",    AUTO_TYPE: 5 },
-    MSX2PP:   { DESCX: "MSX2++ Auto Detect",    AUTO_TYPE: 4 },
-    MSX2P:    { DESCX: "MSX2+ Auto Detect",     AUTO_TYPE: 3 },
-    MSX2:     { DESCX: "MSX2 Auto Detect",      AUTO_TYPE: 2 },
-    MSX1:     { DESCX: "MSX Auto Detect",       AUTO_TYPE: 1 },
+    MSXTR:    { DESCX: "MSX tR Auto Detect",        AUTO_TYPE: 5 },
+    MSX2PP:   { DESCX: "MSX2++ Auto Detect",        AUTO_TYPE: 4 },
+    MSX2P:    { DESCX: "MSX2+ Auto Detect",         AUTO_TYPE: 3 },
+    MSX2:     { DESCX: "MSX2 Auto Detect",          AUTO_TYPE: 2 },
+    MSX1:     { DESCX: "MSX Auto Detect",           AUTO_TYPE: 1 },
     MSXTRJ:   { DESC:  "MSX turbo R Japan (NTSC)",  TYPE: 5, PRESETS: "_MSXTRJ", LANG: "ja", CODE_LABEL: "KANA" },
-    MSX2PPA:  { DESC:  "MSX2++ America (NTSC)", TYPE: 4, PRESETS: "_MSX2PPA" },
-    MSX2PPE:  { DESC:  "MSX2++ Europe (PAL)",   TYPE: 4, PRESETS: "_MSX2PPE" },
-    MSX2PPJ:  { DESC:  "MSX2++ Japan (NTSC)",   TYPE: 4, PRESETS: "_MSX2PPJ", LANG: "ja", CODE_LABEL: "KANA" },
-    MSX2PA:   { DESC:  "MSX2+ America (NTSC)",  TYPE: 3, PRESETS: "_MSX2PA" },
-    MSX2PE:   { DESC:  "MSX2+ Europe (PAL)",    TYPE: 3, PRESETS: "_MSX2PE" },
-    MSX2PJ:   { DESC:  "MSX2+ Japan (NTSC)",    TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja", CODE_LABEL: "KANA" },
-    MSX2A:    { DESC:  "MSX2 America (NTSC)",   TYPE: 2, PRESETS: "_MSX2A" },
-    MSX2E:    { DESC:  "MSX2 Europe (PAL)",     TYPE: 2, PRESETS: "_MSX2E" },
-    MSX2J:    { DESC:  "MSX2 Japan (NTSC)",     TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja", CODE_LABEL: "KANA" },
-    MSX1A:    { DESC:  "MSX America (NTSC)",    TYPE: 1, PRESETS: "_MSX1A" },
-    MSX1E:    { DESC:  "MSX Europe (PAL)",      TYPE: 1, PRESETS: "_MSX1E" },
-    MSX1J:    { DESC:  "MSX Japan (NTSC)",      TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja", CODE_LABEL: "KANA" },
-    EMPTY2PP: { DESCX: "MSX2++ Empty (NTSC)",   TYPE: 4, PRESETS: "_EMPTY" },
-    EMPTY2P:  { DESCX: "MSX2+ Empty (NTSC)",    TYPE: 3, PRESETS: "_EMPTY" },
-    EMPTY2:   { DESCX: "MSX2 Empty (NTSC)",     TYPE: 2, PRESETS: "_EMPTY" },
-    EMPTY1:   { DESCX: "MSX Empty (NTSC)",      TYPE: 1, PRESETS: "_EMPTY" }
+    MSX2PPA:  { DESC:  "MSX2++ America (NTSC)",     TYPE: 4, PRESETS: "_MSX2PPA" },
+    MSX2PPE:  { DESC:  "MSX2++ Europe (PAL)",       TYPE: 4, PRESETS: "_MSX2PPE" },
+    MSX2PPJ:  { DESC:  "MSX2++ Japan (NTSC)",       TYPE: 4, PRESETS: "_MSX2PPJ", LANG: "ja", CODE_LABEL: "KANA" },
+    MSX2PA:   { DESC:  "MSX2+ America (NTSC)",      TYPE: 3, PRESETS: "_MSX2PA" },
+    MSX2PE:   { DESC:  "MSX2+ Europe (PAL)",        TYPE: 3, PRESETS: "_MSX2PE" },
+    MSX2PJ:   { DESC:  "MSX2+ Japan (NTSC)",        TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja", CODE_LABEL: "KANA" },
+    MSX2A:    { DESC:  "MSX2 America (NTSC)",       TYPE: 2, PRESETS: "_MSX2A" },
+    MSX2E:    { DESC:  "MSX2 Europe (PAL)",         TYPE: 2, PRESETS: "_MSX2E" },
+    MSX2J:    { DESC:  "MSX2 Japan (NTSC)",         TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja", CODE_LABEL: "KANA" },
+    MSX1A:    { DESC:  "MSX America (NTSC)",        TYPE: 1, PRESETS: "_MSX1A" },
+    MSX1E:    { DESC:  "MSX Europe (PAL)",          TYPE: 1, PRESETS: "_MSX1E" },
+    MSX1J:    { DESC:  "MSX Japan (NTSC)",          TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja", CODE_LABEL: "KANA" },
+    EMPTY2PP: { DESCX: "MSX2++ Empty (NTSC)",       TYPE: 4, PRESETS: "_EMPTY" },
+    EMPTY2P:  { DESCX: "MSX2+ Empty (NTSC)",        TYPE: 3, PRESETS: "_EMPTY" },
+    EMPTY2:   { DESCX: "MSX2 Empty (NTSC)",         TYPE: 2, PRESETS: "_EMPTY" },
+    EMPTY1:   { DESCX: "MSX Empty (NTSC)",          TYPE: 1, PRESETS: "_EMPTY" }
 };
 
 WMSX.EXTENSIONS_CONFIG = {
@@ -302,9 +302,7 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PBASE: {
-        _INCLUDE:           "_MSX2BASE",
-        PANA_TURBO:         1,
-        FAKE_TR_TURBO:      1
+        _INCLUDE:           "_MSX2BASE"
     },
 
     // MSX2 Machine Presets. Do not use directly
@@ -369,8 +367,8 @@ WMSX.PRESETS_CONFIG = {
         _INCLUDE:           "DISKEXTN",
         Z80_CLOCK_MODE:     0,
         VDP_CLOCK_MODE:     0,
-        PANA_TURBO:         0,
-        FAKE_TR_TURBO:      0,
+        FAKE_TR_TURBO:      -1,
+        PANA_TURBO:         -1,
         VDP_TYPE:           -1,
         RTC_ACTIVE:         -1
     }

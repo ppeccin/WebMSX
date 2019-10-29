@@ -1287,4 +1287,4 @@ wmsx.Machine = function() {
 
 wmsx.Machine.BASE_CPU_CLOCK = 228 * 262 * 60;        // 3584160Hz, rectified to 60Hz (228 clocks per line, 262 lines, 60 fps)
 
-wmsx.Machine.MACHINE_TYPE = { MSX1: 1, MSX2: 2, MSX2P: 3, MSXTR: 5 };
+wmsx.Machine.MACHINE_TYPE = { MSX1: 1, MSX2: 2, MSX2P: 3, MSX2PP: 4, MSXTR: 5 };

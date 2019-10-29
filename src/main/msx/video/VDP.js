@@ -27,9 +27,9 @@ wmsx.VDP = function(machine, cpu) {
 
     this.setMachineType = function(machineType) {
         var type = WMSX.VDP_TYPE > 0 ? WMSX.VDP_TYPE : machineType;     // auto: According to Machine Type
-        isV9918 = type <= 1;
-        isV9938 = type === 2;
-        isV9958 = type >= 3;
+        isV9918 = type <=  M_TYPES.MSX1;
+        isV9938 = type === M_TYPES.MSX2;
+        isV9958 = type >=  M_TYPES.MSX2P;
         refreshDisplayMetrics();
     };
 
@@ -2475,6 +2475,9 @@ wmsx.VDP = function(machine, cpu) {
     var commandProcessor;
 
     var slave;
+
+    var M_TYPES = wmsx.Machine.MACHINE_TYPE;
+
 
     // Savestate  -------------------------------------------
 

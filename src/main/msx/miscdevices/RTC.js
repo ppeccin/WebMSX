@@ -7,8 +7,8 @@ wmsx.RTC = function(videoClockSocket) {
 "use strict";
 
     this.setMachineType = function(type) {
-        active = WMSX.RTC_ACTIVE >= 0 ? !!WMSX.RTC_ACTIVE : type >= 2;                  // auto: Only for MSX2 or better
-        if (active) wmsx.Util.arrayFill(ram[0], 0); wmsx.Util.arrayFill(ram[1], 0);     // clear RAM
+        active = WMSX.RTC_ACTIVE >= 0 ? !!WMSX.RTC_ACTIVE : type >= wmsx.Machine.MACHINE_TYPE.MSX2;     // auto: Only for >= MSX2
+        if (active) wmsx.Util.arrayFill(ram[0], 0); wmsx.Util.arrayFill(ram[1], 0);                     // clear RAM
     };
 
     this.connectBus = function(bus) {

@@ -11,6 +11,10 @@ wmsx.TurboDriver = function(bios) {
     this.connect = function(pMachine) {
         machine = pMachine;
         ledsSocket = machine.getLedsSocket();
+        var mt = machine.getMachineTypeSocket().getMachineType();
+        fakeTRTurbo = mt < M_TYPES.MSXTR && (WMSX.FAKE_TR_TURBO === 1 || (WMSX.FAKE_TR_TURBO === -1 && (mt === M_TYPES.MSX2P || mt === M_TYPES.MSX2PP)));       // Auto ON for >= MSX2P, never for turbo R
+        panaTurbo =   mt < M_TYPES.MSXTR && (WMSX.PANA_TURBO === 1 || (WMSX.PANA_TURBO === -1 && (mt === M_TYPES.MSX2P || mt === M_TYPES.MSX2PP)));             // Auto ON for >= MSX2P, never for turbo R
+        updateSoftTurboDevices();
         this.turboModesUpdate();
     };
 
@@ -25,7 +29,7 @@ wmsx.TurboDriver = function(bios) {
     };
 
     this.reset = function() {
-        if (WMSX.CPU_SOFT_TURBO_AUTO_ON) {
+        if ((fakeTRTurbo || panaTurbo) && WMSX.CPU_SOFT_TURBO_AUTO_ON) {
             chgCpuValue = 0x82;
             softTurboON = true;
         } else {
@@ -35,11 +39,8 @@ wmsx.TurboDriver = function(bios) {
         this.turboModesUpdate();
     };
 
-    // TODO WMSX.FAKE_TR_TURBO and WMSX.PANA_TURBO may not represent current Machine when loading states
     this.turboModesUpdate = function() {
-        if (WMSX.PANA_TURBO) machine.bus.connectSwitchedDevice(0x08, this); else machine.bus.disconnectSwitchedDevice(0x08, this);
-
-        var softTurbo = WMSX.FAKE_TR_TURBO || WMSX.PANA_TURBO;
+        var softTurbo = fakeTRTurbo || panaTurbo;
         var z80Mode = machine.getZ80ClockMode();
         var r800Mode = machine.getR800ClockMode();
         var vdpMode = machine.getVDPClockMode();
@@ -71,34 +72,36 @@ wmsx.TurboDriver = function(bios) {
         // No Finish operation
     };
 
-    function patchFakeTurboBIOS() {
-        if (!WMSX.FAKE_TR_TURBO) return;
+    function updateSoftTurboDevices() {
+        if (fakeTRTurbo) {
+            var bytes = bios.bytes;
 
-        var bytes = bios.bytes;
+            // CHGCPU routine JUMP
+            bytes[0x0180] = 0xc3;
+            bytes[0x0181] = 0x8d;
+            bytes[0x0182] = 0x01;
 
-        // CHGCPU routine JUMP
-        bytes[0x0180] = 0xc3;
-        bytes[0x0181] = 0x8d;
-        bytes[0x0182] = 0x01;
+            // GETCPU routine JUMP
+            bytes[0x0183] = 0xc3;
+            bytes[0x0184] = 0x90;
+            bytes[0x0185] = 0x01;
 
-        // GETCPU routine JUMP
-        bytes[0x0183] = 0xc3;
-        bytes[0x0184] = 0x90;
-        bytes[0x0185] = 0x01;
+            // CHGCPU routine (EXT e)
+            bytes[0x018d] = 0xed;
+            bytes[0x018e] = 0xee;
+            bytes[0x018f] = 0xc9;
 
-        // CHGCPU routine (EXT e)
-        bytes[0x018d] = 0xed;
-        bytes[0x018e] = 0xee;
-        bytes[0x018f] = 0xc9;
+            // GETCPU routine (EXT f)
+            bytes[0x0190] = 0xed;
+            bytes[0x0191] = 0xef;
+            bytes[0x0192] = 0xc9;
+        }
 
-        // GETCPU routine (EXT f)
-        bytes[0x0190] = 0xed;
-        bytes[0x0191] = 0xef;
-        bytes[0x0192] = 0xc9;
+        if (panaTurbo) machine.bus.connectSwitchedDevice(0x08, this);
+        else machine.bus.disconnectSwitchedDevice(0x08, this);
 
-        console.error("Fake Turbo BIOS Patched");
+        // console.error("TurboDriver devices updated:", fakeTRTurbo, panaTurbo);
     }
-    this.patchFakeTurboBIOS = patchFakeTurboBIOS;
 
     function CHGCPU(A) {
         // console.log("CHGCPU: " + A.toString(16));
@@ -147,22 +150,34 @@ wmsx.TurboDriver = function(bios) {
 
     this.saveState = function() {
         return {
-            st: softTurboON,
-            cv: chgCpuValue
+            tt: fakeTRTurbo, pt: panaTurbo,
+            st: softTurboON, cv: chgCpuValue
         };
     };
 
     this.loadState = function(s) {
-        softTurboON = s && s.st ? s.st : false;
-        chgCpuValue = s && s.cv ? s.cv : 0;
-        this.patchFakeTurboBIOS();
+        softTurboON = s && s.st ? s.st : false;                                 // Backward compatibility: On for MSX2+ & MSX2++;
+        chgCpuValue = s && s.cv ? s.cv : 0;                                     // Backward compatibility: On for MSX2+ & MSX2++;
+
+        var mt = machine && machine.getMachineTypeSocket().getMachineType();
+        var softTurbo = mt === M_TYPES.MSX2P || mt === M_TYPES.MSX2PP;          // Backward compatibility: On for MSX2+ & MSX2++;
+        fakeTRTurbo = s.tt !== undefined ? s.tt : softTurbo;
+        panaTurbo = s.pt !== undefined ? s.pt : softTurbo;
+
+        if (machine) updateSoftTurboDevices();                                  // Already connected?
     };
 
 
     var ledsSocket;
     var machine;
 
+    var fakeTRTurbo = false;
+    var panaTurbo = false;
+
     var chgCpuValue = 0;
     var softTurboON = false;
+
+
+    var M_TYPES = wmsx.Machine.MACHINE_TYPE;
 
 };
