@@ -22,6 +22,7 @@ wmsx.SlotRAMMapper = function(rom) {
     }
 
     this.connect = function(machine) {
+        trd = machine.trd;
         machine.bus.connectInputDevice(0xfc, this.inputAll);
         machine.bus.connectInputDevice(0xfd, this.inputAll);
         machine.bus.connectInputDevice(0xfe, this.inputAll);
@@ -30,12 +31,15 @@ wmsx.SlotRAMMapper = function(rom) {
         machine.bus.connectOutputDevice(0xfd, this.outputFD);
         machine.bus.connectOutputDevice(0xfe, this.outputFE);
         machine.bus.connectOutputDevice(0xff, this.outputFF);
-        machine.trd.connectRAM(this);
+        trd.connectRAM(this);
     };
 
     this.refreshConnect = function() {
-        // Updates size if necessary
-        if (WMSX.RAMMAPPER_SIZE * 1024 !== bytes.length) init(self);
+        // Updates size and recreate if necessary
+        if (WMSX.RAMMAPPER_SIZE * 1024 !== bytes.length) {
+            init(self);
+            if (trd) trd.connectRAM(this);      // Refresh RAM - BIOSes connections
+        }
     };
 
     this.disconnect = function(machine) {
@@ -115,6 +119,8 @@ wmsx.SlotRAMMapper = function(rom) {
     };
 
 
+    var trd;
+
     var page0Offset = 0, page1Offset = 0, page2Offset = 0, page3Offset = 0;
     var pageMask = 0;
     var pageReadBackOR = 0;
@@ -151,6 +157,8 @@ wmsx.SlotRAMMapper = function(rom) {
         pageReadBackOR = 0xff & ~pageMask;
         dramModeStart = bytes.length - 65536;
         dramModeOff = !s.dr;                // Backward compatibility, will be true in old states
+
+        if (trd) trd.connectRAM(this);      // Refresh RAM - BIOSes connections
     };
 
 

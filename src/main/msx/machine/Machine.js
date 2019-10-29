@@ -494,7 +494,7 @@ wmsx.Machine = function() {
         ppi.loadState(s.pp);
         rtc.loadState(s.rc);
         syf.loadState(s.sf);
-        trd.loadState(s.td);        // s.td may be undefined. Treated correctly by trd.loadState()
+        trd.loadState(s.td);
         bus.loadState(s.b);
         videoSocket.loadState(s.vm);
         diskDriveSocket.loadState(s.dd);

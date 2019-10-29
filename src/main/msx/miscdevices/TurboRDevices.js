@@ -1,7 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Turbo R Pause and S1990 devices
-// TODO RAM connection problem when loading state from RAM at different slot
 
 wmsx.TurboRDevices = function(cpu, ledsSocket) {
 "use strict";
@@ -44,16 +43,21 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     };
 
     this.connectRAM = function(slot) {
-        if (ram) return;        // Connects only to the first RAM Mapper connected to the system
+        if (slot.format !== wmsx.SlotFormats.RAMMapper) return;
+
         ram = slot;
         if (bios) bios.connectRAM(ram, 65536);
         if (biosExt) biosExt.connectRAM(ram, 32768);
+
+        // console.error("TRD Connect RAM")
     };
     this.disconnectRAM = function(slot) {
         if (ram !== slot) return;
         if (bios) bios.disconnectRAM(ram);
         if (biosExt) biosExt.disconnectRAM(ram);
         ram = undefined;
+
+        // console.error("TRD Disconnect RAM")
     };
 
     this.powerOn = function() {
@@ -112,10 +116,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
 
             register6 = newVal;
             cpu.setR800Mode((register6 & 0x20) === 0);
-            var dramMode = (register6 & 0x40) === 0;
-            bios.setDRAMMode(dramMode);
-            biosExt.setDRAMMode(dramMode);
-            ram.setDRAMMode(dramMode);
+            setDRAMMode((register6 & 0x40) === 0);
 
             // Update led type only if both the led and R800 is on
             if ((register6 & 0x20) === 0) {
@@ -157,6 +158,12 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     this.isR800LedOn = function() {
         return (leds & 0x80) !== 0;
     };
+
+    function setDRAMMode(dramMode) {
+        bios.setDRAMMode(ram && dramMode);
+        biosExt.setDRAMMode(ram && dramMode);
+        if (ram) ram.setDRAMMode(dramMode);
+    }
 
     function getCounterValue() {
         return ((cpu.getBUSCycles() - counterBase) / 14) & 0xffff;
