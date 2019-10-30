@@ -208,11 +208,13 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function getWMDirect() {
+        // return 0xff00;
         return (register[46] << 8) | register[47];      // WM H/L swapped, all 16 bits range
     }
 
     // TODO Will yP1Offset trick work on all situations? What for P1 and getWMDirect()
     function getWM(yP1Offset) {
+        // return 0xff00;
         return isP1
             ? yP1Offset === 0
                 ? (register[46] << 8) | register[46]    // Always High byte for VRAM0
@@ -221,8 +223,8 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function getWMForAddr(wm, pos) {
-        // return (pos & 1) ? wm & 0xff : wm >> 8;         // WM H/L is swapped, so Low byte is for ODD addr
-        return (wm >> ((~pos & 1) << 3)) & 0xff;
+        // return (pos & 1) ? wm & 0xff : wm >> 8;
+        return (wm >> ((~pos & 1) << 3)) & 0xff;        // WM H/L is swapped, so Low byte is for ODD addr
     }
 
     function getFC(yP1Offset) {
@@ -626,7 +628,6 @@ wmsx.V9990CommandProcessor = function() {
         var diy = getDIY();
         var op = getLOP();
         var wm = getWMDirect();
-        wm = 0xffff;
 
         // console.log("BMLX sx: " + sx + ", sy: " + sy + " + " + syP1Off + ", da: " + da.toString(16) + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
 
@@ -656,7 +657,6 @@ wmsx.V9990CommandProcessor = function() {
         var dix = getDIX();
         var op = getLOP();
         var wm = getWMDirect();
-        wm = 0xffff;
 
         // console.log("BMLL sa: " + sa.toString(16) + ", da: " + da.toString(16) + ", na: " + na + ", dix: " + dix + ", wm: " + wm.toString(16) + ", op: " + op.name);
 
