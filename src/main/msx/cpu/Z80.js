@@ -2794,6 +2794,9 @@ wmsx.Z80 = function() {
     };
 
 
+    init();
+
+
     // Accessory variables and methods for testing
 
     this.toString = function() {
@@ -2870,11 +2873,13 @@ wmsx.Z80 = function() {
     //     0xffd4: "H.ENFD"
     // };
 
+    // this.HALT = 0;
+
     this.eval = function(str) {
         return eval(str);
     };
 
-    init();
+    window.CPU = this;      // TODO Global
 
 };
 

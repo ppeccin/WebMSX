@@ -2545,6 +2545,7 @@ wmsx.VDP = function(machine, cpu) {
 
     init();
 
+
     // this.TEST = 0;
 
     function logInfo(text) {

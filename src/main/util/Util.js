@@ -253,27 +253,22 @@ wmsx.Util = new function() {
 
     this.toHex2 = function(num) {
         if (num === null || num === undefined) return num;
-        var res = num.toString(16).toUpperCase();
+        var res = num.toString(16);
         if (num >= 0 && (res.length % 2)) return "0" + res;
         else return res;
     };
 
     this.toHex4 = function(num) {
+        return this.toHexN(num, 4);
+    };
+
+    this.toHexN = function(num, n) {
         if (num === null || num === undefined) return num;
-        var res = num.toString(16).toUpperCase();
+        var res = num.toString(16);
         if (num < 0) return res;
-        switch (res.length) {
-            case 4:
-                return res;
-            case 3:
-                return "0" + res;
-            case 2:
-                return "00" + res;
-            case 1:
-                return "000" + res;
-            default:
-                return res;
-        }
+
+        if (!(n >= 0)) n = 2;
+        return ("00000000".substr(0, n - res.length) + res);
     };
 
     this.escapeHtml = function(html) {
@@ -407,11 +402,30 @@ wmsx.Util = new function() {
     this.dump = function(arr, from, chunk, quant) {
         var res = "";
         var p = from || 0;
-        quant = quant || 1;
-        for(var i = 0; i < quant; i++) {
-            for(var c = 0; c < chunk; c++) {
+        quant = quant || arr.length;
+        chunk = chunk || quant;
+        var i = 0;
+        while(i < quant) {
+            for(var c = 0; c < chunk && i < quant; c++, i++) {
                 var val = arr[p++];
                 res = res + (val != undefined ? this.toHex2(val) + " " : "?? ");
+            }
+            res = res + "\n";
+        }
+
+        console.log(res);
+    };
+
+    this.dumpN = function(arr, n, from, chunk, quant) {
+        var res = "";
+        var p = from || 0;
+        quant = quant || arr.length;
+        chunk = chunk || quant;
+        var i = 0;
+        while(i < quant) {
+            for(var c = 0; c < chunk && i < quant; c++, i++) {
+                var val = arr[p++];
+                res = res + (val != undefined ? this.toHexN(val, n) + " " : "?? ");
             }
             res = res + "\n";
         }

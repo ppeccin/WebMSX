@@ -238,10 +238,9 @@ wmsx.V9990 = function() {
 
         if (mod & 0x02) {
             softResetON = (systemControl & 0x02) !== 0;   // SRS
+            if (softResetON) softReset();
 
             // logInfo("SOFT RESET: " + (softResetON ? "ON" : "OFF"));
-
-            if (softResetON) softReset();
         }
         if (mod & 0x01) {                                // MCS
             status = (status & ~0x04) | ((systemControl & 0x01) << 2);
@@ -384,7 +383,7 @@ wmsx.V9990 = function() {
         updateAllPaletteValues();
         if (colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(enabled);    // update color 0 (transparent when YS)
 
-        // console.error("V9990 YSEnabled:", ysEnabled, (register[8] & 0x20).toString(16), superimposeActive);
+        // console.error("V9990 YSEnabled mask:", ys16BitColorMask, (register[8] & 0x20).toString(16), superimposeActive);
     }
 
     function updateVRAMSize() {
@@ -1107,9 +1106,6 @@ wmsx.V9990 = function() {
     }
 
     function renderLineTypePP1(bufferPosition) {
-        var buffPos, realLine, lineInPattern, scrollX;
-        var namePosBase, namePos, pattPosBase, name, pattPixelPos, v, c;
-
         // Backdrop
         paintBackdrop256(bufferPosition);
 
