@@ -387,6 +387,11 @@ wmsx.V9990 = function() {
         // console.error("V9990 YSEnabled:", ysEnabled, (register[8] & 0x20).toString(16), superimposeActive);
     }
 
+    function updateVRAMSize() {
+        var val = register[8] & 0x03;
+        if (val !== 2) console.error("V9990 Setting VRAM size NOT TO 512K:", val);
+    }
+
     function paletteRAMWrite(entry, val) {
         if (val === paletteRAM[entry]) return;
 
@@ -426,6 +431,7 @@ wmsx.V9990 = function() {
                 if (mod & 0xc0)                                 // DISP, SPD. Only at display start
                     dispAndSpritesUpdatePending = true;
                 if (mod & 0x20) updateYSEnabled();              // YSE
+                if (mod & 0x03) updateVRAMSize();               // VSL1, VSL0
                 break;
             case 9:
                 if (mod & 0x07) updateIRQ();                    // IECE, IEH, IEV

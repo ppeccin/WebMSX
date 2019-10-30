@@ -207,17 +207,22 @@ wmsx.V9990CommandProcessor = function() {
         return LOGICAL_OPERATIONS[register[45] & 0x1f];
     }
 
+    function getWMDirect() {
+        return (register[46] << 8) | register[47];      // WM H/L swapped, all 16 bits range
+    }
+
+    // TODO Will yP1Offset trick work on all situations? What for P1 and getWMDirect()
     function getWM(yP1Offset) {
-        // return (register[46] << 8) | register[47];   // WM H/L swapped
         return isP1
             ? yP1Offset === 0
                 ? (register[46] << 8) | register[46]    // Always High byte for VRAM0
                 : (register[47] << 8) | register[47]    // Always Low byte for VRAM1
-            : (register[46] << 8) | register[47];       // All 16 bits range
+            : (register[46] << 8) | register[47];       // WM H/L swapped, all 16 bits range
     }
 
     function getWMForAddr(wm, pos) {
-        return (pos & 1) ? wm & 0xff : wm >> 8;         // WM H/L is swapped, so Low byte is for ODD addr
+        // return (pos & 1) ? wm & 0xff : wm >> 8;         // WM H/L is swapped, so Low byte is for ODD addr
+        return (wm >> ((~pos & 1) << 3)) & 0xff;
     }
 
     function getFC(yP1Offset) {
@@ -583,7 +588,7 @@ wmsx.V9990CommandProcessor = function() {
         var op = getLOP();
         var wm = getWM(dyP1Off);
 
-        // console.log("BMXL sa: " + sa.toString(16) + ", dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+        // console.log("BMXL sa: " + sa.toString(16) + ", dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", wm: " + wm.toString(16) + ", op: " + op.name);
 
         // Perform operation
         var sc = 0;
@@ -620,7 +625,8 @@ wmsx.V9990CommandProcessor = function() {
         var dix = getDIX();
         var diy = getDIY();
         var op = getLOP();
-        var wm = getWM(0);
+        var wm = getWMDirect();
+        wm = 0xffff;
 
         // console.log("BMLX sx: " + sx + ", sy: " + sy + " + " + syP1Off + ", da: " + da.toString(16) + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
 
@@ -649,9 +655,10 @@ wmsx.V9990CommandProcessor = function() {
         var na = getNA();
         var dix = getDIX();
         var op = getLOP();
-        var wm = getWM(0);
+        var wm = getWMDirect();
+        wm = 0xffff;
 
-        // console.log("BMLL sa: " + sa.toString(16) + ", da: " + da.toString(16) + ", na: " + na + ", dix: " + dix + ", op: " + op.name);
+        // console.log("BMLL sa: " + sa.toString(16) + ", da: " + da.toString(16) + ", na: " + na + ", dix: " + dix + ", wm: " + wm.toString(16) + ", op: " + op.name);
 
         // Perform operation
         for (var c = na; c > 0; --c) {
