@@ -389,7 +389,7 @@ wmsx.V9990 = function() {
 
     function updateVRAMSize() {
         var val = register[8] & 0x03;
-        if (val !== 2) console.error("V9990 Setting VRAM size NOT TO 512K:", val);
+        if (val < 2) console.error("V9990 Setting VRAM size < 512K !:", val);
     }
 
     function paletteRAMWrite(entry, val) {
@@ -662,6 +662,7 @@ wmsx.V9990 = function() {
         updateLineActiveType();
         updateSignalMetrics(false);
         updateRenderMetrics(false);
+        updateVRAMInterleaving();
 
         // logInfo("Update Mode: " + modeData.name);
     }
@@ -1580,6 +1581,43 @@ wmsx.V9990 = function() {
         beginFrame();
     }
 
+    function updateVRAMInterleaving() {
+        if (vramInterleaving === (modeData !== modes.P1)) return;       // TODO P2 mode uses strange interleaving
+
+        vramInterleaving = modeData !== modes.P1;
+        if (vramInterleaving) self.vramEnterInterleaving();
+        else self.vramExitInterleaving();
+    }
+
+    this.vramEnterInterleaving = function() {
+        var e = 0;
+        var o = VRAM_SIZE >> 1;
+        var aux = vram.slice(0, o);                 // Only first half needs to be saved. Verify: Optimize slice?
+        for (var i = 0; i < VRAM_SIZE; i += 2, ++e, ++o) {
+            vram[i] = aux[e];
+            vram[i + 1] = vram[o];
+        }
+
+        // console.error("V9990 VRAM ENTERING Interleaving");
+    };
+
+    this.vramExitInterleaving = function() {
+        var h = VRAM_SIZE >> 1;
+        var e = 0;
+        var o = h;
+        var aux = vram.slice(h);                    // Only last half needs to be saved. Verify: Optimize slice?
+        for (var i = 0; i < h; i += 2, ++e, ++o) {
+            vram[e] = vram[i];
+            vram[o] = vram[i + 1];
+        }
+        for (i = 0; i < h; i += 2, ++e, ++o) {
+            vram[e] = aux[i];
+            vram[o] = aux[i + 1];
+        }
+
+        // console.error("V9990 VRAM EXITING Interleaving");
+    };
+
     function initRAMs() {
         for(var i = 0; i < VRAM_SIZE; i += 1024) {
             wmsx.Util.arrayFill(vram, 0x00, i, i + 512);
@@ -1758,6 +1796,7 @@ wmsx.V9990 = function() {
 
     var modeData, typeData;
     var imageWidth = 0, imageHeight = 0;
+    var vramInterleaving = false;
 
     var backdropColor = 0;
     var backdropCacheUpdatePending = true;
@@ -1853,7 +1892,7 @@ wmsx.V9990 = function() {
         var s = {
             s: status, if: interruptFlags, sc: systemControl, sro: softResetON,
             rs: registerSelect, rri: registerSelectReadInc, rwi: registerSelectWriteInc,
-            vr: vramPointerRead, vw: vramPointerWrite, vri: vramPointerReadInc, vwi: vramPointerWriteInc, vrd: vramReadData,
+            vr: vramPointerRead, vw: vramPointerWrite, vri: vramPointerReadInc, vwi: vramPointerWriteInc, vrd: vramReadData, vi: vramInterleaving,
             pp: palettePointer, pri: palettePointerReadInc,
             poa: paletteOffsetA, pob: paletteOffsetB, po: paletteOffset, poc: paletteOffsetCursor,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
@@ -1881,7 +1920,7 @@ wmsx.V9990 = function() {
     this.loadState = function(s) {
         status = s.s; interruptFlags = s.if; systemControl = s.sc; softResetON = s.sro;
         registerSelect = s.rs; registerSelectReadInc = s.rri; registerSelectWriteInc = s.rwi;
-        vramPointerRead = s.vr; vramPointerWrite = s.vw; vramPointerReadInc = s.vri; vramPointerWriteInc = s.vwi; vramReadData = s.vrd;
+        vramPointerRead = s.vr; vramPointerWrite = s.vw; vramPointerReadInc = s.vri; vramPointerWriteInc = s.vwi; vramReadData = s.vrd; vramInterleaving = !!s.vi;
         palettePointer = s.pp; palettePointerReadInc = s.pri;
         paletteOffsetA = s.poa; paletteOffsetB = s.pob; paletteOffset = s.po; paletteOffsetCursor = s.poc;
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
