@@ -117,6 +117,8 @@ wmsx.V9990 = function() {
     this.output60 = function(val) {
         if (softResetON) return;    // Hang machine?
 
+        // if (vramPointerWrite >= 0x8000 && vramPointerWrite <= 0x9000) console.log("Writing " + vramPointerWrite.toString(16) + " : " + val.toString(16));
+
         vram[vramPointerWrite] = val;
         if (vramPointerWriteInc)
             if (++vramPointerWrite > VRAM_LIMIT) vramPointerWrite &= VRAM_LIMIT;
@@ -299,7 +301,7 @@ wmsx.V9990 = function() {
         palettePointer = 0; palettePointerReadInc = true;
         paletteOffsetA = 0; paletteOffsetB = 0; paletteOffset = 0;
         scrollXOffset = 0; scrollYOffset = 0; scrollYOffsetFrame = 0; scrollXBOffset = 0; scrollYBOffset = 0; scrollYBOffsetFrame = 0; scrollYMax = 0;
-        scrollYUpdatePending = false; scrollYBUpdatePending = false;
+        scrollYHiUpdatePending = false; scrollYBHiUpdatePending = false;
         planeAEnabled = true; planeBEnabled = true;
         priBYLine = 256; priBXCol = 256;
         vramEOLineShift = 0; vramEOLineAdd = 0;
@@ -349,9 +351,13 @@ wmsx.V9990 = function() {
         vramPointerReadInc = (register[5] & 0x80) === 0;
     }
 
-    function updateVRAMWritePointer() {
+    function updateVRAMWritePointer(reg) {
+        // var old = vramPointerWrite;
+
         vramPointerWrite = ((register[2] << 16) | (register[1] << 8) | register[0]) & VRAM_LIMIT;
         vramPointerWriteInc = (register[2] & 0x80) === 0;
+
+        // if (reg === 2) logInfo("VRAM Write Pointer: " + old.toString(16) + " > " + vramPointerWrite.toString(16) + " (" + vramPointerWriteInc + ")");
     }
 
     function updatePalettePointer() {
@@ -407,7 +413,7 @@ wmsx.V9990 = function() {
 
         switch (reg) {
             case 0: case 1: case 2:
-                updateVRAMWritePointer();
+                updateVRAMWritePointer(reg);
                 break;
             case 3: case 4:
                 updateVRAMReadPointer();
@@ -467,10 +473,11 @@ wmsx.V9990 = function() {
                 updateScrollYLow();
                 break;
             case 18:
-                if (mod & 0xc7) scrollYUpdatePending = true;    // Only at frame start
-                // updateScrollYFull();
+                if (mod & 0x1f) scrollYHiUpdatePending = true;  // Only at frame start
+                // updateScrollYHigh();
+                if (mod & 0xc0) updateScrollYMax();             // R512, R256
 
-                // logInfo("Register ScrollY HI: " + val);
+                // logInfo("Register ScrollY HI: " + (val & 0x1f));
                 break;
             case 19: case 20:
                 if (mod) updateScrollX();
@@ -479,14 +486,17 @@ wmsx.V9990 = function() {
                 updateScrollYBLow();
                 break;
             case 22:
-                if (mod & 0xc1) scrollYBUpdatePending = true;   // Only at frame start
-                // updateScrollYBFull();
+                if (mod & 0x01) scrollYBHiUpdatePending = true; // Only at frame start
+                // updateScrollYBHigh();
+                if (mod & 0xc0) updatePlanesEnabled();          // *SDA, *SDB
+
+                // logInfo("Register ScrollYB HI: " + (val & 0x01));
                 break;
             case 23: case 24:
                 if (mod) updateScrollXB();
                 break;
             case 25:
-                updateSpritePattAddress();
+                if (mod & 0x0f) updateSpritePattAddress();
                 break;
             case 26:
                 break;                                          // LCD Control. Ignore
@@ -713,20 +723,20 @@ wmsx.V9990 = function() {
 
     function updateScrollYLow() {
         // Update only SCAY7-0 bits. Make scanline 0 restart drawing at current scanline???
-        scrollYOffset = (scrollYOffset & ~0xff) | register[17];
-        scrollYOffsetFrame = scrollYOffset;
-        // scrollYOffsetFrame = currentScanline > frameStartingActiveScanline ? scrollYOffset - (currentScanline - frameStartingActiveScanline) : scrollYOffset;
-        scrollYUpdatePending = true;
+        scrollYOffset = (scrollYOffset & 0x1f00) | register[17];
+
+        // scrollYOffsetFrame = scrollYOffset;
+        scrollYOffsetFrame = currentScanline > frameStartingActiveScanline ? scrollYOffset - (currentScanline - frameStartingActiveScanline) : scrollYOffset;
+        scrollYHiUpdatePending = true;
 
         // logInfo("updateScrollYLow: " + scrollYOffset);
     }
 
-    function updateScrollYFull() {
-        scrollYOffsetFrame = scrollYOffset = ((register[18] & 0x1f) << 8) | register[17];
-        updateScrollYMax();
-        scrollYUpdatePending = false;
+    function updateScrollYHigh() {
+        scrollYOffsetFrame = scrollYOffset = ((register[18] & 0x1f) << 8) | (scrollYOffset & 0xff);
+        scrollYHiUpdatePending = false;
 
-        // logInfo("updateScrollYFull: " + scrollYOffset);
+        // logInfo("updateScrollYHigh: " + scrollYOffset);
     }
 
     function updateScrollX() {
@@ -740,16 +750,18 @@ wmsx.V9990 = function() {
 
     function updateScrollYBLow() {
         // Update only SCBY7-0 bits. Make scanline 0 restart drawing at current scanline???
-        scrollYBOffset = (scrollYBOffset & ~0xff) | register[21];
-        scrollYBOffsetFrame = scrollYBOffset;
-        // scrollYBOffsetFrame = currentScanline > frameStartingActiveScanline ? scrollYBOffset - (currentScanline - frameStartingActiveScanline) : scrollYBOffset;
-        scrollYBUpdatePending = true;
+        scrollYBOffset = (scrollYBOffset & 0x0100) | register[21];
+
+        // scrollYBOffsetFrame = scrollYBOffset;
+        scrollYBOffsetFrame = currentScanline > frameStartingActiveScanline ? scrollYBOffset - (currentScanline - frameStartingActiveScanline) : scrollYBOffset;
+        scrollYBHiUpdatePending = true;
+
+        // logInfo("updateScrollYBLow: " + scrollYBOffset);
     }
 
-    function updateScrollYBFull() {
-        scrollYBOffsetFrame = scrollYBOffset = ((register[22] & 0x01) << 8) | register[21];
-        updatePlanesEnabled();
-        scrollYBUpdatePending = false;
+    function updateScrollYBHigh() {
+        scrollYBOffsetFrame = scrollYBOffset = ((register[22] & 0x01) << 8) | (scrollYBOffset & 0xff);
+        scrollYBHiUpdatePending = false;
     }
 
     function updateScrollXB() {
@@ -852,8 +864,8 @@ wmsx.V9990 = function() {
 
         // Vertical pending updates
         if (dispAndSpritesUpdatePending) updateDispAndSpritesEnabled();
-        if (scrollYUpdatePending)  updateScrollYFull();
-        if (scrollYBUpdatePending) updateScrollYBFull();
+        if (scrollYHiUpdatePending)  updateScrollYHigh();
+        if (scrollYBHiUpdatePending) updateScrollYBHigh();
 
         setActiveDisplay();
     }
@@ -1165,7 +1177,7 @@ wmsx.V9990 = function() {
 
         scrollX = scrollXBOffset & 511;                          // Image max X = 511
         buffPos = bufferPosition - (scrollX & 7);
-        realLine = (currentScanline - frameStartingActiveScanline + scrollYBOffsetFrame) & scrollYMax;
+        realLine = (currentScanline - frameStartingActiveScanline + scrollYBOffsetFrame) & 511;     // Layer B scrollYMax is always 511
         lineInPattern = realLine & 7;
         namePosBase = 0x7e000 + ((realLine >> 3) << 6 << 1);
         namePos = scrollX >> 3 << 1;
@@ -1231,6 +1243,7 @@ wmsx.V9990 = function() {
         renderSpritesLine(bufferPosition, currentScanline - frameStartingActiveScanline, 0x00, 512, 0x7be00);
     }
 
+    // TODO Review sprite number priority & layer priority. Review limit between the 2 calls
     function renderSpritesLine(bufferPosition, line, pr1, width, atrPos) {
         if (!spritesEnabled || debugModeSpritesHidden) return;
 
@@ -1251,8 +1264,8 @@ wmsx.V9990 = function() {
                 if (x < width || x >= 1024 - 16) {                          // Only if not out to the right, or wrapping
                     palOff = (info & 0xc0) >> 2;
                     name = debugModeSpriteInfoNumbers ? sprite << 2 : vram[atrPos + 1];
-                    if (width === 256) pattPixelPos = spritePattAddress + (spriteLine << 7) + ((name >> 4 << 11) | ((name & 0x0f) << 3));
-                    else               pattPixelPos = spritePattAddress + (spriteLine << 8) + ((name >> 5 << 12) | ((name & 0x1f) << 3));
+                    if (width === 256) pattPixelPos = spritePattAddress + ((name >> 4 << 11) + ((name & 0x0f) << 3)) + (spriteLine << 7);
+                    else               pattPixelPos = spritePattAddress + ((name >> 5 << 12) + ((name & 0x1f) << 3)) + (spriteLine << 8);
 
                     if (x >= width) x -= 1024;
                     paintSprite(bufferPosition, x, spritesGlobalPriority + sprite, pattPixelPos, palOff);
@@ -1798,7 +1811,7 @@ wmsx.V9990 = function() {
     var backdropCacheUpdatePending = true;
 
     var scrollXOffset = 0, scrollYOffset = 0, scrollYOffsetFrame = 0, scrollXBOffset = 0, scrollYBOffset = 0, scrollYBOffsetFrame = 0, scrollYMax = 0;
-    var scrollYUpdatePending = false, scrollYBUpdatePending = false;
+    var scrollYHiUpdatePending = false, scrollYBHiUpdatePending = false;
     var planeAEnabled = true, planeBEnabled = true;
     var priBYLine = 256, priBXCol = 256;
 
@@ -1895,7 +1908,7 @@ wmsx.V9990 = function() {
             fs: frameStartingActiveScanline,
             f: frame, c: cycles, cc: lastBUSCyclesComputed,
             sx: scrollXOffset, sy: scrollYOffset, syf: scrollYOffsetFrame, sxb: scrollXBOffset, syb: scrollYBOffset, sybf: scrollYBOffsetFrame, sym: scrollYMax,
-            syu: scrollYUpdatePending, sybu: scrollYBUpdatePending,
+            syu: scrollYHiUpdatePending, sybu: scrollYBHiUpdatePending,
             pa: planeAEnabled, pb: planeBEnabled,
             pby: priBYLine, pbx: priBXCol,
             de: dispEnabled, se: spritesEnabled, dsu: dispAndSpritesUpdatePending,
@@ -1926,7 +1939,7 @@ wmsx.V9990 = function() {
         if (s.ad) setActiveDisplay(); else setBorderDisplay();
         frame = s.f || 0; cycles = s.c; lastBUSCyclesComputed = s.cc;
         scrollXOffset = s.sx; scrollYOffset = s.sy; scrollYOffsetFrame = s.syf; scrollXBOffset = s.sxb; scrollYBOffset = s.syb; scrollYBOffsetFrame = s.sybf; scrollYMax = s.sym;
-        scrollYUpdatePending = s.syu; scrollYBUpdatePending = s.sybu;
+        scrollYHiUpdatePending = s.syu; scrollYBHiUpdatePending = s.sybu;
         planeAEnabled = s.pa; planeBEnabled = s.pb;
         priBYLine = s.pby; priBXCol = s.pbx;
         dispEnabled = s.de; spritesEnabled = s.se; dispAndSpritesUpdatePending = s.dsu;
