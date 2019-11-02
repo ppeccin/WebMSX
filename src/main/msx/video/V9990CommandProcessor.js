@@ -208,13 +208,11 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function getWMDirect() {
-        // return 0xff00;
         return (register[46] << 8) | register[47];      // WM H/L swapped, all 16 bits range
     }
 
-    // TODO Will yP1Offset trick work on all situations? What for P1 and getWMDirect()
+    // TODO Will yP1Offset trick work on all situations?
     function getWM(yP1Offset) {
-        // return 0xff00;
         return isP1
             ? yP1Offset === 0
                 ? (register[46] << 8) | register[46]    // Always High byte for VRAM0
@@ -223,8 +221,11 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function getWMForAddr(wm, pos) {
-        // return (pos & 1) ? wm & 0xff : wm >> 8;
-        return (wm >> ((~pos & 1) << 3)) & 0xff;        // WM H/L is swapped, so Low byte is for ODD addr
+        return (wm >> ((~pos & 1) << 3)) & 0xff;        // Based on LSB. WM H/L is swapped, so Low byte is for ODD addr
+    }
+
+    function getWMForAddrP1(wm, pos) {
+        return (wm >> (((~pos >> 18) & 1) << 3)) & 0xff; // Based on HSB. WM H/L is swapped, so Low byte is for addr >= 0x40000
     }
 
     function getFC(yP1Offset) {
@@ -661,9 +662,16 @@ wmsx.V9990CommandProcessor = function() {
         // console.log("BMLL sa: " + sa.toString(16) + ", da: " + da.toString(16) + ", na: " + na + ", dix: " + dix + ", wm: " + wm.toString(16) + ", op: " + op.name);
 
         // Perform operation
-        for (var c = na; c > 0; --c) {
-            logicalPCOPYLL(da, sa, op, wm);
-            sa = (sa + dix) & VRAM_LIMIT; da = (da + dix) & VRAM_LIMIT;
+        if (isP1) {
+            for (var c = na; c > 0; --c) {
+                logicalPCOPYLLP1(da, sa, op, wm);
+                sa = (sa + dix) & VRAM_LIMIT; da = (da + dix) & VRAM_LIMIT;
+            }
+        } else {
+            for (c = na; c > 0; --c) {
+                logicalPCOPYLL(da, sa, op, wm);
+                sa = (sa + dix) & VRAM_LIMIT; da = (da + dix) & VRAM_LIMIT;
+            }
         }
 
         // Set changed register state after finishing
@@ -992,8 +1000,13 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function logicalPCOPYLL(da, sa, op, wm) {       // 8 bits based
-        // Perform operation
         vram[da] = op(vram[da], vram[sa], getWMForAddr(wm, da));
+    }
+
+    function logicalPCOPYLLP1(da, sa, op, wm) {     // 8 bits based
+        da = (da >>> 1) | ((da & 1) << 18);
+        sa = (sa >>> 1) | ((sa & 1) << 18);
+        vram[da] = op(vram[da], vram[sa], getWMForAddrP1(wm, da));
     }
 
     function lopNULL(dest, src, mask) {
