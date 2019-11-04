@@ -1478,6 +1478,7 @@ wmsx.V9990 = function() {
         renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
     }
 
+    // TODO Cursor overlapping and EOR
     function renderCursorsLine(bufferPosition, line, width) {
         if (!spritesEnabled || debugModeSpritesHidden) return;
 
