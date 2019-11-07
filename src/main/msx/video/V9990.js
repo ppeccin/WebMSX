@@ -789,8 +789,8 @@ wmsx.V9990 = function() {
     }
 
     function updateHorizontalIntX() {
-        // TODO Only Horitontal INT X = 0 supported for now
-        if ((register[12] & 0x0f) > 0) console.error("V9990 Horitontal INT X > 0 specified!");
+        // TODO Only Horizontal INT X = 0 supported for now
+        if ((register[12] & 0x0f) > 0) console.error("V9990 Horizontal INT X > 0 specified!");
     }
 
     function updateVideoStandardSoft() {
@@ -1121,19 +1121,22 @@ wmsx.V9990 = function() {
         // Backdrop
         paintBackdrop256(bufferPosition);
 
+        // Determine Sprites priorities to render
+        determineSpritesOnLine(currentScanline - frameStartingActiveScanline, 0x3fe00);
+
         // Plane A has priority?
         var priA = (currentScanline - frameStartingActiveScanline) < priBYLine;
 
         // Back Plane
         if (priA) renderLineTypePP1B(bufferPosition); else renderLineTypePP1A(bufferPosition);
 
-        // Sprites Front > SP > Back, PR1 = 1 (0x20)
+        // Sprites Front > SP > Back, PR1 = 1, PR0 = 0 (0x20)
         renderSpritesLine(bufferPosition, currentScanline - frameStartingActiveScanline, 0x20, 256, 0x3fe00);
 
         // Front Plane
         if (priA) renderLineTypePP1A(bufferPosition); else renderLineTypePP1B(bufferPosition);
 
-        // Sprites SP > Front > Back, PR1 = 0
+        // Sprites SP > Front > Back, PR1 = 0, PR0 = 0 (0x00)
         renderSpritesLine(bufferPosition, currentScanline - frameStartingActiveScanline, 0x00, 256, 0x3fe00);
     }
 
@@ -1208,7 +1211,10 @@ wmsx.V9990 = function() {
         // Backdrop
         paintBackdrop512(bufferPosition);
 
-        // Sprites Plane > SP, PR1 = 1 (0x20)
+        // Determine Sprites priorities to render
+        determineSpritesOnLine(currentScanline - frameStartingActiveScanline, 0x7be00);
+
+        // Sprites Plane > SP, PR1 = 1, PR0 = 0 (0x20)
         renderSpritesLine(bufferPosition, currentScanline - frameStartingActiveScanline, 0x20, 512, 0x7be00);
 
         // Plane
@@ -1239,27 +1245,36 @@ wmsx.V9990 = function() {
             }
         }
 
-        // Sprites SP > Plane, PR1 = 0
+        // Sprites SP > Plane, PR1 = 1, PR0 = 0 (0x20)
         renderSpritesLine(bufferPosition, currentScanline - frameStartingActiveScanline, 0x00, 512, 0x7be00);
     }
 
-    // TODO Review sprite number priority & layer priority. Review limit between the 2 calls
-    function renderSpritesLine(bufferPosition, line, pr1, width, atrPos) {
+    function determineSpritesOnLine(line, atrPos) {
+        spritesOnLineCount = 0;
         if (!spritesEnabled || debugModeSpritesHidden) return;
 
-        var palOff = 0, name = 0, info = 0, y = 0, spriteLine = 0, x = 0, pattPixelPos = 0;
-        spritesGlobalPriority -= 128;
-
-        var limit = 16;
         for (var sprite = 0; sprite < 125; ++sprite, atrPos += 4) {
-            y = vram[atrPos];
-            spriteLine = (line - y - 1) & 255;
+            var y = vram[atrPos];
+            var spriteLine = (line - y - 1) & 255;
             if (spriteLine >= 16) continue;                                 // Not visible at line
 
-            --limit;                                                        // Sprite already counts towards limit
+            spritesOnLine[spritesOnLineCount] = sprite;                     // Sprite already counts towards limit    TODO PR0 = 1 sprites really count even not being displayed?
+            ++spritesOnLineCount;
 
+            if (spritesOnLineCount >= 16 && spriteDebugModeLimit) break;    // Max number of sprites per line reached (16)
+        }
+    }
+
+    function renderSpritesLine(bufferPosition, line, pri, width, atrStart) {
+        var sprite = 0, atrPos = 0, palOff = 0, name = 0, info = 0, y = 0, spriteLine = 0, x = 0, pattPixelPos = 0;
+
+        for (var place = spritesOnLineCount - 1; place >= 0; --place) {
+            sprite = spritesOnLine[place];
+            atrPos = atrStart + (sprite << 2);                              // 4 bytes per sprite
             info = vram[atrPos + 3];
-            if ((info & 0x10) === 0 && (info & 0x20) === pr1) {             // PR0 === 0 (shown) && PR1 === asked?
+            if ((info & 0x30) === pri) {                                    // PR1, PR0 === asked?
+                y = vram[atrPos];
+                spriteLine = (line - y - 1) & 255;
                 x = vram[atrPos + 2] | ((info & 0x03) << 8);
                 if (x < width || x >= 1024 - 16) {                          // Only if not out to the right, or wrapping
                     palOff = (info & 0xc0) >> 2;
@@ -1268,21 +1283,18 @@ wmsx.V9990 = function() {
                     else               pattPixelPos = spritePattAddress + ((name >> 5 << 12) + ((name & 0x1f) << 3)) + (spriteLine << 8);
 
                     if (x >= width) x -= 1024;
-                    paintSprite(bufferPosition, x, spritesGlobalPriority + sprite, pattPixelPos, palOff);
+                    paintSprite(bufferPosition + x, pattPixelPos, palOff);
                 }
             }
-
-            if (limit <= 0 && spriteDebugModeLimit) break;                  // Max number of sprites per line reached
         }
     }
 
-    function paintSprite(bufferPosition, x, spritePri, pattPixelPos, palOff) {
-        var v = 0, c = 0, p = x + 16;
-        var buffPos = bufferPosition + x;
+    function paintSprite(bufferPosition, pattPixelPos, palOff) {
+        var v = 0, c = 0;
         for (var i = 8; i > 0; --i) {
             v = vram[pattPixelPos]; ++pattPixelPos;
-            c = v >> 4;   if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; } ++p; ++buffPos;
-            c = v & 0x0f; if (c > 0 && spritesLinePriorities[p] >= spritePri) { frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; spritesLinePriorities[p] = spritePri; } ++p; ++buffPos;
+            c = v >> 4;   if (c > 0) frameBackBuffer[bufferPosition] = paletteValuesReal[palOff | c]; ++bufferPosition;
+            c = v & 0x0f; if (c > 0) frameBackBuffer[bufferPosition] = paletteValuesReal[palOff | c]; ++bufferPosition;
         }
     }
 
@@ -1819,8 +1831,8 @@ wmsx.V9990 = function() {
     var verticalAdjust = 0, horizontalAdjust = 0;
 
     var spritePattAddress = 0;
-    var spritesGlobalPriority = SPRITE_MAX_PRIORITY;                                                        // Decreasing value for priority control. Never resets and lasts for years!
-    var spritesLinePriorities = wmsx.Util.arrayFill(new Array(512 + 16 + 16 + 8), SPRITE_MAX_PRIORITY);     // Max P2 res + 16 for Left-overflow + 16 for Right-overflow + 8 slack
+    var spritesOnLine = wmsx.Util.arrayFill(new Array(126), 255);
+    var spritesOnLineCount = 0;
 
     var dispEnabled = false, spritesEnabled = true, dispAndSpritesUpdatePending = false;
 
