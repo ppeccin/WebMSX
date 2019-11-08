@@ -10,7 +10,7 @@ wmsx.SlotRAMNormal = function(rom) {
         self.rom = rom;
         var size = WMSX.RAMNORMAL_SIZE;
         if (size < 1) size = 1; else if (size > 64) size = 64;          // Spec says minimum is 16K, but we will allow less
-        bytes = wmsx.Util.arrayFill(new Array(size * 1024), 0x00);
+        bytes = new Uint8Array(size * 1024);   // wmsx.Util.arrayFill(new Array(size * 1024), 0);
         baseAddress = 65536 - bytes.length;
         self.bytes = bytes;
     }

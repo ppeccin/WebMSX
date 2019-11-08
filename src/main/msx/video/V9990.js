@@ -1665,8 +1665,8 @@ wmsx.V9990 = function() {
 
         if (!frameImageData) {
             frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);                                           // +1 line for the Backdrop cache, +1 for the Standby cache
-            frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * frameCanvas.height);                               // Contains Left-overflow extra, not the other 2
-            backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, frameCanvas.width);         // Backdrop extra line
+            frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * frameCanvas.height);                               // Contains Left-overflow extra line, not the other 2
+            backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, frameCanvas.width);         // Backdrop cache extra line
             standByLineCache =  new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Standby extra line
 
             backdrop64 =  new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, 64);
@@ -1781,7 +1781,7 @@ wmsx.V9990 = function() {
     var backdropLineCache, standByLineCache, backdrop64, backdrop256, backdrop512;        // Cached full line backdrop and standby values, will share the same buffer as the frame itself for fast copying
     var frameContextUsingAlpha = false;
 
-    var vram = new Uint8Array(VRAM_TOTAL_SIZE);   // wmsx.Util.arrayFill(new Array(VRAM_TOTAL_SIZE), 0);
+    var vram = new Uint8Array(VRAM_TOTAL_SIZE);
     this.vram = vram;
 
     var frame = 0;
@@ -1831,7 +1831,7 @@ wmsx.V9990 = function() {
     var verticalAdjust = 0, horizontalAdjust = 0;
 
     var spritePattAddress = 0;
-    var spritesOnLine = wmsx.Util.arrayFill(new Array(126), 255);
+    var spritesOnLine = wmsx.Util.arrayFill(new Array(126), 0);
     var spritesOnLineCount = 0;
 
     var dispEnabled = false, spritesEnabled = true, dispAndSpritesUpdatePending = false;
