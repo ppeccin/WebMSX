@@ -75,6 +75,8 @@ wmsx.V9990 = function() {
     };
 
     this.powerOn = function() {
+        initRAM();     // TODO On reset or only at powerOn?
+        initPalette();
         this.reset();
     };
 
@@ -282,9 +284,6 @@ wmsx.V9990 = function() {
     this.reset = function() {
         systemControl = 0; status = 0; softResetON = false;
         registerSelect = 0; registerSelectReadInc = true; registerSelectWriteInc = true;
-
-        initRAMs();     // TODO On reset or only at powerOn?
-        initColorPalette();
 
         softReset();
 
@@ -1640,12 +1639,12 @@ wmsx.V9990 = function() {
         // console.error("V9990 VRAM EXITING Interleaving");
     };
 
-    function initRAMs() {
+    function initRAM() {
+        vramInterleaving = false;
         for(var i = 0; i < VRAM_SIZE; i += 1024) {
             wmsx.Util.arrayFill(vram, 0x00, i, i + 512);
             wmsx.Util.arrayFill(vram, 0xff, i + 512, i + 1024);
         }
-        wmsx.Util.arrayFill(paletteRAM, 0);
     }
 
     function initRegisters() {
@@ -1677,7 +1676,8 @@ wmsx.V9990 = function() {
         }
     }
 
-    function initColorPalette() {
+    function initPalette() {
+        wmsx.Util.arrayFill(paletteRAM, 0);
         for (var c = 0; c < 64; ++c)
             paletteValuesReal[c] = paletteValues[c] = solidBlackValue;
     }
