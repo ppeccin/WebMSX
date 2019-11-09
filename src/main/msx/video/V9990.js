@@ -75,7 +75,7 @@ wmsx.V9990 = function() {
     };
 
     this.powerOn = function() {
-        initRAM();     // TODO On reset or only at powerOn?
+        initRAM();
         initPalette();
         this.reset();
     };
@@ -340,7 +340,6 @@ wmsx.V9990 = function() {
     };
 
     this.setStatusCE = function (val) {
-        // TODO V9990: Handle CE int flag and update IRQ
         if (val) status |= 0x01;
         else status &= ~0x01;
     };
@@ -599,6 +598,7 @@ wmsx.V9990 = function() {
         if (currentScanline >= finishingScanline) finishFrame();
     };
 
+    // TODO Command Completion INT is not triggered at the correct time for internal commands, only by checking status or finishing with the last CPU write/read
     this.triggerCommandCompletionInterrupt = function() {
         if (interruptFlags & 0x04) return;          // CE already == 1 ?
         interruptFlags |= 0x04;                     // CE = 1
@@ -787,8 +787,8 @@ wmsx.V9990 = function() {
         horizontalIntLine = ((register[11] & 0x03) << 8) | register[10];
     }
 
+    // TODO Only Horizontal INT X = 0 supported for now
     function updateHorizontalIntX() {
-        // TODO Only Horizontal INT X = 0 supported for now
         if ((register[12] & 0x0f) > 0) console.error("V9990 Horizontal INT X > 0 specified!");
     }
 
@@ -1257,7 +1257,7 @@ wmsx.V9990 = function() {
             var spriteLine = (line - y - 1) & 255;
             if (spriteLine >= 16) continue;                                 // Not visible at line
 
-            spritesOnLine[spritesOnLineCount] = sprite;                     // Sprite already counts towards limit    TODO PR0 = 1 sprites really count even not being displayed?
+            spritesOnLine[spritesOnLineCount] = sprite;                     // Sprite already counts towards limit
             ++spritesOnLineCount;
 
             if (spritesOnLineCount >= 16 && spriteDebugModeLimit) break;    // Max number of sprites per line reached (16)
@@ -1602,8 +1602,9 @@ wmsx.V9990 = function() {
         beginFrame();
     }
 
+    // TODO P2 mode uses strange RAM interleaving
     function updateVRAMInterleaving() {
-        if (vramInterleaving === (modeData !== modes.P1)) return;       // TODO P2 mode uses strange interleaving
+        if (vramInterleaving === (modeData !== modes.P1)) return;
 
         vramInterleaving = modeData !== modes.P1;
         if (vramInterleaving) self.vramEnterInterleaving();
@@ -1639,6 +1640,7 @@ wmsx.V9990 = function() {
         // console.error("V9990 VRAM EXITING Interleaving");
     };
 
+    // TODO Is this RAM initialization correct? Why not all zero?
     function initRAM() {
         vramInterleaving = false;
         for(var i = 0; i < VRAM_SIZE; i += 1024) {
