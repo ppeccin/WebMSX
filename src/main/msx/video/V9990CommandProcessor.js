@@ -2,7 +2,7 @@
 
 // Commands perform all operation instantaneously at the first cycle. Duration is estimated
 // All color values and write mask, i.e. FC, BC and WM (also SC, DC, WC) are processed as BIG-ENDIAN (high byte first). So FC, BC and WM are read from registers and get H/L bytes swapped
-// This is done so universally FC bytes H/L can be aligned with VRAM bytes X mapping
+// This is done so universally FC bytes H/L can be aligned with VRAM bytes
 // Could be improved a lot if we actually perform all operations in 16 bits...
 
 wmsx.V9990CommandProcessor = function() {
@@ -129,8 +129,8 @@ wmsx.V9990CommandProcessor = function() {
         register[35] = (val >> 8) & 0x0f; register[34] = val & 0xff;
     }
 
-    function getSYP1Offset() {
-        return isP1 && (register[33] & 0x02) ? 2048 : 0;        // SX9 bit in P1 mode -> start at Plane B
+    function getSourcePlaneBOffset(sx) {
+        return isP1 && (sx & 0x0200) ? 2048 : 0;        // SX9 bit in P1 mode -> source is Plane B
     }
 
     function getSA() {
@@ -156,8 +156,8 @@ wmsx.V9990CommandProcessor = function() {
         register[39] = (val >> 8) & 0x0f; register[38] = val & 0xff;
     }
 
-    function getDYP1Offset() {
-        return isP1 && (register[37] & 0x02) ? 2048 : 0;        // DX9 bit in P1 mode -> start at Plane B
+    function getDestPlaneBOffset(dx) {
+        return isP1 && (dx & 0x0200) ? 2048 : 0;        // DX9 bit in P1 mode -> destination is Plane B
     }
 
     function getDA() {
@@ -208,39 +208,39 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function getWMDirect() {
-        return (register[46] << 8) | register[47];      // WM H/L swapped, all 16 bits range
+        return (register[46] << 8) | register[47];      // All 16 bits range, H/L swapped
     }
 
-    // TODO Will yP1Offset trick work on all situations?
-    function getWM(yP1Offset) {
+    function getWM(isPlaneB) {
         return isP1
-            ? yP1Offset === 0
-                ? (register[46] << 8) | register[46]    // Always High byte for VRAM0
-                : (register[47] << 8) | register[47]    // Always Low byte for VRAM1
-            : (register[46] << 8) | register[47];       // WM H/L swapped, all 16 bits range
+            ? isPlaneB
+                ? (register[47] << 8) | register[47]    // Always Low byte for VRAM1
+                : (register[46] << 8) | register[46]    // Always High byte for VRAM0
+            : getWMDirect();                            // All 16 bits range, H/L swapped
     }
 
-    function getWMForAddr(wm, pos) {
+    function wm8ForAddr(wm, pos) {
         return (wm >> ((~pos & 1) << 3)) & 0xff;        // Based on LSB. WM H/L is swapped, so Low byte is for ODD addr
     }
 
-    function getWMForAddrP1(wm, pos) {
-        return (wm >> (((~pos >> 18) & 1) << 3)) & 0xff; // Based on HSB. WM H/L is swapped, so Low byte is for addr >= 0x40000
+    function wm16ForAddr(wm, pos) {
+        return ((wm >> ((pos & 1) << 3)) & 0xff)        // Based on LSB. WM H/L is swapped, so Low byte is for ODD addr
+            |  ((wm << ((pos & 1) << 3)) & 0xff00);
     }
 
-    function getFC(yP1Offset) {
+    function getFC(isPlaneB) {
         return isP1
-            ? yP1Offset === 0
-                ? (register[48] << 8) | register[48]    // Only High byte for VRAM0
-                : (register[49] << 8) | register[49]    // Only Low byte for VRAM1
+            ? isPlaneB
+                ? (register[49] << 8) | register[49]    // Only Low byte for VRAM1
+                : (register[48] << 8) | register[48]    // Only High byte for VRAM0
             : (register[48] << 8) | register[49];       // All 16 bits range, H/L swapped
     }
 
-    function getBC(yP1Offset) {
+    function getBC(isPlaneB) {
         return isP1
-            ? yP1Offset === 0
-                ? (register[50] << 8) | register[50]    // Only High byte for VRAM0
-                : (register[51] << 8) | register[51]    // Only Low byte for VRAM1
+            ? isPlaneB
+                ? (register[51] << 8) | register[51]    // Only Low byte for VRAM1
+                : (register[50] << 8) | register[50]    // Only High byte for VRAM0
             : (register[50] << 8) | register[51];       // All 16 bits range, H/L swapped
     }
 
@@ -259,16 +259,16 @@ wmsx.V9990CommandProcessor = function() {
     function LMMC() {
         // Collect parameters
         DX = getDX();
-        DYP1Off = getDYP1Offset();
+        DESTOff = getDestPlaneBOffset(DX);
         DY = getDY();
         NX = getNX();
         NY = getNY();
         DIX = getDIX();
         DIY = getDIY();
         LOP = getLOP();
-        WM = getWM(DYP1Off);
+        WM = getWM(DESTOff);
 
-        // console.log("LMMC START x: " + DX + ", y: " + DY + " + " + DYP1Off + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
+        // console.log("LMMC START x: " + DX + ", y: " + DY + " + " + DESTOff + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
         EDX = DX;
         CX = 0; CY = 0;
@@ -316,7 +316,7 @@ wmsx.V9990CommandProcessor = function() {
     function LMMCNextPixel(sc) {      // sc is 16 bits
         // console.log("LMMC Put CX: " + CX + ", CY: " + CY);
 
-        logicalPSETX(EDX, DY | DYP1Off, SX, sc, LOP, WM);
+        logicalPSETX(EDX, DY | DESTOff, SX, sc, LOP, WM);
 
         ++CX; ++SX;
         if (CX >= NX) {
@@ -331,23 +331,23 @@ wmsx.V9990CommandProcessor = function() {
     function LMMV() {
         // Collect parameters
         var dx = getDX();
-        var dyP1Off = getDYP1Offset();
+        var destOff = getDestPlaneBOffset(dx);
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
         var dix = getDIX();
         var diy = getDIY();
         var op = getLOP();
-        var wm = getWM(dyP1Off);
-        var fc = getFC(dyP1Off);
+        var wm = getWM(destOff);
+        var fc = getFC(destOff);
 
-        // console.log("LMMV dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", fc: " + fc.toString(16));
+        // console.log("LMMV dx: " + dx + ", dy: " + dy + " + " + destOff + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", fc: " + fc.toString(16));
 
         // Perform operation
         for (var cy = ny; cy > 0; --cy) {
             var edx = dx;
             for (var cx = 0; cx < nx; ++cx) {
-                logicalPSETX(edx, dy | dyP1Off, edx, fc, op, wm);
+                logicalPSETX(edx, dy | destOff, edx, fc, op, wm);
                 edx = (edx + dix) & imageWidthMask;
             }
             dy = (dy + diy) & imageHeightMask;
@@ -362,14 +362,14 @@ wmsx.V9990CommandProcessor = function() {
     function LMCM() {
         // Collect parameters
         SX = getSX();
-        SYP1Off = getSYP1Offset();
+        SRCOff = getSourcePlaneBOffset(SX);
         SY = getSY();
         NX = getNX();
         NY = getNY();
         DIX = getDIX();
         DIY = getDIY();
 
-        // console.log("LMCM START x: " + SX + ", y: " + SY + " + " + SYP1Off + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
+        // console.log("LMCM START x: " + SX + ", y: " + SY + " + " + SRCOff + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
         ESX = SX;
         CX = 0; CY = 0;
@@ -411,7 +411,7 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function LMCMNextPixel(dx) {
-        var sc = normalPGETX(ESX, SY | SYP1Off, dx);
+        var sc = normalPGETX(ESX, SY | SRCOff, dx);
 
         ++CX;
         if (CX >= NX) {
@@ -428,25 +428,25 @@ wmsx.V9990CommandProcessor = function() {
     function LMMM() {
         // Collect parameters
         var sx = getSX();
-        var syP1Off = getSYP1Offset();
+        var srcOff = getSourcePlaneBOffset(sx);
         var sy = getSY();
         var dx = getDX();
-        var dyP1Off = getDYP1Offset();
+        var destOff = getDestPlaneBOffset(dx);
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
         var dix = getDIX();
         var diy = getDIY();
         var op = getLOP();
-        var wm = getWM(dyP1Off);
+        var wm = getWM(destOff);
 
-        // v9990.logInfo("LMMM sx: " + sx + ", sy: " + sy + " + " + syP1Off + ", dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
+        // v9990.logInfo("LMMM sx: " + sx + ", sy: " + sy + " + " + srcOff + ", dx: " + dx + ", dy: " + dy + " + " + destOff + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", op: " + op.name);
 
         // Perform operation
         for (var cy = ny; cy > 0; --cy) {
             var esx = sx, edx = dx;
             for (var cx = nx; cx > 0; --cx) {
-                logicalPCOPYXX(edx, dy | dyP1Off, esx, sy | syP1Off, op, wm);
+                logicalPCOPYXX(edx, dy | destOff, esx, sy | srcOff, op, wm);
                 esx = (esx + dix) & imageWidthMask; edx = (edx + dix) & imageWidthMask;
             }
             sy = (sy + diy) & imageHeightMask; dy = (dy + diy) & imageHeightMask;
@@ -462,17 +462,17 @@ wmsx.V9990CommandProcessor = function() {
     function CMMC() {
         // Collect parameters
         DX = getDX();
-        DYP1Off = getDYP1Offset();
+        DESTOff = getDestPlaneBOffset(DX);
         DY = getDY();
         NX = getNX();
         NY = getNY();
         DIX = getDIX();
         DIY = getDIY();
         LOP = getLOP();
-        WM = getWM(DYP1Off);
-        FBC = (getFC(DYP1Off) << 16) | getBC(DYP1Off);     // combined so we can get desired color by shifting instead of condition
+        WM = getWM(DESTOff);
+        FBC = (getFC(DESTOff) << 16) | getBC(DESTOff);     // combined so we can get desired color by shifting instead of condition
 
-        // console.log("CMMC START x: " + DX + ", y: " + DY + " + " + DYP1Off + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
+        // console.log("CMMC START x: " + DX + ", y: " + DY + " + " + DESTOff + ", nx: " + NX + ", ny: " + NY + ", dix: " + DIX + ", diy: " + DIY);
 
         EDX = DX;
         CX = 0; CY = 0;
@@ -485,7 +485,7 @@ wmsx.V9990CommandProcessor = function() {
 
         for (var b = 7; b >= 0; --b) {
             var p = (pd >> b) & 1;
-            logicalPSETX(EDX, DY | DYP1Off, EDX, (FBC >> (p << 4)) & 0xffff, LOP, WM);
+            logicalPSETX(EDX, DY | DESTOff, EDX, (FBC >> (p << 4)) & 0xffff, LOP, WM);
 
             ++CX;
             if (CX >= NX) {
@@ -510,17 +510,17 @@ wmsx.V9990CommandProcessor = function() {
         // Collect parameters
         var sa = getSA();
         var dx = getDX();
-        var dyP1Off = getDYP1Offset();
+        var destOff = getDestPlaneBOffset(dx);
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
         var dix = getDIX();
         var diy = getDIY();
         var op = getLOP();
-        var wm = getWM(dyP1Off);
-        var fbc = (getFC(DYP1Off) << 16) | getBC(DYP1Off);     // combined so we can get desired color by shifting instead of condition
+        var wm = getWM(destOff);
+        var fbc = (getFC(DESTOff) << 16) | getBC(DESTOff);     // combined so we can get desired color by shifting instead of condition
 
-        // console.log("CMMM sa: " + sa.toString(16) + ", dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+        // console.log("CMMM sa: " + sa.toString(16) + ", dx: " + dx + ", dy: " + dy + " + " + destOff + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
         // Perform operation
         var pd = 0, cp = 0, p = 0;                 // cp counts pixels
@@ -536,7 +536,7 @@ wmsx.V9990CommandProcessor = function() {
                     }
                 }
                 p = (pd >> (7 - (cp & 0x07))) & 1;
-                logicalPSETX(edx, dy | dyP1Off, edx, (fbc >> (p << 4)) & 0xffff, op, wm);
+                logicalPSETX(edx, dy | destOff, edx, (fbc >> (p << 4)) & 0xffff, op, wm);
                 edx = (edx + dix) & imageWidthMask; ++cp;
             }
             dy = (dy + diy) & imageHeightMask;
@@ -553,24 +553,24 @@ wmsx.V9990CommandProcessor = function() {
         // Collect parameters
         // No Source data since there is no Kanji ROM. All input bytes will be 0
         var dx = getDX();
-        var dyP1Off = getDYP1Offset();
+        var destOff = getDestPlaneBOffset(dx);
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
         var dix = getDIX();
         var diy = getDIY();
         var op = getLOP();
-        var wm = getWM(dyP1Off);
-        var bc = getBC(DYP1Off);        // dont get FC since only BC will be used
+        var wm = getWM(destOff);
+        var bc = getBC(DESTOff);        // dont get FC since only BC will be used
 
-        // console.log("CMMK dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+        // console.log("CMMK dx: " + dx + ", dy: " + dy + " + " + destOff + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
         // Perform operation
         for (var cy = ny; cy > 0; --cy) {
             var edx = dx;
             for (var cx = 0; cx < nx; ++cx) {
                 // Never read bytes. Input byte is always 0
-                logicalPSETX(edx, dy | dyP1Off, edx, bc, op, wm);     // Will always paint with BC
+                logicalPSETX(edx, dy | destOff, edx, bc, op, wm);     // Will always paint with BC
                 edx = (edx + dix) & imageWidthMask;
             }
             dy = (dy + diy) & imageHeightMask;
@@ -586,16 +586,16 @@ wmsx.V9990CommandProcessor = function() {
         // Collect parameters
         var sa = getSA();
         var dx = getDX();
-        var dyP1Off = getDYP1Offset();
+        var destOff = getDestPlaneBOffset(dx);
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
         var dix = getDIX();
         var diy = getDIY();
         var op = getLOP();
-        var wm = getWM(dyP1Off);
+        var wm = getWM(destOff);
 
-        // console.log("BMXL sa: " + sa.toString(16) + ", dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", wm: " + wm.toString(16) + ", op: " + op.name);
+        // console.log("BMXL sa: " + sa.toString(16) + ", dx: " + dx + ", dy: " + dy + " + " + destOff + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy + ", wm: " + wm.toString(16) + ", op: " + op.name);
 
         // Perform operation
         var sc = 0;
@@ -617,7 +617,7 @@ wmsx.V9990CommandProcessor = function() {
                         else                { sc = vram[sa]; sc |= sc << 8;        sa = (sa + 1) & VRAM_LIMIT; }
                     }
                 }
-                logicalPSETX(edx, dy | dyP1Off, sx, sc, op, wm);
+                logicalPSETX(edx, dy | destOff, sx, sc, op, wm);
                 edx = (edx + dix) & imageWidthMask; ++sx; cb += typeBPP;
             }
             dy = (dy + diy) & imageHeightMask;
@@ -633,7 +633,7 @@ wmsx.V9990CommandProcessor = function() {
     function BMLX() {
         // Collect parameters
         var sx = getSX();
-        var syP1Off = getSYP1Offset();
+        var srcOff = getSourcePlaneBOffset(sx);
         var sy = getSY();
         var da = getDA();
         var nx = getNX();
@@ -643,7 +643,7 @@ wmsx.V9990CommandProcessor = function() {
         var op = getLOP();
         var wm = getWMDirect();
 
-        // console.log("BMLX sx: " + sx + ", sy: " + sy + " + " + syP1Off + ", da: " + da.toString(16) + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy +  ", wm: " + wm.toString(16) + ", op: " + op.name);
+        // console.log("BMLX sx: " + sx + ", sy: " + sy + " + " + srcOff + ", da: " + da.toString(16) + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy +  ", wm: " + wm.toString(16) + ", op: " + op.name);
 
         // Perform operation
         var dx = 0, cb = 0;                     // cb counts bits per pixel
@@ -651,7 +651,7 @@ wmsx.V9990CommandProcessor = function() {
             for (var cy = ny; cy > 0; --cy) {
                 var esx = sx;
                 for (var cx = nx; cx > 0; --cx) {
-                    logicalPCOPYLXP1((da + (cb >> 3)) & VRAM_LIMIT, dx, esx, sy | syP1Off, op, wm);
+                    logicalPCOPYLXP1((da + (cb >> 3)) & VRAM_LIMIT, dx, esx, sy | srcOff, op, wm);
                     esx = (esx + dix) & imageWidthMask; ++dx; cb += typeBPP;
                 }
                 sy = (sy + diy) & imageHeightMask;
@@ -660,7 +660,7 @@ wmsx.V9990CommandProcessor = function() {
             for (cy = ny; cy > 0; --cy) {
                 esx = sx;
                 for (cx = nx; cx > 0; --cx) {
-                    logicalPCOPYLX((da + (cb >> 3)) & VRAM_LIMIT, dx, esx, sy | syP1Off, op, wm);
+                    logicalPCOPYLX((da + (cb >> 3)) & VRAM_LIMIT, dx, esx, sy | srcOff, op, wm);
                     esx = (esx + dix) & imageWidthMask; ++dx; cb += typeBPP;
                 }
                 sy = (sy + diy) & imageHeightMask;
@@ -708,7 +708,7 @@ wmsx.V9990CommandProcessor = function() {
     function LINE() {
         // Collect parameters
         var dx = getDX();
-        var dyP1Off = getDYP1Offset();
+        var destOff = getDestPlaneBOffset(dx);
         var dy = getDY();
         var mj = getMJ();
         var mi = getMI();
@@ -716,10 +716,10 @@ wmsx.V9990CommandProcessor = function() {
         var diy = getDIY();
         var maj = getMAJ();
         var op = getLOP();
-        var wm = getWM(dyP1Off);
-        var fc = getFC(dyP1Off);
+        var wm = getWM(destOff);
+        var fc = getFC(destOff);
 
-        // console.log("LINE dx: " + dx + ", dy: " + dy + " + " + dyP1Off + ", mj: " + mj + ", mi: " + mi + ", dix: " + dix + ", diy: " + diy + ", maj: " + maj + ", fc: " + fc.toString(16)  + ", wm: " + wm.toString(16) + ", lop: " + op.name);
+        // console.log("LINE dx: " + dx + ", dy: " + dy + " + " + destOff + ", mj: " + mj + ", mi: " + mi + ", dix: " + dix + ", diy: " + diy + ", maj: " + maj + ", fc: " + fc.toString(16)  + ", wm: " + wm.toString(16) + ", lop: " + op.name);
 
         // Timming control
         var nMinor = 0;
@@ -728,7 +728,7 @@ wmsx.V9990CommandProcessor = function() {
         var e = 0;
         if (maj === 0) {
             for (var n = mj; n >= 0; --n) {
-                logicalPSETX(dx, dy | dyP1Off, dx, fc, op, wm);
+                logicalPSETX(dx, dy | destOff, dx, fc, op, wm);
                 dx = (dx + dix) & imageWidthMask;
                 if (mi > 0) {
                     e += mi;
@@ -739,7 +739,7 @@ wmsx.V9990CommandProcessor = function() {
             }
         } else {
             for (n = mj; n >= 0; --n) {
-                logicalPSETX(dx, dy | dyP1Off, dx, fc, op, wm);
+                logicalPSETX(dx, dy | destOff, dx, fc, op, wm);
                 dy = (dy + diy) & imageHeightMask;
                 if (mi > 0) {
                     e += mi;
@@ -760,11 +760,11 @@ wmsx.V9990CommandProcessor = function() {
     function SRCH() {
         // Collect parameters
         var sx = getSX();
-        var syP1Off = getSYP1Offset();
-        var sy = getSY() | syP1Off;
+        var srcOff = getSourcePlaneBOffset(sx);
+        var sy = getSY() | srcOff;
         var dix = getDIX();
         var neq = getNEQ();
-        var fc = getFC(syP1Off);
+        var fc = getFC(srcOff);
 
         // console.log("SRCH sx: " + sx + ", sy: " + sy + ", fc: " + fc.toString(16) + ", neq: " + neq + ", dix: " + dix);
 
@@ -814,7 +814,7 @@ wmsx.V9990CommandProcessor = function() {
     function POINT() {
         // Collect parameters
         SX = getSX();
-        SY = getSY() | getSYP1Offset();
+        SY = getSY() | getSourcePlaneBOffset(SX);
 
         // console.log("POINT sx: " + SX + ", sy: " + SY);
 
@@ -851,17 +851,17 @@ wmsx.V9990CommandProcessor = function() {
     function PSET() {
         // Collect parameters
         var dx = getDX();
-        var dyP1Off = getDYP1Offset();
+        var destOff = getDestPlaneBOffset(dx);
         var dy = getDY();
         var op = getLOP();
-        var wm = getWM(dyP1Off);
-        var fc = getFC(dyP1Off);
+        var wm = getWM(destOff);
+        var fc = getFC(destOff);
         var axme = getAXME();
         var ayme = getAYME();
 
         // console.log("PSET dx: " + dx + ", dy: " + dy);
 
-        logicalPSETX(dx, dy | dyP1Off, dx, fc, op, wm);
+        logicalPSETX(dx, dy | destOff, dx, fc, op, wm);
 
         var incX = axme === 1 ? 1 : axme === 3 ? -1 : 0;
         var incY = ayme === 1 ? 1 : ayme === 3 ? -1 : 0;
@@ -930,7 +930,7 @@ wmsx.V9990CommandProcessor = function() {
                 // Perform operation
                 var pos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
                 var dc = (vram[pos] << 8) | vram[pos + 1];      // SC and WM have H/L bytes swapped, so we also swap DC
-                var wc = op(dc, sc, wm);
+                var wc = op(dc, sc, wm);                        // Use WM directly as pos is always EVEN
                 vram[pos] = wc >> 8;                            // WC has H/L bytes swapped
                 vram[pos + 1] = wc & 0xff;
                 return;
@@ -951,7 +951,7 @@ wmsx.V9990CommandProcessor = function() {
         // Perform operation
         pos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
         sc = ((sc >> sShift) & mask) << dShift;
-        vram[pos] = op(vram[pos], sc, (mask << dShift) & getWMForAddr(wm, pos));
+        vram[pos] = op(vram[pos], sc, (mask << dShift) & wm8ForAddr(wm, pos));
     }
 
     function logicalPCOPYXX(dx, dy, sx, sy, op, wm) {       // 8 bits based
@@ -964,7 +964,7 @@ wmsx.V9990CommandProcessor = function() {
                 var dPos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
                 var sc = (vram[sPos] << 8) | vram[sPos + 1];    // WM has H/L bytes swapped, so we also swap SC and DC
                 var dc = (vram[dPos] << 8) | vram[dPos + 1];
-                var wc = op(dc, sc, wm);
+                var wc = op(dc, sc, wm);                        // Use WM directly as dPos is always EVEN
                 vram[dPos] = wc >> 8;                           // WC has H/L bytes swapped
                 vram[dPos + 1] = wc & 0xff;
                 return;
@@ -986,7 +986,7 @@ wmsx.V9990CommandProcessor = function() {
         sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
         dPos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
         sc = ((vram[sPos] >> sShift) & mask) << dShift;
-        vram[dPos] = op(vram[dPos], sc, (mask << dShift) & getWMForAddr(wm, dPos));
+        vram[dPos] = op(vram[dPos], sc, (mask << dShift) & wm8ForAddr(wm, dPos));
     }
 
     function logicalPCOPYLX(da, dx, sx, sy, op, wm) {       // 8 bits based
@@ -998,7 +998,7 @@ wmsx.V9990CommandProcessor = function() {
                 var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
                 var sc = (vram[sPos] << 8) | vram[sPos + 1];    // WM has H/L bytes swapped, so we also swap SC and DC
                 var dc = (vram[da] << 8) | vram[da + 1];
-                var wc = op(dc, sc, wm);
+                var wc = op(dc, sc, wm16ForAddr(wm, da));
                 vram[da] = wc >> 8;                             // WC has H/L bytes swapped
                 vram[da + 1] = wc & 0xff;
                 return;
@@ -1019,7 +1019,7 @@ wmsx.V9990CommandProcessor = function() {
         // Perform operation
         sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
         sc = ((vram[sPos] >> sShift) & mask) << dShift;
-        vram[da] = op(vram[da], sc, (mask << dShift) & getWMForAddr(wm, da));
+        vram[da] = op(vram[da], sc, (mask << dShift) & wm8ForAddr(wm, da));
     }
 
     function logicalPCOPYLXP1(da, dx, sx, sy, op, wm) {       // 8 bits based
@@ -1033,7 +1033,7 @@ wmsx.V9990CommandProcessor = function() {
                 var daP1H = (da >>> 1) | ((da & 1) << 18); da = (da + 1) & VRAM_LIMIT;
                 var daP1L = (da >>> 1) | ((da & 1) << 18);
                 var dc = (vram[daP1H] << 8) | vram[daP1L];
-                var wc = op(dc, sc, wm);                            // TODO Must get correct 16bit WM... DA may start at ODD address!
+                var wc = op(dc, sc, wm16ForAddr(wm, da));
                 vram[daP1H] = wc >> 8;                              // WC has H/L bytes swapped
                 vram[daP1L] = wc & 0xff;
                 return;
@@ -1052,20 +1052,22 @@ wmsx.V9990CommandProcessor = function() {
         }
 
         // Perform operation
+        wm = wm8ForAddr(wm, da);
         sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
         sc = ((vram[sPos] >> sShift) & mask) << dShift;
         da = (da >>> 1) | ((da & 1) << 18);
-        vram[da] = op(vram[da], sc, (mask << dShift) & getWMForAddrP1(wm, da));
+        vram[da] = op(vram[da], sc, (mask << dShift) & wm);
     }
 
     function logicalPCOPYLL(da, sa, op, wm) {       // 8 bits based
-        vram[da] = op(vram[da], vram[sa], getWMForAddr(wm, da));
+        vram[da] = op(vram[da], vram[sa], wm8ForAddr(wm, da));
     }
 
     function logicalPCOPYLLP1(da, sa, op, wm) {     // 8 bits based
+        wm = wm8ForAddr(wm, da);
         da = (da >>> 1) | ((da & 1) << 18);
         sa = (sa >>> 1) | ((sa & 1) << 18);
-        vram[da] = op(vram[da], vram[sa], getWMForAddrP1(wm, da));
+        vram[da] = op(vram[da], vram[sa], wm);
     }
 
     function lopNULL(dest, src, mask) {
@@ -1268,7 +1270,7 @@ wmsx.V9990CommandProcessor = function() {
     var v9990, vram, register;
 
     var CE = 0;
-    var SX = 0, SY = 0, SYP1Off = 0, DX = 0, DY = 0, DYP1Off = 0, NX = 0, NY = 0, ESX = 0, EDX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, WM = 0, FBC = 0, LOP;
+    var SX = 0, SY = 0, SRCOff = 0, DX = 0, DY = 0, DESTOff = 0, NX = 0, NY = 0, ESX = 0, EDX = 0, DIX = 0, DIY = 0, CX = 0, CY = 0, WM = 0, FBC = 0, LOP;
     var readData = 0, writeDataPending = null, readDataPending = null, writeHandler = null, readHandler = null;
     var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
 
@@ -1365,7 +1367,7 @@ wmsx.V9990CommandProcessor = function() {
             ce: CE,
             rd: readData, rdp: readDataPending, wdp: writeDataPending,
             wh: writeHandler && writeHandler.name, rh: readHandler && readHandler.name, fc: finishingCycle,
-            SX: SX, SY: SY, SYP1O: SYP1Off, DX: DX, DY: DY, DYP1O: DYP1Off, NX: NX, NY: NY,
+            SX: SX, SY: SY, SYP1O: SRCOff, DX: DX, DY: DY, DYP1O: DESTOff, NX: NX, NY: NY,
             ESX: ESX, EDX: EDX, DIX: DIX, DIY: DIY, CX: CX, CY: CY, WM: WM, FBC: FBC, LOP: LOP && LOGICAL_OPERATIONS.indexOf(LOP),
             dsm: dispAndSpritesMode, tcm: turboClockMulti
         };
@@ -1375,7 +1377,7 @@ wmsx.V9990CommandProcessor = function() {
         CE = s.ce;
         readData = s.rd; readDataPending = s.rdp; writeDataPending = s.wdp;
         writeHandler = COMMAND_HANDLERS[s.wh]; readHandler = COMMAND_HANDLERS[s.rh]; finishingCycle = s.fc;
-        SX = s.SX; SY = s.SY; SYP1Off = s.SYP1O; DX = s.DX; DY = s.DY; DYP1Off = s.DYP1O; NX = s.NX; NY = s.NY;
+        SX = s.SX; SY = s.SY; SRCOff = s.SYP1O; DX = s.DX; DY = s.DY; DESTOff = s.DYP1O; NX = s.NX; NY = s.NY;
         ESX = s.ESX; EDX = s.EDX; DIX = s.DIX; DIY = s.DIY; CX = s.CX; CY = s.CY; WM = s.WM; FBC = s.FBC; LOP = s.LOP >= 0 ? LOGICAL_OPERATIONS[s.LOP] : undefined;
         dispAndSpritesMode = s.dsm; turboClockMulti = s.tcm !== undefined ? s.tcm : 1;
     };
