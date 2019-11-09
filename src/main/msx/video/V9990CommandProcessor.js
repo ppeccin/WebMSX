@@ -518,7 +518,7 @@ wmsx.V9990CommandProcessor = function() {
         var diy = getDIY();
         var op = getLOP();
         var wm = getWM(destOff);
-        var fbc = (getFC(DESTOff) << 16) | getBC(DESTOff);     // combined so we can get desired color by shifting instead of condition
+        var fbc = (getFC(destOff) << 16) | getBC(destOff);     // combined so we can get desired color by shifting instead of condition
 
         // console.log("CMMM sa: " + sa.toString(16) + ", dx: " + dx + ", dy: " + dy + " + " + destOff + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
@@ -561,7 +561,7 @@ wmsx.V9990CommandProcessor = function() {
         var diy = getDIY();
         var op = getLOP();
         var wm = getWM(destOff);
-        var bc = getBC(DESTOff);        // dont get FC since only BC will be used
+        var bc = getBC(destOff);        // dont get FC since only BC will be used
 
         // console.log("CMMK dx: " + dx + ", dy: " + dy + " + " + destOff + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
