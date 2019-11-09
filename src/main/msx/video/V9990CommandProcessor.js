@@ -129,8 +129,8 @@ wmsx.V9990CommandProcessor = function() {
         register[35] = (val >> 8) & 0x0f; register[34] = val & 0xff;
     }
 
-    function getSourcePlaneBOffset(sx) {
-        return isP1 && (sx & 0x0200) ? 2048 : 0;        // SX9 bit in P1 mode -> source is Plane B
+    function getSourcePlaneBOffset() {
+        return isP1 && (register[33] & 0x02) ? 2048 : 0;        // SX9 bit in P1 mode -> source is Plane B
     }
 
     function getSA() {
@@ -156,8 +156,8 @@ wmsx.V9990CommandProcessor = function() {
         register[39] = (val >> 8) & 0x0f; register[38] = val & 0xff;
     }
 
-    function getDestPlaneBOffset(dx) {
-        return isP1 && (dx & 0x0200) ? 2048 : 0;        // DX9 bit in P1 mode -> destination is Plane B
+    function getDestPlaneBOffset() {
+        return isP1 && (register[37] & 0x02) ? 2048 : 0;        // DX9 bit in P1 mode -> destination is Plane B
     }
 
     function getDA() {
@@ -259,7 +259,7 @@ wmsx.V9990CommandProcessor = function() {
     function LMMC() {
         // Collect parameters
         DX = getDX();
-        DESTOff = getDestPlaneBOffset(DX);
+        DESTOff = getDestPlaneBOffset();
         DY = getDY();
         NX = getNX();
         NY = getNY();
@@ -331,7 +331,7 @@ wmsx.V9990CommandProcessor = function() {
     function LMMV() {
         // Collect parameters
         var dx = getDX();
-        var destOff = getDestPlaneBOffset(dx);
+        var destOff = getDestPlaneBOffset();
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
@@ -362,7 +362,7 @@ wmsx.V9990CommandProcessor = function() {
     function LMCM() {
         // Collect parameters
         SX = getSX();
-        SRCOff = getSourcePlaneBOffset(SX);
+        SRCOff = getSourcePlaneBOffset();
         SY = getSY();
         NX = getNX();
         NY = getNY();
@@ -428,10 +428,10 @@ wmsx.V9990CommandProcessor = function() {
     function LMMM() {
         // Collect parameters
         var sx = getSX();
-        var srcOff = getSourcePlaneBOffset(sx);
+        var srcOff = getSourcePlaneBOffset();
         var sy = getSY();
         var dx = getDX();
-        var destOff = getDestPlaneBOffset(dx);
+        var destOff = getDestPlaneBOffset();
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
@@ -462,7 +462,7 @@ wmsx.V9990CommandProcessor = function() {
     function CMMC() {
         // Collect parameters
         DX = getDX();
-        DESTOff = getDestPlaneBOffset(DX);
+        DESTOff = getDestPlaneBOffset();
         DY = getDY();
         NX = getNX();
         NY = getNY();
@@ -510,7 +510,7 @@ wmsx.V9990CommandProcessor = function() {
         // Collect parameters
         var sa = getSA();
         var dx = getDX();
-        var destOff = getDestPlaneBOffset(dx);
+        var destOff = getDestPlaneBOffset();
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
@@ -553,7 +553,7 @@ wmsx.V9990CommandProcessor = function() {
         // Collect parameters
         // No Source data since there is no Kanji ROM. All input bytes will be 0
         var dx = getDX();
-        var destOff = getDestPlaneBOffset(dx);
+        var destOff = getDestPlaneBOffset();
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
@@ -586,7 +586,7 @@ wmsx.V9990CommandProcessor = function() {
         // Collect parameters
         var sa = getSA();
         var dx = getDX();
-        var destOff = getDestPlaneBOffset(dx);
+        var destOff = getDestPlaneBOffset();
         var dy = getDY();
         var nx = getNX();
         var ny = getNY();
@@ -633,7 +633,7 @@ wmsx.V9990CommandProcessor = function() {
     function BMLX() {
         // Collect parameters
         var sx = getSX();
-        var srcOff = getSourcePlaneBOffset(sx);
+        var srcOff = getSourcePlaneBOffset();
         var sy = getSY();
         var da = getDA();
         var nx = getNX();
@@ -708,7 +708,7 @@ wmsx.V9990CommandProcessor = function() {
     function LINE() {
         // Collect parameters
         var dx = getDX();
-        var destOff = getDestPlaneBOffset(dx);
+        var destOff = getDestPlaneBOffset();
         var dy = getDY();
         var mj = getMJ();
         var mi = getMI();
@@ -760,7 +760,7 @@ wmsx.V9990CommandProcessor = function() {
     function SRCH() {
         // Collect parameters
         var sx = getSX();
-        var srcOff = getSourcePlaneBOffset(sx);
+        var srcOff = getSourcePlaneBOffset();
         var sy = getSY() | srcOff;
         var dix = getDIX();
         var neq = getNEQ();
@@ -814,7 +814,7 @@ wmsx.V9990CommandProcessor = function() {
     function POINT() {
         // Collect parameters
         SX = getSX();
-        SY = getSY() | getSourcePlaneBOffset(SX);
+        SY = getSY() | getSourcePlaneBOffset();
 
         // console.log("POINT sx: " + SX + ", sy: " + SY);
 
@@ -851,7 +851,7 @@ wmsx.V9990CommandProcessor = function() {
     function PSET() {
         // Collect parameters
         var dx = getDX();
-        var destOff = getDestPlaneBOffset(dx);
+        var destOff = getDestPlaneBOffset();
         var dy = getDY();
         var op = getLOP();
         var wm = getWM(destOff);
