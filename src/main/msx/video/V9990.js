@@ -1099,7 +1099,6 @@ wmsx.V9990 = function() {
         bufferPosition += bufferLineAdvance;
     }
 
-    // TODO Cursor wrapping X will fail in B7
     function renderLineModeB7() {       // Quarter pixel width
         // Line
         typeData.renderLine(bufferPosition + (horizontalAdjust << 2) + 32, 1024);
@@ -1489,6 +1488,7 @@ wmsx.V9990 = function() {
         renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
     }
 
+    // TODO Cursor will not wrap X in B7 mode (width = 1024)
     function renderCursorsLine(bufferPosition, line, width) {
         if (!spritesEnabled || debugModeSpritesHidden) return;
 
