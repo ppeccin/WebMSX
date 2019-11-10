@@ -1288,12 +1288,12 @@ wmsx.V9990 = function() {
         }
     }
 
-    function paintSprite(bufferPosition, pattPixelPos, palOff) {
+    function paintSprite(buffPos, pattPixelPos, palOff) {
         var v = 0, c = 0;
         for (var i = 8; i > 0; --i) {
             v = vram[pattPixelPos]; ++pattPixelPos;
-            c = v >> 4;   if (c > 0) frameBackBuffer[bufferPosition] = paletteValuesReal[palOff | c]; ++bufferPosition;
-            c = v & 0x0f; if (c > 0) frameBackBuffer[bufferPosition] = paletteValuesReal[palOff | c]; ++bufferPosition;
+            c = v >> 4;   if (c > 0) frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; ++buffPos;
+            c = v & 0x0f; if (c > 0) frameBackBuffer[buffPos] = paletteValuesReal[palOff | c]; ++buffPos;
         }
     }
 
@@ -1489,14 +1489,13 @@ wmsx.V9990 = function() {
         renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
     }
 
-    // TODO Cursor overlapping and EOR
     function renderCursorsLine(bufferPosition, line, width) {
         if (!spritesEnabled || debugModeSpritesHidden) return;
 
-        var color = 0, eor = false, name = 0, info = 0, y = 0, cursorLine = 0, x = 0, pattPixelPos = 0;
+        var cc = 0, eor = false, name = 0, info = 0, y = 0, cursorLine = 0, x = 0, pattPixelPos = 0;
 
-        var atrPos = 0x7fe00;
-        for (var cursor = 0; cursor < 2; ++cursor, atrPos += 8) {
+        var atrPos = 0x7fe00 + 8;
+        for (var cursor = 1; cursor >= 0; --cursor, atrPos -= 8) {
             y = vram[atrPos] | ((vram[atrPos + 2] & 1) << 8);
             cursorLine = (line - y - 1) & 511;
             if (cursorLine >= 32) continue;                                 // Not visible at line
@@ -1505,31 +1504,46 @@ wmsx.V9990 = function() {
             if ((info & 0x10) === 0) {                                      // PR0 === 0 (shown)
                 x = vram[atrPos + 4] | ((info & 0x03) << 8);
                 if (x < width || x >= 1024 - 32) {                          // Only if not out to the right, or wrapping
-                    color = paletteOffsetCursor | ((info & 0xc0) >> 6);
+                    cc = (info & 0xc0) >> 6;
                     eor = (info & 0x20) !== 0;
                     name = debugModeSpriteInfoNumbers ? cursor << 2 : cursor;
                     pattPixelPos = 0x7ff00 + (cursorLine << 2) + (name << 7);
 
                     if (x >= width) x -= 1024;
-                    paintCursor(bufferPosition, x, pattPixelPos, color, eor);
+                    paintCursor(bufferPosition + x, pattPixelPos, cc, eor);
                 }
             }
         }
     }
 
-    function paintCursor(bufferPosition, x, pattPixelPos, color, eor) {
-        var v = 0;
-        var buffPos = bufferPosition + x;
-        for (var i = 4; i > 0; --i) {
-            v = vram[pattPixelPos]; ++pattPixelPos;
-            if (v & 0x80) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
-            if (v & 0x40) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
-            if (v & 0x20) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
-            if (v & 0x10) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
-            if (v & 0x08) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
-            if (v & 0x04) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
-            if (v & 0x02) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
-            if (v & 0x01) frameBackBuffer[buffPos] = paletteValuesReal[color]; ++buffPos;
+    function paintCursor(buffPos, pattPixelPos, cc, eor) {
+        var v = 0, value = 0;
+        if (cc !== 0) {
+            value = paletteValuesReal[paletteOffsetCursor | cc];
+            if (eor) value = (value & 0xff000000) | (~value & 0x00ffffff);      // invert but maintain alpha
+            for (var i = 4; i > 0; --i) {
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                if (v & 0x80) frameBackBuffer[buffPos] = value; ++buffPos;
+                if (v & 0x40) frameBackBuffer[buffPos] = value; ++buffPos;
+                if (v & 0x20) frameBackBuffer[buffPos] = value; ++buffPos;
+                if (v & 0x10) frameBackBuffer[buffPos] = value; ++buffPos;
+                if (v & 0x08) frameBackBuffer[buffPos] = value; ++buffPos;
+                if (v & 0x04) frameBackBuffer[buffPos] = value; ++buffPos;
+                if (v & 0x02) frameBackBuffer[buffPos] = value; ++buffPos;
+                if (v & 0x01) frameBackBuffer[buffPos] = value; ++buffPos;
+            }
+        } else if (eor) {
+            for (i = 4; i > 0; --i) {
+                v = vram[pattPixelPos]; ++pattPixelPos;
+                if (v & 0x80) { value = frameBackBuffer[buffPos]; frameBackBuffer[buffPos] = (value & 0xff000000) | (~value & 0x00ffffff); } ++buffPos;
+                if (v & 0x40) { value = frameBackBuffer[buffPos]; frameBackBuffer[buffPos] = (value & 0xff000000) | (~value & 0x00ffffff); } ++buffPos;
+                if (v & 0x20) { value = frameBackBuffer[buffPos]; frameBackBuffer[buffPos] = (value & 0xff000000) | (~value & 0x00ffffff); } ++buffPos;
+                if (v & 0x10) { value = frameBackBuffer[buffPos]; frameBackBuffer[buffPos] = (value & 0xff000000) | (~value & 0x00ffffff); } ++buffPos;
+                if (v & 0x08) { value = frameBackBuffer[buffPos]; frameBackBuffer[buffPos] = (value & 0xff000000) | (~value & 0x00ffffff); } ++buffPos;
+                if (v & 0x04) { value = frameBackBuffer[buffPos]; frameBackBuffer[buffPos] = (value & 0xff000000) | (~value & 0x00ffffff); } ++buffPos;
+                if (v & 0x02) { value = frameBackBuffer[buffPos]; frameBackBuffer[buffPos] = (value & 0xff000000) | (~value & 0x00ffffff); } ++buffPos;
+                if (v & 0x01) { value = frameBackBuffer[buffPos]; frameBackBuffer[buffPos] = (value & 0xff000000) | (~value & 0x00ffffff); } ++buffPos;
+            }
         }
     }
 
