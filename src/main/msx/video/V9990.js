@@ -943,25 +943,11 @@ wmsx.V9990 = function() {
         frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
     }
 
-    function paintBackdrop8a(bufferPos) {
-        for (var i = 8; i > 0; --i) {
-            frameBackBuffer[bufferPos] = backdropValue;
-            ++bufferPos;
-        }
-    }
-
     function paintBackdrop16(bufferPos) {
         frameBackBuffer[bufferPos]   = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
         frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
         frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
         frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
-    }
-
-    function paintBackdrop16a(bufferPos) {
-        for (var i = 16; i > 0; --i) {
-            frameBackBuffer[bufferPos] = backdropValue;
-            ++bufferPos;
-        }
     }
 
     function paintBackdrop32(bufferPos) {
@@ -973,13 +959,6 @@ wmsx.V9990 = function() {
         frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
         frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
         frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue; frameBackBuffer[++bufferPos] = backdropValue;
-    }
-
-    function paintBackdrop32a(bufferPos) {
-        for (var i = 32; i > 0; --i) {
-            frameBackBuffer[bufferPos] = backdropValue;
-            ++bufferPos;
-        }
     }
 
     function paintBackdrop64(bufferPos) {
@@ -997,16 +976,10 @@ wmsx.V9990 = function() {
         frameBackBuffer.set(backdrop512, bufferPos);
     }
 
-    function paintBackdropFullLine(bufferPos) {
-        if (backdropCacheUpdatePending) updateBackdropLineCache();
-        frameBackBuffer.set(backdropLineCache, bufferPos);
-    }
-
     function renderLineModeSBY() {
-        frameBackBuffer.set(standByLineCache, bufferPosition);
-        bufferPosition += bufferLineAdvance;
+        renderLineTypeSBY();
 
-        //logInfo("renderLineStandBy");
+        bufferPosition += bufferLineAdvance;
     }
 
     function renderLineModeP1() {       // Normal pixel width
@@ -1109,10 +1082,8 @@ wmsx.V9990 = function() {
         bufferPosition += bufferLineAdvance;
     }
 
-    function renderLineTypeSBY(bufferPosition, width) {
-        for (var p = 0; p < width; ++p) {
-            frameBackBuffer[bufferPosition] = standByValue; ++bufferPosition;
-        }
+    function renderLineTypeSBY(bufferPosition) {
+        frameBackBuffer.set(standByLineCache, bufferPosition);
     }
 
     function renderLineTypePP1(bufferPosition) {
@@ -1488,7 +1459,7 @@ wmsx.V9990 = function() {
         renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
     }
 
-    // TODO Cursor will not wrap X in B7 mode (width = 1024)
+    // TODO Cursor will not wrap X in B7 mode (width = 1024). Is this right?
     function renderCursorsLine(bufferPosition, line, width) {
         if (!spritesEnabled || debugModeSpritesHidden) return;
 
@@ -1548,8 +1519,8 @@ wmsx.V9990 = function() {
     }
 
     function cleanFrameBuffer() {
-        // wmsx.Util.arrayFill(frameBackBuffer, backdropValue);
-        frameBackBuffer.fill(notPaintedValue);
+        //wmsx.Util.arrayFill(frameBackBuffer, backdropValue);
+        //frameBackBuffer.fill(notPaintedValue);
 
         //logInfo("Clear Buffer");
     }
@@ -1682,7 +1653,7 @@ wmsx.V9990 = function() {
             frameImageData = frameContext.createImageData(frameCanvas.width, frameCanvas.height + 1 + 1);                                           // +1 line for the Backdrop cache, +1 for the Standby cache
             frameBackBuffer = new Uint32Array(frameImageData.data.buffer, 0, frameCanvas.width * frameCanvas.height);                               // Contains Left-overflow extra line, not the other 2
             backdropLineCache = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, frameCanvas.width);         // Backdrop cache extra line
-            standByLineCache =  new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, frameCanvas.width);   // Standby extra line
+            standByLineCache =  new Uint32Array(frameImageData.data.buffer, frameCanvas.width * (frameCanvas.height + 1) * 4, 256 + 16);            // Standby extra line
 
             backdrop64 =  new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, 64);
             backdrop256 = new Uint32Array(frameImageData.data.buffer, frameCanvas.width * frameCanvas.height * 4, 256);
@@ -1890,7 +1861,7 @@ wmsx.V9990 = function() {
 
     var solidBlackValue =  0xff000000;
     var notPaintedValue  = 0xffff00ff;          // Pink
-    var standByValue =     0xff000060;          // Dark Red
+    var standByValue =     solidBlackValue;     // Dark Red?
     var backdropValue =    solidBlackValue;
 
     var colors16bitValues = wmsx.ColorCache.getColors16bitValues();     // Init now, used by normal Palette
