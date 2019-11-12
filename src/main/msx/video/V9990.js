@@ -690,7 +690,7 @@ wmsx.V9990 = function() {
                         switch (register[13] >> 6) {                    // PLTM
                             case 0: newType = types.BP6; break;
                             case 1: newType = types.BD8; break;
-                            default:
+                            case 2: case 3:
                                 switch (register[13] >> 5) {            // PLTM, YAE
                                     case 0x04: newType = types.BYJK;  break;
                                     case 0x05: newType = types.BYJKP; break;
@@ -915,7 +915,6 @@ wmsx.V9990 = function() {
     function updateBackdropValue() {
         var value = debugModePatternInfo ? debugBackdropValue : paletteValuesReal[backdropColor];
         if (backdropValue === value) return;
-        // value = 0xff205020;
 
         backdropValue = value;
         backdropCacheUpdatePending = true;
@@ -976,8 +975,9 @@ wmsx.V9990 = function() {
         frameBackBuffer.set(backdrop512, bufferPos);
     }
 
+    // TODO StandBy Top and Bottom borders are still Backdrop value. Make them use StandBy value
     function renderLineModeSBY() {
-        renderLineTypeSBY();
+        renderLineTypeSBY(bufferPosition);
 
         bufferPosition += bufferLineAdvance;
     }
@@ -1861,7 +1861,8 @@ wmsx.V9990 = function() {
 
     var solidBlackValue =  0xff000000;
     var notPaintedValue  = 0xffff00ff;          // Pink
-    var standByValue =     solidBlackValue;     // Dark Red?
+
+    var standByValue =     0x00000000;
     var backdropValue =    solidBlackValue;
 
     var colors16bitValues = wmsx.ColorCache.getColors16bitValues();     // Init now, used by normal Palette
