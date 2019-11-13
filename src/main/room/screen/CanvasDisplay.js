@@ -4,8 +4,6 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 // TODO Correct targetWidth/targetHeight on canvas for V9990 overscan modes?
-// TODO Bug when loading states and already in Scanlines modes
-// TODO Bug on aspect when in V9990 and loading MSX1 savestate
 
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
@@ -97,23 +95,30 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         if (!canvasContext) createCanvasContext();
 
-        // Need to clear previous image?
+        // Need to clear previous image? (Only in Mixed mode, right before painting Internal signal)
         if (videoOutputMode === 3 && internal) canvasContext.clearRect(0, 0, canvas.width, canvas.height);
 
-        // Draw frame
+        // Paint frame
         canvasContext.drawImage(
             image,
             sourceX, sourceY, sourceWidth, sourceHeight,
             0, 0, canvas.width, canvas.height
         );
 
-        // TODO Put Scanlines on top. Only if not in Debug and Signal is not Interlaced
-        if (crtScanlines && pixelHeight > 1 && !debugMode)
+        // Paint Scanlines on top. Only if not in Debug and Signal is not Interlaced
+        if (crtScanlines && pixelHeight > 1 && !debugMode) {
+            var oldComposite = canvasContext.globalCompositeOperation;
+            var oldAlpha = canvasContext.globalAlpha;
+            canvasContext.globalCompositeOperation = "source-over";
+            canvasContext.globalAlpha = crtScanlines / 10;
             canvasContext.drawImage(
                 scanlinesImage,
-                  0, 0, 1, sourceHeight * 2,
-                  0, 0, canvas.width, canvas.height
+                0, 0, 1, canvas.height,
+                0, 0, canvas.width, canvas.height
             );
+            canvasContext.globalCompositeOperation = oldComposite;
+            canvasContext.globalAlpha = oldAlpha;
+        }
 
         //console.log("Internal: " + internal + ", " + sourceWidth + "x" + sourceHeight + " > " + targetWidth + "x" + targetHeight);
     };
@@ -340,6 +345,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.setDebugMode = function(boo) {
         debugMode = !!boo;
+        if (debugMode && videoOutputMode > 1) monitor.setOutputMode(Math.min(1, videoOutputMode));        // Return to Internal or External output mode. Superimposed and Mixed not supported in Debug
         canvasContext = null;
     };
 
@@ -396,7 +402,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.crtScanlinesSetDefault = function() {
         var user = WMSX.userPreferences.current.crtScanlines;
-        setCRTScanlines(WMSX.SCREEN_CRT_SCANLINES !== -1 ? WMSX.SCREEN_CRT_SCANLINES : user !== null && user > -1 ? user : 0);
+        setCRTScanlines(WMSX.SCREEN_CRT_SCANLINES !== -1 ? Math.max(0, Math.min(10, WMSX.SCREEN_CRT_SCANLINES)) : user !== null && user > -1 ? user : 0);
     };
 
     this.crtPhosphorToggle = function(dec) {
@@ -814,7 +820,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function updateCanvasContentSize() {
         canvas.width = targetWidth;
-        canvas.height = crtScanlines ? targetHeight * 2 : targetHeight;      // Double Vertical definition when in Scanlines mode so we can blend lines properly
+        canvas.height = targetHeight;
         canvasContext = null;
     }
 
@@ -833,7 +839,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function setCRTScanlines(level) {
         crtScanlines = level;
-        if (crtScanlines) updateScanlines();
+        if (crtScanlines) setupScanlines();
         canvasContext = null;
     }
 
@@ -867,21 +873,25 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function updateImageComposition() {
-        canvasContext.globalCompositeOperation = videoOutputMode <= 1       // Internal or External?
-            ? !debugMode && (crtPhosphorEffective || crtScanlines)
-                ? "source-over"
-                : "copy"
-            : videoOutputMode === 3                                         // Mixed?
-                ? "lighten"
-                : "source-over";
+        canvasContext.globalCompositeOperation = debugMode
+            ? "copy"
+            : videoOutputMode <= 1                                          // Internal, External
+                ? crtPhosphorEffective
+                    ? "source-over"
+                    : "copy"
+                : videoOutputMode === 3
+                    ? "lighten"                                             // Mixed
+                    : "source-over";                                        // Superimposed
 
-        canvasContext.globalAlpha = videoOutputMode <= 1                    // Internal or External?
-            ? !debugMode && crtPhosphorEffective
-                ? 0.8
-                : 1
-            : videoOutputMode === 3                                         // Mixed?
-                ? 0.66
-                : 1;
+        canvasContext.globalAlpha = debugMode
+            ? 1
+            : videoOutputMode <= 1                                          // Internal, External
+                ? crtPhosphorEffective
+                    ? 0.8
+                    : 1
+                : videoOutputMode === 3
+                    ? 0.66                                                  // Mixed
+                    : 1;                                                    // Superimposed
 
         // console.log("Image Composition: ", canvasContext.globalCompositeOperation, canvasContext.globalAlpha);
     }
@@ -945,11 +955,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         scrollMessage = document.getElementById("wmsx-screen-scroll-message");
         unmuteMessage = document.getElementById("wmsx-unmute-message");
 
-        // Scanlines
-        scanlinesImage = document.createElement('canvas');
-        scanlinesImage.width = 1;
-        scanlinesImage.height = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
-
         suppressContextMenu(mainElement);
         preventDrag(logoImage);
         preventDrag(logoLoadingIcon);
@@ -970,11 +975,15 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         setupMainEvents();
     }
 
-    function updateScanlines() {
+    function setupScanlines() {
+        if (scanlinesImage) return;
+
+        scanlinesImage = document.createElement('canvas');
+        scanlinesImage.width = 1;
+        scanlinesImage.height = wmsx.V9990.SIGNAL_MAX_HEIGHT;
         var ctx = scanlinesImage.getContext("2d", { alpha: true, antialias: false });
         ctx.clearRect(0, 0, 1, scanlinesImage.height);
         ctx.fillStyle = 'black';
-        ctx.globalAlpha = crtScanlines / 10;
         for (var y = 1, h = scanlinesImage.height; y < h; y += 2) ctx.fillRect(0, y, 1, 1);
     }
 

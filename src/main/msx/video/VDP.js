@@ -47,7 +47,8 @@ wmsx.VDP = function(machine, cpu) {
     this.connectSlave = function(pSlave) {
         slave = pSlave;
         if (slave) slave.setVideoStandard(videoStandard);
-        updateSignalMetrics(false);
+        updateSignalMetrics(true);
+        updateRenderMetrics(true);
         refreshDisplayMetrics();
     };
 
@@ -2520,7 +2521,6 @@ wmsx.VDP = function(machine, cpu) {
         paletteRegister = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteRegister);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
-        if (s.ad) setActiveDisplay(); else setBorderDisplay();
         frame = s.f || 0; cycles = s.c; lastBUSCyclesComputed = s.cc;
         vramPointer = s.vp; dataFirstWrite = s.d; dataPreRead = s.dr || 0; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
@@ -2542,6 +2542,8 @@ wmsx.VDP = function(machine, cpu) {
         updateBackdropColor();
         updateTransparency();
         updateRenderMetrics(true);
+
+        if (s.ad) setActiveDisplay(); else setBorderDisplay();
 
         // Extended
         if (s.dm !== undefined) setDebugMode(s.dm);

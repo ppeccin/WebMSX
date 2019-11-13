@@ -528,6 +528,7 @@ wmsx.V9990 = function() {
         if (entry === backdropColor) updateBackdropValue();
     }
 
+    // TODO V9990 Debug modes
     this.setDebugMode = function (mode) {
         debugMode = (mode + 8) % 8;
         var oldDebugModeSpriteHighlight = debugModeSpriteHighlight;
@@ -901,7 +902,7 @@ wmsx.V9990 = function() {
 
         if (wasActive) renderLine = renderLineActive;
 
-        //logInfo("Update Line Active Type: " + renderLineActive.name);
+        // console.error("Update Line Active Type: " + renderLineActive.name);
     }
 
     function updateBackdropColor() {
@@ -1937,7 +1938,6 @@ wmsx.V9990 = function() {
         paletteRAM = wmsx.Util.restoreStringBase64ToInt8BitArray(s.p, paletteRAM);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
         currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
-        if (s.ad) setActiveDisplay(); else setBorderDisplay();
         frame = s.f || 0; cycles = s.c; lastBUSCyclesComputed = s.cc;
         scrollXOffset = s.sx; scrollYOffset = s.sy; scrollYOffsetFrame = s.syf; scrollXBOffset = s.sxb; scrollYBOffset = s.syb; scrollYBOffsetFrame = s.sybf; scrollYMax = s.sym;
         scrollYHiUpdatePending = s.syu; scrollYBHiUpdatePending = s.sybu;
@@ -1956,6 +1956,8 @@ wmsx.V9990 = function() {
         updateYSEnabled(true);
         updateBackdropColor();
         updateRenderMetrics(true);
+
+        if (s.ad) setActiveDisplay(); else setBorderDisplay();
 
         // Extended
         if (s.dm !== undefined) self.setDebugMode(s.dm);
