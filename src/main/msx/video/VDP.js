@@ -283,7 +283,7 @@ wmsx.VDP = function(machine, cpu) {
         commandProcessor.reset();
         updateSignalMetrics(true);
         updateIRQ();
-        updateMode();
+        updateMode(true);
         updateSpritesConfig();
         updateBackdropColor();
         updateTransparency();
@@ -758,7 +758,7 @@ wmsx.VDP = function(machine, cpu) {
         registerWrite(1, (register[1] & ~0x18) | (m & 0x18));
     }
 
-    function updateMode() {
+    function updateMode(forceRenderMetrics) {
         var oldData = modeData;
 
         // All Mx bits. Ignore YAE, YJK. Ignore M4, M5 if V9918
@@ -788,7 +788,7 @@ wmsx.VDP = function(machine, cpu) {
 
         updateVRAMInterleaving();
         updateLineActiveType();
-        updateRenderMetrics(false);
+        updateRenderMetrics(forceRenderMetrics);
 
         //logInfo("Update Mode: " + modeData.name + ". Reg0: " + register[0].toString(16));
     }
@@ -828,7 +828,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function updateRenderMetrics(force) {
-        var newRenderWidth, newRenderHeight, newPixelWidth, newPixelHeight, changed = false;
+        var newRenderWidth, newRenderHeight, newPixelWidth, newPixelHeight, changed = false, clean = false;
 
         // Fixed metrics for V9918 with no slave (V9990)
         if (isV9918 && !slave) {
@@ -845,10 +845,15 @@ wmsx.VDP = function(machine, cpu) {
 
         if (newRenderWidth === renderWidth && newRenderHeight === renderHeight) return;
 
+        // console.error("Update Render Metrics. " + force + " Asked: " + newRenderWidth + "x" + newRenderHeight + ", set: " + renderWidth + "x" + renderHeight);
+
         // Only change width if before visible display (beginFrame), or if going to higher width
         if (newRenderWidth !== renderWidth) {
             if (currentScanline < startingVisibleTopBorderScanline || newRenderWidth > renderWidth) {
-                if (currentScanline >= startingVisibleTopBorderScanline) stretchFromCurrentToTopScanline();
+                if (currentScanline >= startingVisibleTopBorderScanline) {
+                    if (force) clean = true;
+                    else stretchFromCurrentToTopScanline();
+                }
                 renderWidth = newRenderWidth;
                 changed = true;
             } else
@@ -858,16 +863,15 @@ wmsx.VDP = function(machine, cpu) {
         // Only change height if forced (loadState and beginFrame)
         if (newRenderHeight !== renderHeight) {
             if (force) {
-                cleanFrameBuffer();
+                if (currentScanline >= startingVisibleTopBorderScanline || newRenderHeight > renderHeight) clean = true;
                 renderHeight = newRenderHeight;
                 changed = true;
             } else
                 renderMetricsChangePending = true;
         }
 
+        if (clean) cleanFrameBuffer();
         if (changed) videoSignal.setPixelMetrics(newPixelWidth, newPixelHeight);
-
-        //logInfo("Update Render Metrics. " + force + " Asked: " + newRenderWidth + "x" + newRenderHeight + ", set: " + renderWidth + "x" + renderHeight);
     }
 
     function setActiveDisplay() {
@@ -2181,13 +2185,13 @@ wmsx.VDP = function(machine, cpu) {
                 frameBackBuffer[d] = frameBackBuffer[d + 1] = frameBackBuffer[s];
         }
 
-        //logInfo("Stretch to top");
+        // console.error("Stretch to top, currentScanline: " + currentScanline);
     }
 
     function cleanFrameBuffer() {
         wmsx.Util.arrayFill(frameBackBuffer, modeData.tiled ? 0xff000000 : backdropValue);
 
-        //logInfo("Clear Buffer");
+        // console.error("Clear Buffer");
     }
 
     function refresh() {
@@ -2243,7 +2247,7 @@ wmsx.VDP = function(machine, cpu) {
         frameContext.putImageData(frameImageData, 0, 0, 0, 0, refreshWidth, refreshHeight);
         ++frame;
 
-        //logInfo("Finish Frame");
+        // console.error("Finish Frame");
 
         beginFrame();
     }
@@ -2536,12 +2540,11 @@ wmsx.VDP = function(machine, cpu) {
         updateSignalMetrics(true);
         if (s.fs !== undefined) frameStartingActiveScanline = s.fs;       // backward compatibility
         updateIRQ();
-        updateMode();
+        updateMode(true);
         updateSpritesConfig();
         debugAdjustPalette();
         updateBackdropColor();
         updateTransparency();
-        updateRenderMetrics(true);
 
         if (s.ad) setActiveDisplay(); else setBorderDisplay();
 

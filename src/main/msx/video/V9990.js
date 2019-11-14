@@ -314,7 +314,7 @@ wmsx.V9990 = function() {
         initRegisters();
         updateSignalMetrics(true);
         updateIRQ();
-        updateMode();
+        updateMode(true);
         updateBackdropColor();
         updateSynchronization();
         commandProcessor.setV9990DisplayAndSpritesEnabled(dispEnabled, spritesEnabled);
@@ -636,7 +636,7 @@ wmsx.V9990 = function() {
         }
     }
 
-    function updateMode() {
+    function updateMode(forceRenderMetrics) {
         var newMode;
         switch (register[6] >>  6) {                                    // DSPM
             case 3: newMode = modes.SBY; break;
@@ -670,7 +670,7 @@ wmsx.V9990 = function() {
         updateSpritePattAddress();
         updateLineActiveType();
         updateSignalMetrics(false);
-        updateRenderMetrics(false);
+        updateRenderMetrics(forceRenderMetrics);
         updateVRAMInterleaving();
 
         // logInfo("Update Mode: " + modeData.name);
@@ -820,7 +820,7 @@ wmsx.V9990 = function() {
     }
 
     function updateRenderMetrics(force) {
-        var newRenderWidth, newRenderHeight, newPixelWidth, newPixelHeight, pixelHeightDiv, changed = false;
+        var newRenderWidth, newRenderHeight, newPixelWidth, newPixelHeight, pixelHeightDiv, changed = false, clean = false;
 
         newRenderWidth = modeData.width + modeData.hasBorders * 8 * 2 * modeData.pixelWidthDiv;
 
@@ -831,9 +831,12 @@ wmsx.V9990 = function() {
 
         if (newRenderWidth === renderWidth && newRenderHeight === renderHeight) return;
 
+        // console.error("V9990 Update Render Metrics. currentScanline: " + currentScanline + ", force: " + force + " Asked: " + newRenderWidth + "x" + newRenderHeight + ", set: " + renderWidth + "x" + renderHeight);
+
         // Only change width if forced (loadState and beginFrame)
         if (newRenderWidth !== renderWidth) {
             if (force) {
+                if (currentScanline >= startingVisibleTopBorderScanline || newRenderWidth > renderWidth) clean = true;
                 renderWidth = newRenderWidth;
                 changed = true;
             } else
@@ -843,20 +846,20 @@ wmsx.V9990 = function() {
         // Only change height if forced (loadState and beginFrame)
         if (newRenderHeight !== renderHeight) {
             if (force) {
-                cleanFrameBuffer();
+                if (currentScanline >= startingVisibleTopBorderScanline || newRenderHeight > renderHeight) clean = true;
                 renderHeight = newRenderHeight;
                 changed = true;
             } else
                 renderMetricsUpdatePending = true;
         }
 
+        if (clean) cleanFrameBuffer();
+
         if (changed) {
             newPixelWidth = 2 >> (modeData.pixelWidthDiv - 1);
             newPixelHeight = 2 >> (pixelHeightDiv - 1);
             videoSignal.setPixelMetrics(newPixelWidth || 1, newPixelHeight || 1);
         }
-
-        //logInfo("Update Render Metrics. " + force + " Asked: " + newRenderWidth + "x" + newRenderHeight + ", set: " + renderWidth + "x" + renderHeight);
     }
 
     function enterActiveDisplay() {
@@ -1520,10 +1523,10 @@ wmsx.V9990 = function() {
     }
 
     function cleanFrameBuffer() {
-        //wmsx.Util.arrayFill(frameBackBuffer, backdropValue);
+        wmsx.Util.arrayFill(frameBackBuffer, backdropValue);
         //frameBackBuffer.fill(notPaintedValue);
 
-        //logInfo("Clear Buffer");
+        // console.error("V9990 Clear Buffer");
     }
 
     function refresh() {
@@ -1824,7 +1827,7 @@ wmsx.V9990 = function() {
 
     var dispEnabled = false, spritesEnabled = true, dispAndSpritesUpdatePending = false;
 
-    var renderMetricsUpdatePending = false, renderWidth = 0, renderHeight = 0;
+    var renderMetricsUpdatePending = false, renderWidth, renderHeight;
     var refreshWidth = 0, refreshHeight = 0;
 
     var vramEOLineShift = 0, vramEOLineAdd = 0;
@@ -1952,10 +1955,9 @@ wmsx.V9990 = function() {
         updateSignalMetrics(true);
         if (s.fs !== undefined) frameStartingActiveScanline = s.fs;       // backward compatibility
         if (cpu) updateIRQ();
-        updateMode();
+        updateMode(true);
         updateYSEnabled(true);
         updateBackdropColor();
-        updateRenderMetrics(true);
 
         if (s.ad) setActiveDisplay(); else setBorderDisplay();
 
