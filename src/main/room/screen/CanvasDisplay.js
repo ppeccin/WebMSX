@@ -105,8 +105,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             0, 0, canvas.width, canvas.height
         );
 
-        // Paint Scanlines on top. Only if not in Debug and Signal is not Interlaced
-        if (crtScanlines && pixelHeight > 1 && !debugMode) {
+        // Paint Scanlines on top. Only if not in Debug and Signal is not Interlaced, also only once for both signals
+        if (crtScanlines && pixelHeight > 1 && !debugMode && (videoOutputMode <= 1 || !internal)) {
             var oldComposite = canvasContext.globalCompositeOperation;
             var oldAlpha = canvasContext.globalAlpha;
             canvasContext.globalCompositeOperation = "source-over";
@@ -269,6 +269,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.displayMetrics = function (pTargetWidth, pTargetHeight) {
+        // console.error("Display Metrics:", pTargetWidth, pTargetHeight);
+
         // No need to resize display if target size is unchanged
         if (targetWidth === pTargetWidth && targetHeight === pTargetHeight) return;
 
@@ -2018,9 +2020,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var mousePointerLocked = false;
 
     var targetWidth = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
-    var targetHeight = WMSX.MACHINES_CONFIG[WMSX.MACHINE].TYPE === 1
-        ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2
-        : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
+    var targetHeight = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 
 
     var logo, logoCenter, logoImage, logoMessage, logoMessageText, logoMessageOK, logoMessageOKText, logoMessageActive = false;

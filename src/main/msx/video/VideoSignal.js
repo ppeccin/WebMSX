@@ -33,6 +33,11 @@ wmsx.VideoSignal = function(source, name, shortName) {
     };
 
     // Called back by Monitor
+    this.refreshDisplayMetrics = function() {
+        source.refreshDisplayMetrics();
+    };
+
+    // Called back by Monitor
     this.videoSignalDisplayStateUpdate = function(displayed, superimposeActive) {
         source.videoSignalDisplayStateUpdate(displayed, superimposeActive);
     };

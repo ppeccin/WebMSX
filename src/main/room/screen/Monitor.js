@@ -50,16 +50,20 @@ wmsx.Monitor = function(display) {
 
     function updateOutputMode() {
         outputEffective = outputMode === -1 ? outputAuto : outputMode;
+
         intSignal.videoSignalDisplayStateUpdate(outputEffective !== 1, outputEffective === 2);
         if (extSignal) extSignal.videoSignalDisplayStateUpdate(outputEffective !== 0, outputEffective === 2);
+
+        if (outputEffective >= 1) extSignal.refreshDisplayMetrics();    // External Sigal takes precedence when displayed
+        else intSignal.refreshDisplayMetrics();
+
         display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc());
     }
 
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {
         // Should we display this signal?
-        if ((outputEffective === 0 && signal !== intSignal) || (outputEffective === 1 && signal !== extSignal)) return;
-
-        display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight, signal === intSignal);
+        if (isSignalActive(signal))
+            display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight, signal === intSignal);
     };
 
     this.signalOff = function(signal) {
@@ -75,11 +79,13 @@ wmsx.Monitor = function(display) {
     };
 
     this.setDisplayMetrics = function(signal, targetWidth, targetHeight) {
-        display.displayMetrics(targetWidth, targetHeight);
+        if (isSignalActive(signal))
+            display.displayMetrics(targetWidth, targetHeight);
     };
 
     this.setPixelMetrics = function(signal, pixelWidth, pixelHeight) {
-        display.displayPixelMetrics(pixelWidth, pixelHeight);
+        if (isSignalActive(signal))
+            display.displayPixelMetrics(pixelWidth, pixelHeight);
     };
 
     this.setDefaults = function() {
@@ -174,8 +180,9 @@ wmsx.Monitor = function(display) {
         }
     }
 
-    function isActiveSignal(signal) {
-        return outputEffective <= 0 ? signal === intSignal : signal === extSignal;
+    function isSignalActive(signal) {
+        return (outputEffective !== 1 && signal === intSignal) || (outputEffective !== 0 && signal === extSignal);
+
     }
 
 

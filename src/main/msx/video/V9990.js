@@ -277,6 +277,11 @@ wmsx.V9990 = function() {
         }
     };
 
+    this.refreshDisplayMetrics = function () {
+        videoSignal.setDisplayMetrics(wmsx.V9990.SIGNAL_START_WIDTH * 2, wmsx.V9990.SIGNAL_START_HEIGHT * 2);
+        // videoSignal.setDisplayMetrics(renderWidth * 2, renderHeight * 2);
+    };
+
     this.resetOutputAutoMode = function() {
         if (cartridge) cartridge.resetOutputAutoMode();
     };
@@ -859,6 +864,7 @@ wmsx.V9990 = function() {
             newPixelWidth = 2 >> (modeData.pixelWidthDiv - 1);
             newPixelHeight = 2 >> (pixelHeightDiv - 1);
             videoSignal.setPixelMetrics(newPixelWidth || 1, newPixelHeight || 1);
+            self.refreshDisplayMetrics();
         }
     }
 
@@ -1827,7 +1833,8 @@ wmsx.V9990 = function() {
 
     var dispEnabled = false, spritesEnabled = true, dispAndSpritesUpdatePending = false;
 
-    var renderMetricsUpdatePending = false, renderWidth, renderHeight;
+    var renderMetricsUpdatePending = false;
+    var renderWidth = wmsx.V9990.SIGNAL_START_WIDTH, renderHeight = wmsx.V9990.SIGNAL_START_HEIGHT;
     var refreshWidth = 0, refreshHeight = 0;
 
     var vramEOLineShift = 0, vramEOLineAdd = 0;
@@ -1998,10 +2005,10 @@ wmsx.V9990 = function() {
 
 wmsx.V9990.VRAM_LIMIT = 0x7ffff;      // 512K
 
-// wmsx.V9990.SIGNAL_MAX_WIDTH = 512 + 16 * 2;
-// wmsx.V9990.SIGNAL_MAX_HEIGHT = (212 + 8 * 2) * 2;
+wmsx.V9990.SIGNAL_START_WIDTH =  256 + 8 * 2;        // P1 mode + borders, pixel width = 2
+wmsx.V9990.SIGNAL_START_HEIGHT = 212 + 8 * 2;        // P1 mode + borders, pixel height = 2
 
-wmsx.V9990.SIGNAL_MAX_WIDTH =  1024 + 8 * 4 * 2;     // B7 mode + borders, 0.5 pixel width (* 4)
-wmsx.V9990.SIGNAL_MAX_HEIGHT = 480;                  // B6 mode no border, 1 pixel height
+wmsx.V9990.SIGNAL_MAX_WIDTH =  1024 + 8 * 4 * 2;     // B7 mode + borders, pixel width  = 0.5 (* 4)
+wmsx.V9990.SIGNAL_MAX_HEIGHT = 480;                  // B6 mode no border, pixel height = 1
 
 wmsx.V9990.BASE_CLOCK = wmsx.VDP.BASE_CLOCK;      // 21504960 Hz

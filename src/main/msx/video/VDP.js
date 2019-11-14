@@ -23,6 +23,9 @@ wmsx.VDP = function(machine, cpu) {
         commandProcessor = new wmsx.VDPCommandProcessor();
         commandProcessor.connectVDP(self, vram, register, status);
         commandProcessor.setVDPModeData(modeData);
+
+        renderWidth = wmsx.VDP.SIGNAL_START_WIDTH_V9938;
+        renderHeight = WMSX.MACHINES_CONFIG[WMSX.MACHINE].TYPE === 1 ? wmsx.VDP.SIGNAL_HEIGHT_V9918 : wmsx.VDP.SIGNAL_START_HEIGHT_V9938;
     }
 
     this.setMachineType = function(machineType) {
@@ -30,7 +33,7 @@ wmsx.VDP = function(machine, cpu) {
         isV9918 = type <=  M_TYPES.MSX1;
         isV9938 = type === M_TYPES.MSX2;
         isV9958 = type >=  M_TYPES.MSX2P;
-        refreshDisplayMetrics();
+        this.refreshDisplayMetrics();
     };
 
     this.connectBus = function(bus) {
@@ -49,7 +52,7 @@ wmsx.VDP = function(machine, cpu) {
         if (slave) slave.setVideoStandard(videoStandard);
         updateSignalMetrics(true);
         updateRenderMetrics(true);
-        refreshDisplayMetrics();
+        // this.refreshDisplayMetrics();
     };
 
     this.powerOn = function() {
@@ -259,6 +262,10 @@ wmsx.VDP = function(machine, cpu) {
         videoDisplayed = displayed;
 
         //console.log("VDP displayed:", displayed);
+    };
+
+    this.refreshDisplayMetrics = function () {
+        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 && !slave ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
     };
 
     this.resetOutputAutoMode = function() {
@@ -2252,10 +2259,6 @@ wmsx.VDP = function(machine, cpu) {
         beginFrame();
     }
 
-    function refreshDisplayMetrics() {
-        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 && !slave ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
-    }
-
     function initRegisters() {
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(status, 0);
@@ -2519,7 +2522,7 @@ wmsx.VDP = function(machine, cpu) {
 
     this.loadState = function(s) {
         isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
-        refreshDisplayMetrics();
+        // this.refreshDisplayMetrics();
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
         status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
         paletteRegister = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteRegister);
@@ -2583,10 +2586,13 @@ wmsx.VDP = function(machine, cpu) {
 
 wmsx.VDP.VRAM_LIMIT = 0x1ffff;      // 128K
 
-wmsx.VDP.SIGNAL_MAX_WIDTH_V9938 = 512 + 16 * 2;
-wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938 = (212 + 8 * 2) * 2;
-
 wmsx.VDP.SIGNAL_WIDTH_V9918 =  256 + 8 * 2;
 wmsx.VDP.SIGNAL_HEIGHT_V9918 = 192 + 8 * 2;
+
+wmsx.VDP.SIGNAL_START_WIDTH_V9938 =  256 + 8 * 2;
+wmsx.VDP.SIGNAL_START_HEIGHT_V9938 = 212 + 8 * 2;
+
+wmsx.VDP.SIGNAL_MAX_WIDTH_V9938 =  (256 + 8 * 2) * 2;
+wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938 = (212 + 8 * 2) * 2;
 
 wmsx.VDP.BASE_CLOCK = wmsx.Z80.BASE_CLOCK * 6;      // 21504960 Hz
