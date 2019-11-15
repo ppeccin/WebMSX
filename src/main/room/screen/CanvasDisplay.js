@@ -268,20 +268,37 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.displayMetrics = function (renderWidth, renderHeight) {
-        updatePixelMetrics(renderWidth, renderHeight);
-
         // Target metrics are at fixed sizes around double the normal 256x212 render metrics + borders
-        // All modes will use 512x424 + borders, except V9918 256x192 mode (2x), and V9990 640x400, 640x480 modes (1x)
+        // All modes will use 512x424 + borders, except V9918 256x192 mode (2x), and V9990 768x240, 1024x212, 640x400, 640x480 modes (1x)
 
         // console.error("Display Metrics Render:", renderWidth, renderHeight);
 
-        var newTargetWidth = renderWidth <= 512 + 32 ? 512 + 32 : 640;
-        var newTargetHeight = renderHeight <= 192 + 16 ? 384 + 32 : renderHeight <= 212 + 16 ? 424 + 32
-            : renderHeight <= 240 ? 480 : renderHeight <= 400 ? 400 : renderHeight <= 424 + 32 ? 424 + 32 : 480;
+        var newTargetWidth, newTargetHeight, newScrTargetWidth;
 
-        if (targetWidth === newTargetWidth && targetHeight === newTargetHeight) return;
+        switch (renderWidth) {
+            case 192: case 384:           newTargetWidth = 384; break;
+            case 256 + 16: case 512 + 32: newTargetWidth = 512 + 32; break;
+            case 640:                     newTargetWidth = 640; break;
+            case 768:                     newTargetWidth = 768; break;
+            case 1024 + 64:               newTargetWidth = 1024 + 64; break;
+            default:                      newTargetWidth = 512 + 32;
+        }
+        newScrTargetWidth = newTargetWidth === 640 ? 640 : 512 + 32;    // For the actual screen, use 512 for all modes, except 640
+
+        switch (renderHeight) {
+            case 192 + 16:                 newTargetHeight = 384 + 32; break;
+            case 212 + 16: case 424 + 32:  newTargetHeight = 424 + 32; break;
+            case 400:                      newTargetHeight = 400; break;
+            case 240: case 480:            newTargetHeight = 480; break;
+            default:                       newTargetHeight = 424 + 32;
+        }
+
+        updatePixelMetrics(renderWidth, renderHeight, newScrTargetWidth, newTargetHeight);
+
+        if (targetWidth === newTargetWidth && scrTargetWidth === newScrTargetWidth && targetHeight === newTargetHeight) return;
 
         targetWidth = newTargetWidth;
+        scrTargetWidth = newScrTargetWidth;
         targetHeight = newTargetHeight;
 
         updateCanvasContentSize();
@@ -291,11 +308,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         // console.error("Display Metrics TARGET:", targetWidth, targetHeight);
     };
 
-    function updatePixelMetrics(renderWidth, renderHeight) {
-        // Pixel Metrics will be inferred from render metrics
+    function updatePixelMetrics(renderWidth, renderHeight, scrTargetWidth, targetHeight) {
+        // Pixel Metrics is inferred from render metrics
 
-        var newPixelWidth = renderWidth < 512 ? 2 : 1;
-        var newPixelHeight = renderHeight < 400 ? 2 : 1;
+        var newPixelWidth = scrTargetWidth / renderWidth;
+        var newPixelHeight = targetHeight / renderHeight;
 
         if (pixelWidth === newPixelWidth && pixelHeight === newPixelHeight) return;
 
@@ -814,11 +831,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function updateScale() {
-        var canvasWidth = Math.round(targetWidth * scaleY * aspectX);
-        var canvasHeight = Math.round(targetHeight * scaleY);
-        canvas.style.width = "" + canvasWidth + "px";
-        canvas.style.height = "" + canvasHeight + "px";
-        updateBarWidth(canvasWidth);
+        var width = Math.round(scrTargetWidth * scaleY * aspectX);
+        var height = Math.round(targetHeight * scaleY);
+        canvas.style.width = "" + width + "px";
+        canvas.style.height = "" + height + "px";
+        updateBarWidth(width);
         if (!signalIsOn) updateLogoScale();
         if (settingsDialog && settingsDialog.isVisible()) settingsDialog.position();
     }
@@ -1833,8 +1850,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function displayOptimalScaleY(maxWidth, maxHeight) {
         var scY = maxHeight / targetHeight;
-        if (targetWidth * aspectX * scY > maxWidth)
-            scY = maxWidth / (targetWidth * aspectX);
+        if (scrTargetWidth * aspectX * scY > maxWidth)
+            scY = maxWidth / (scrTargetWidth * aspectX);
         return scY;
     }
 
@@ -2038,7 +2055,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var mousePointerLocked = false;
 
-    var targetWidth = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
+    var targetWidth = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, scrTargetWidth = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
     var targetHeight = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 
 
