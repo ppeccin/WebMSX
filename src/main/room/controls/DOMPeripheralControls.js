@@ -569,7 +569,14 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.SCREEN_OPEN_TOUCH_CONFIG,
         pc.SCREEN_TOGGLE_VIRTUAL_KEYBOARD,
         pc.SCREEN_DEFAULTS,
+
+        pc.SCREEN_OUTPUT_AUTO,
+        pc.SCREEN_OUTPUT_INTERNAL,
+        pc.SCREEN_OUTPUT_EXTERNAL,
+        pc.SCREEN_OUTPUT_SUPERIMPOSED,
+        pc.SCREEN_OUTPUT_MIXED,
         pc.SCREEN_OUTPUT_TOGGLE,
+        pc.SCREEN_OUTPUT_RESET_AUTO,
 
         pc.SPEAKER_BUFFER_TOGGLE,
 
