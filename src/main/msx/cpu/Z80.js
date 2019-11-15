@@ -39,7 +39,7 @@ wmsx.Z80 = function() {
         r800 = false;
         busCycles = 0;
         ackINT = false; prefix = 0;
-        T = -1; opcode = null; instruction = null;
+        T = -1; W = 0; opcode = null; instruction = null;
         PC = 0; I = 0; R = 0; IFF1 = 0; IM = 0;
         extCurrRunning = null; extExtraIter = 0;
 
@@ -61,6 +61,7 @@ wmsx.Z80 = function() {
 
         var cpuPulses = (busPulses * clockMulti) | 0;
         for (var t = cpuPulses; t > 0; --t) {
+            if (W > 0) { --W; continue; }
             if (--T > 1) continue;
             if (T > 0) {
                 instruction.operation();
@@ -200,6 +201,7 @@ wmsx.Z80 = function() {
 
     var busCycles = 0;
     var T = -1;                         // Clocks remaining in the current instruction
+    var W = 0;                          // Clocks remaining of additional wait states (besides M1)
 
     var opcode;
     var prefix;
@@ -276,7 +278,7 @@ wmsx.Z80 = function() {
         // to.busCycles = busCycles;
         to.ackINT = ackINT;
         to.prefix = prefix;
-        to.T = T; to.opcode = opcode; to.instruction = instruction;
+        to.T = T; to.W = W; to.opcode = opcode; to.instruction = instruction;
         to.PC = PC; to.SP = SP; to.I = I; to.R = R; to.IFF1 = IFF1; to.IM = IM;
         to.AF = fromAF(); to.BC = fromBC(); to.DE = DE; to.HL = HL; to.IX = fromIX(); to.IY = fromIY();
         to.AF2 = AF2; to.BC2 = BC2; to.DE2 = DE2; to.HL2 = HL2;
@@ -287,7 +289,7 @@ wmsx.Z80 = function() {
         // busCycles = from.busCycles;
         ackINT = from.ackINT;
         prefix = from.prefix;
-        T = from.T; opcode = from.opcode; instruction = from.instruction;
+        T = from.T; W = from.W; opcode = from.opcode; instruction = from.instruction;
         PC = from.PC; SP = from.SP; I = from.I; R = from.R; IFF1 = from.IFF1; IM = from.IM;
         toAF(from.AF); toBC(from.BC); DE = from.DE; HL = from.HL; toIX(from.IX); toIY(from.IY);
         AF2 = from.AF2; BC2 = from.BC2; DE2 = from.DE2; HL2 = from.HL2;
@@ -2732,8 +2734,8 @@ wmsx.Z80 = function() {
             instr.opcode = opcode;
             instr.remainCycles = cycles + 1;                                                     // extra M1 wait for Z80
             instr.remainCyclesR800 = cyclesR800;                                                 // NO extra M1 wait for R800
-            instr.totalCycles = instr.remainCycles + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);      // each prefix adds 4T + 1 extra M1 state for the first prefix
-            instr.totalCyclesR800 = instr.remainCycles + (prefix1 ? 1 : 0) + (prefix2 ? 1 : 0);  // each prefix adds 1T
+            instr.totalCycles = instr.remainCycles + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);      // only informative: each prefix adds 4T + 1 extra M1 state for the first prefix
+            instr.totalCyclesR800 = instr.remainCycles + (prefix1 ? 1 : 0) + (prefix2 ? 1 : 0);  // only informative: each prefix adds 1T
             instr.operation = operation;
             instr.mnemonic = mnemonic;
             instr.undocumented = undocumented;
@@ -2771,7 +2773,7 @@ wmsx.Z80 = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
-            c: busCycles, T: T, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
+            c: busCycles, T: T, W: W, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extCurrRunning, eei: extExtraIter,
             r8: r800,
             bs: modeBackState,
@@ -2784,7 +2786,7 @@ wmsx.Z80 = function() {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1;
         setINT(s.nINT ? s.INT : s.INT ? 0xff : 0xfe);   // Backward compatibility
-        busCycles = s.c; T = s.T; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;
+        busCycles = s.c; T = s.T; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;        // Backward compatibility for W
         extCurrRunning = s.ecr; extExtraIter = s.eei;
         r800 = !!s.r8;
         if (s.bs) modeBackState = s.bs;                                     // Backward compatibility
