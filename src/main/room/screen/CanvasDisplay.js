@@ -3,7 +3,6 @@
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
-// TODO Correct targetWidth/targetHeight on canvas for V9990 overscan modes?
 
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
@@ -268,33 +267,53 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (cap) fileDownloader.startDownloadURL("WMSX Screen.png", cap, "WebMSX Screen Capture");
     };
 
-    this.displayMetrics = function (pTargetWidth, pTargetHeight) {
-        // console.error("Display Metrics:", pTargetWidth, pTargetHeight);
+    this.displayMetrics = function (renderWidth, renderHeight) {
+        updatePixelMetrics(renderWidth, renderHeight);
 
-        // No need to resize display if target size is unchanged
-        if (targetWidth === pTargetWidth && targetHeight === pTargetHeight) return;
+        // Target metrics are at fixed sizes around double the normal 256x212 render metrics + borders
+        // All modes will use 512x424 + borders, except V9918 256x192 mode (2x), and V9990 640x400, 640x480 modes (1x)
 
-        targetWidth = pTargetWidth;
-        targetHeight = pTargetHeight;
+        // console.error("Display Metrics Render:", renderWidth, renderHeight);
+
+        var newTargetWidth = renderWidth <= 512 + 32 ? 512 + 32 : 640;
+        var newTargetHeight = renderHeight <= 192 + 16 ? 384 + 32 : renderHeight <= 212 + 16 ? 424 + 32
+            : renderHeight <= 240 ? 480 : renderHeight <= 400 ? 400 : renderHeight <= 424 + 32 ? 424 + 32 : 480;
+
+        if (targetWidth === newTargetWidth && targetHeight === newTargetHeight) return;
+
+        targetWidth = newTargetWidth;
+        targetHeight = newTargetHeight;
+
         updateCanvasContentSize();
         if (isFullscreen) this.requestReadjust(true);
         else updateScale();
+
+        // console.error("Display Metrics TARGET:", targetWidth, targetHeight);
     };
 
-    this.displayPixelMetrics = function (pPixelWidth, pPixelHeight) {
-        if (pixelWidth === pPixelWidth && pixelHeight === pPixelHeight) return;
+    function updatePixelMetrics(renderWidth, renderHeight) {
+        // Pixel Metrics will be inferred from render metrics
 
-        pixelWidth = pPixelWidth;
-        pixelHeight = pPixelHeight;
-        if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
-    };
+        var newPixelWidth = renderWidth < 512 ? 2 : 1;
+        var newPixelHeight = renderHeight < 400 ? 2 : 1;
+
+        if (pixelWidth === newPixelWidth && pixelHeight === newPixelHeight) return;
+
+        pixelWidth = newPixelWidth;
+        pixelHeight = newPixelHeight;
+        refreshPixelMetrics();
+    }
 
     this.displayScale = function(pAspectX, pScaleY) {
         aspectX = pAspectX;
         scaleY = pScaleY;
         updateScale();
-        if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
+        refreshPixelMetrics();
     };
+
+    function refreshPixelMetrics() {
+        if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
+    }
 
     this.getMonitor = function() {
         return monitor;

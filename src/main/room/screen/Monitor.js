@@ -78,14 +78,9 @@ wmsx.Monitor = function(display) {
         display.showOSD(message, overlap, error);
     };
 
-    this.setDisplayMetrics = function(signal, targetWidth, targetHeight) {
+    this.setDisplayMetrics = function(signal, renderWidth, renderHeight) {
         if (isSignalActive(signal))
-            display.displayMetrics(targetWidth, targetHeight);
-    };
-
-    this.setPixelMetrics = function(signal, pixelWidth, pixelHeight) {
-        if (isSignalActive(signal))
-            display.displayPixelMetrics(pixelWidth, pixelHeight);
+            display.displayMetrics(renderWidth, renderHeight);
     };
 
     this.setDefaults = function() {

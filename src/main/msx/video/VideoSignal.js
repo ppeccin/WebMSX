@@ -19,12 +19,8 @@ wmsx.VideoSignal = function(source, name, shortName) {
         if (monitor) monitor.showOSD(message, overlap, error);
     };
 
-    this.setDisplayMetrics = function(targetWidth, targetHeight) {
-        if (monitor) monitor.setDisplayMetrics(this, targetWidth, targetHeight);
-    };
-
-    this.setPixelMetrics = function(pixelWidth, pixelHeight) {
-        if (monitor) monitor.setPixelMetrics(this, pixelWidth, pixelHeight);
+    this.setDisplayMetrics = function(renderWidth, renderHeight) {
+        if (monitor) monitor.setDisplayMetrics(this, renderWidth, renderHeight);
     };
 
     // Called back by Monitor

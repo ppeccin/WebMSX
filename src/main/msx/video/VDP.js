@@ -33,7 +33,6 @@ wmsx.VDP = function(machine, cpu) {
         isV9918 = type <=  M_TYPES.MSX1;
         isV9938 = type === M_TYPES.MSX2;
         isV9958 = type >=  M_TYPES.MSX2P;
-        this.refreshDisplayMetrics();
     };
 
     this.connectBus = function(bus) {
@@ -265,7 +264,7 @@ wmsx.VDP = function(machine, cpu) {
     };
 
     this.refreshDisplayMetrics = function () {
-        videoSignal.setDisplayMetrics(wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, isV9918 && !slave ? wmsx.VDP.SIGNAL_HEIGHT_V9918 * 2 : wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938);
+        videoSignal.setDisplayMetrics(renderWidth, renderHeight);
     };
 
     this.resetOutputAutoMode = function() {
@@ -835,17 +834,15 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function updateRenderMetrics(force) {
-        var newRenderWidth, newRenderHeight, newPixelWidth, newPixelHeight, changed = false, clean = false;
+        var newRenderWidth, newRenderHeight, changed = false, clean = false;
 
         // Fixed metrics for V9918 with no slave (V9990)
         if (isV9918 && !slave) {
-            newRenderWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;   newPixelWidth = 2;
-            newRenderHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918; newPixelHeight = 2;
+            newRenderWidth = wmsx.VDP.SIGNAL_WIDTH_V9918;
+            newRenderHeight = wmsx.VDP.SIGNAL_HEIGHT_V9918;
         } else {
-            if (modeData.width === 512) { newRenderWidth = 512 + 16 * 2; newPixelWidth = 1; }                 // Mode
-            else { newRenderWidth = 256 + 8 * 2; newPixelWidth = 2; }
-            if (!isV9918 && (register[9] & 0x08)) { newRenderHeight = 424 + 16 * 2; newPixelHeight = 1; }     // IL
-            else { newRenderHeight = 212 + 8 * 2; newPixelHeight = 2; }
+            newRenderWidth = modeData.width === 512 ? 512 + 16 * 2 : 256 + 8 * 2;
+            newRenderHeight = !isV9918 && (register[9] & 0x08) ? 424 + 16 * 2 : 212 + 8 * 2;
         }
 
         renderMetricsChangePending = false;
@@ -878,7 +875,7 @@ wmsx.VDP = function(machine, cpu) {
         }
 
         if (clean) cleanFrameBuffer();
-        if (changed) videoSignal.setPixelMetrics(newPixelWidth, newPixelHeight);
+        if (changed) self.refreshDisplayMetrics();
     }
 
     function setActiveDisplay() {

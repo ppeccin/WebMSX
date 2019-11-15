@@ -278,8 +278,7 @@ wmsx.V9990 = function() {
     };
 
     this.refreshDisplayMetrics = function () {
-        videoSignal.setDisplayMetrics(wmsx.V9990.SIGNAL_START_WIDTH * 2, wmsx.V9990.SIGNAL_START_HEIGHT * 2);
-        // videoSignal.setDisplayMetrics(renderWidth * 2, renderHeight * 2);
+        videoSignal.setDisplayMetrics(renderWidth, renderHeight);
     };
 
     this.resetOutputAutoMode = function() {
@@ -825,7 +824,7 @@ wmsx.V9990 = function() {
     }
 
     function updateRenderMetrics(force) {
-        var newRenderWidth, newRenderHeight, newPixelWidth, newPixelHeight, pixelHeightDiv, changed = false, clean = false;
+        var newRenderWidth, newRenderHeight, pixelHeightDiv, changed = false, clean = false;
 
         newRenderWidth = modeData.width + modeData.hasBorders * 8 * 2 * modeData.pixelWidthDiv;
 
@@ -859,13 +858,7 @@ wmsx.V9990 = function() {
         }
 
         if (clean) cleanFrameBuffer();
-
-        if (changed) {
-            newPixelWidth = 2 >> (modeData.pixelWidthDiv - 1);
-            newPixelHeight = 2 >> (pixelHeightDiv - 1);
-            videoSignal.setPixelMetrics(newPixelWidth || 1, newPixelHeight || 1);
-            self.refreshDisplayMetrics();
-        }
+        if (changed) self.refreshDisplayMetrics();
     }
 
     function enterActiveDisplay() {
