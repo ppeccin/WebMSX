@@ -4,7 +4,9 @@
 // Then fetches operands and executes all operations of the instruction at the LAST clock cycle
 // NMI is not supported. All IM modes supported, but data coming from device in bus will always be FFh (MSX). IFF2 is always the same as IFF1
 // Original Z80 base clock: 3579545 Hz. Rectified to NTSC 60Hz: 3584160 Hz   (228 clocks/line * 262 lines * 60 frames/sec)
-// TODO R800 clock is double Z80 clock, and processing pauses for 4us each 31us for memory refresh (~12% of the processing time)
+
+// R800 clock is double Z80 clock, and processing pauses for ~4us each ~31us for memory refresh (~12.9% of the processing time)
+// Thus it stops approx. twice each NTSC scanline, for about approx. 29 clocks
 
 // TODO S1990 additional waits (ROM, External Slot, Bus alignment)
 
@@ -56,6 +58,11 @@ wmsx.Z80 = function() {
         swapModeState();
     };
 
+    // Called once every 228 clocks. 29 / 228 = ~4us refresh time each ~31.8us (~12.7% of processing time)
+    this.r800MemoryRefreshPause = function() {
+        if (r800) W += 29;
+    };
+
     this.clockPulses = function(busPulses) {
         // if (self.HALT) return;
 
@@ -71,6 +78,24 @@ wmsx.Z80 = function() {
                 else fetchNextInstruction();
                 if (T <= 1) instruction.operation();
             }
+        }
+        busCycles += busPulses;
+    };
+
+    this.clockPulsesNew = function(busPulses) {
+        // if (self.HALT) return;
+
+        var cpuPulses = (busPulses * clockMulti) | 0;
+        for (var t = cpuPulses; t > 0; --t) {
+            if (W > 0) { --W; continue; }
+
+            if (--T > 0) continue;
+
+            instruction.operation();
+
+            ++R;
+            if (ackINT) acknowledgeINT();
+            else fetchNextInstruction();
         }
         busCycles += busPulses;
     };

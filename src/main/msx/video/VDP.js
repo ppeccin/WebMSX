@@ -13,6 +13,7 @@ wmsx.VDP = function(machine, cpu) {
     function init() {
         videoSignal = new wmsx.VideoSignal(self, "Internal", "Internal");
         cpuClockPulses = cpu.clockPulses;
+        cpuR800RefreshPause = cpu.r800MemoryRefreshPause;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
         initFrameResources(false);
         initDebugPatternTables();
@@ -635,6 +636,8 @@ wmsx.VDP = function(machine, cpu) {
         // Sync signal: 100 clocks
         // Left erase: 102 clocks
 
+        cpuR800RefreshPause();
+
         cpuClockPulses(33); audioClockPulse32();
 
         // Left border: 56 clocks
@@ -664,6 +667,8 @@ wmsx.VDP = function(machine, cpu) {
             && currentScanline < startingInvisibleScanline ) renderLine();                          // Only render if visible and displayed
 
         if (slave) slave.lineEventRenderLine();
+
+        cpuR800RefreshPause();
 
         cpuClockPulses(33); audioClockPulse32();
         cpuClockPulses(32); audioClockPulse32();
@@ -2482,7 +2487,7 @@ wmsx.VDP = function(machine, cpu) {
     // Connections
 
     var videoSignal, videoDisplayed = true;
-    var cpuClockPulses, audioClockPulse32;
+    var cpuClockPulses, cpuR800RefreshPause, audioClockPulse32;
     var commandProcessor;
 
     var slave;
