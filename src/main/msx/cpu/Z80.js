@@ -595,7 +595,7 @@ wmsx.Z80 = function() {
     }
 
     function LDAR() {
-        A = R & 0x7f;
+        A = R & 0x7f;                       // TODO Check R value
         // Flags
         F = (F & 0x01)                      // H = 0; N = 0; C = C
             | (A & 0xA8)                    // S = A is negative; f5, f3 copied from A
