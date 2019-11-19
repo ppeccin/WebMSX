@@ -41,7 +41,7 @@ wmsx.Z80 = function() {
         r800 = false;
         busCycles = 0;
         ackINT = false; prefix = 0;
-        T = -1; W = 0; opcode = null; instruction = null;
+        T = 0; W = 0; opcode = 0; instruction = instructionNOP;
         PC = 0; I = 0; R = 0; IFF1 = 0; IM = 0;
         extCurrRunning = null; extExtraIter = 0;
 
@@ -251,8 +251,8 @@ wmsx.Z80 = function() {
         instructions        // 7  After EI
     ];
 
+    var instructionNOP, instructionHALT;
     var instructionADT_CYCLES;
-    var instructionHALT;
 
     this.instructionsAll  = [];
 
@@ -662,8 +662,7 @@ wmsx.Z80 = function() {
         LDI();
         if (F & bPV) {
             dec2PC();     // Repeat this instruction
-            T += r800 ? 1 : 5;
-            instruction = instructionADT_CYCLES;
+            W += r800 ? 1 : 5;
         }
     }
 
@@ -681,8 +680,7 @@ wmsx.Z80 = function() {
         LDD();
         if (F & bPV) {
             dec2PC();     // Repeat this instruction
-            T += r800 ? 1 : 5;
-            instruction = instructionADT_CYCLES;
+            W += r800 ? 1 : 5;
         }
     }
 
@@ -704,8 +702,7 @@ wmsx.Z80 = function() {
         CPI();
         if ((F & bPV) && !(F & bZ)) {
             dec2PC();     // Repeat this instruction
-            T += r800 ? 1 : 5;
-            instruction = instructionADT_CYCLES;
+            W += r800 ? 1 : 5;
         }
     }
 
@@ -727,8 +724,7 @@ wmsx.Z80 = function() {
         CPD();
         if ((F & bPV) && !(F & bZ)) {
             dec2PC();     // Repeat this instruction
-            T += r800 ? 1 : 5;
-            instruction = instructionADT_CYCLES;
+            W += r800 ? 1 : 5;
         }
     }
 
@@ -863,8 +859,7 @@ wmsx.Z80 = function() {
         B = (B - 1) & 0xff;
         if (B !== 0) {
             PC = sum16Signed(PC, relat);
-            T += r800 ? 1 : 5;
-            instruction = instructionADT_CYCLES;
+            W += r800 ? 1 : 5;
         }
     }
 
@@ -910,8 +905,7 @@ wmsx.Z80 = function() {
         INI();
         if (B !== 0) {
             dec2PC();     // Repeat this instruction
-            T += r800 ? 1 : 5;
-            instruction = instructionADT_CYCLES;
+            W += r800 ? 1 : 5;
         }
     }
 
@@ -928,8 +922,7 @@ wmsx.Z80 = function() {
         IND();
         if (B !== 0) {
             dec2PC();     // Repeat this instruction
-            T += r800 ? 1 : 5;
-            instruction = instructionADT_CYCLES;
+            W += r800 ? 1 : 5;
         }
     }
 
@@ -954,8 +947,7 @@ wmsx.Z80 = function() {
     function OTIR() {
         if (B !== 1) {                             // OUTI below will DEC B. If B !== 0 after OUTI, repeat this instruction
             dec2PC();
-            T += r800 ? 1 : 5;
-            instruction = instructionADT_CYCLES;
+            W += r800 ? 1 : 5;
         }
 
         OUTI();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
@@ -975,8 +967,7 @@ wmsx.Z80 = function() {
     function OTDR() {
         if (B !== 1) {                             // OUTD below will DEC B. If B !== 0 after OUTD, repeat this instruction
             dec2PC();
-            T += r800 ? 1 : 5;
-            instruction = instructionADT_CYCLES;
+            W += r800 ? 1 : 5;
         }
 
         OUTD();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
@@ -1402,8 +1393,7 @@ wmsx.Z80 = function() {
             if ((F & flag) === val) {
                 PC = addr;
                 if (r800) {
-                    T += 2;
-                    instruction = instructionADT_CYCLES;
+                    W += 2;
                 }
             }
         }
@@ -1414,8 +1404,7 @@ wmsx.Z80 = function() {
             var relat = fromN();
             if ((F & flag) === val) {
                 PC = sum16Signed(PC, relat);
-                T += r800 ? 1 : 5;
-                instruction = instructionADT_CYCLES;
+                W += r800 ? 1 : 5;
             }
         }
     }
@@ -1426,8 +1415,7 @@ wmsx.Z80 = function() {
             if ((F & flag) === val) {
                 push16(PC);
                 PC = addr;
-                T += r800 ? 5 : 7;
-                instruction = instructionADT_CYCLES;
+                W += r800 ? 5 : 7;
             }
         }
     }
@@ -1436,8 +1424,7 @@ wmsx.Z80 = function() {
         return function RETcc() {
             if ((F & flag) === val) {
                 RET();
-                T += r800 ? 4 : 6;
-                instruction = instructionADT_CYCLES;
+                W += r800 ? 4 : 6;
             }
         }
     }
@@ -1585,6 +1572,7 @@ wmsx.Z80 = function() {
 
     // Extension Point pseudo instructions
 
+    // TODO Extensions are not reentrant, but INTs can make them reenter!
     function newpEXT(num) {
         return function pEXT() {
             // Check for extraIterations of last extension instruction. No new instruction until iterations end
@@ -1593,21 +1581,21 @@ wmsx.Z80 = function() {
                     extExtraIter--;
                     dec2PC();                           // Repeat this instruction
                 } else {                                // End of iterations, perform finish operation
-                    var finish = bus.cpuExtensionFinish(extractCPUState(num));
-                    reinsertCPUState(finish);
+                    var finish = bus.cpuExtensionFinish(extExtractCPUState(num));
+                    extReinsertCPUState(finish);
                     extCurrRunning = null;
                 }
                 return;
             }
             // New extension instruction will start now
             extCurrRunning = num; extExtraIter = 0;
-            var init = bus.cpuExtensionBegin(extractCPUState(num));
-            reinsertCPUState(init);
+            var init = bus.cpuExtensionBegin(extExtractCPUState(num));
+            extReinsertCPUState(init);
             // Recur to finish the process
             pEXT();
         };
 
-        function extractCPUState(extNum) {
+        function extExtractCPUState(extNum) {
             return {
                 // extPC points to Extended Instruction being executed
                 extNum: extNum, extPC: PC - 2, PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
@@ -1616,7 +1604,7 @@ wmsx.Z80 = function() {
             }
         }
 
-        function reinsertCPUState(state) {
+        function extReinsertCPUState(state) {
             if (!state) return;
             if (state.PC !== undefined)    PC = state.PC;
             if (state.SP !== undefined)    SP = state.SP;
@@ -2165,7 +2153,7 @@ wmsx.Z80 = function() {
         // 1 bytes, 1M, 4T: - NOP
         opcode = 0x00;
         instr = NOP;
-        defineInstruction(null, null, opcode, 4, 1, instr, "NOP", false);
+        instructionNOP = defineInstruction(null, null, opcode, 4, 1, instr, "NOP", false);
 
         // 1 bytes, 1M, 4T: - HALT
         opcode = 0x76;
@@ -2757,10 +2745,10 @@ wmsx.Z80 = function() {
             var instr = {};
             instr.prefix = prefix2 ? ((prefix1 << 8) | prefix2) : prefix1;
             instr.opcode = opcode;
-            instr.remainCycles = cycles + 1;                                                     // extra M1 wait for Z80
-            instr.remainCyclesR800 = cyclesR800;                                                 // NO extra M1 wait for R800
-            instr.totalCycles = instr.remainCycles + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);      // only informative: each prefix adds 4T + 1 extra M1 state for the first prefix
-            instr.totalCyclesR800 = instr.remainCycles + (prefix1 ? 1 : 0) + (prefix2 ? 1 : 0);  // only informative: each prefix adds 1T
+            instr.remainCycles = cycles + 1;                                                        // extra M1 wait for Z80
+            instr.remainCyclesR800 = cyclesR800;                                                    // NO extra M1 wait for R800
+            instr.totalCycles = instr.remainCycles + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);         // only informative: each prefix adds 4T + 1 extra M1 state for the first prefix
+            instr.totalCyclesR800 = instr.remainCyclesR800 + (prefix1 ? 1 : 0) + (prefix2 ? 1 : 0); // only informative: each prefix adds 1T
             instr.operation = operation;
             instr.mnemonic = mnemonic;
             instr.undocumented = undocumented;
