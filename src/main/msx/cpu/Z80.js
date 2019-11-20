@@ -234,7 +234,7 @@ wmsx.Z80 = function() {
         // if (DEBUG_PC_LOCATIONS[PC]) console.log("LOCATION: " + DEBUG_PC_LOCATIONS[PC]);
 
         ++R;
-        opcode = fromN();           // Will inc PC
+        opcode = fetchN();           // Will inc PC
         selectInstruction();
 
         T = r800 ? instruction.remainCyclesR800 : instruction.remainCycles;
@@ -469,61 +469,61 @@ wmsx.Z80 = function() {
 
     var preReadIXYdOffset = 0;
     function preReadIXYd() {
-        preReadIXYdOffset = busRead(pcInc());
+        preReadIXYdOffset = fetchN();
     }
 
     function from_IXd_8() {
-        return busRead(sum16Signed(IX, busRead(pcInc())));
+        return busRead(sum16Signed(IX, fetchN()));
     }
     from_IXd_8.fromPreReadAddr = function() {
         return busRead(sum16Signed(IX, preReadIXYdOffset));
     };
 
     function from_IYd_8() {
-        return busRead(sum16Signed(IY, busRead(pcInc())));
+        return busRead(sum16Signed(IY, fetchN()));
     }
     from_IYd_8.fromPreReadAddr = function() {
         return busRead(sum16Signed(IY, preReadIXYdOffset));
     };
 
     function to_IXd_8(val) {
-        busWrite(sum16Signed(IX, busRead(pcInc())), val);
+        busWrite(sum16Signed(IX, fetchN()), val);
     }
     to_IXd_8.toPreReadAddr = function(val) {
         busWrite(sum16Signed(IX, preReadIXYdOffset), val);
     };
 
     function to_IYd_8(val) {
-        busWrite(sum16Signed(IY, busRead(pcInc())), val);
+        busWrite(sum16Signed(IY, fetchN()), val);
     }
     to_IYd_8.toPreReadAddr = function(val) {
         busWrite(sum16Signed(IY, preReadIXYdOffset), val);
     };
 
-    function fromN() {
+    function fetchN() {
         return busRead(pcInc());
     }
-    function fromNN() {
+    function fetchNN() {
         return busRead(pcInc()) | (busRead(pcInc()) << 8);        // 16bits
     }
 
     function from_NN_8() {
-        return busRead(fromNN());
+        return busRead(fetchNN());
     }
 
     function to_NN_8(val) {
-        busWrite(fromNN(), val);
+        busWrite(fetchNN(), val);
     }
 
     function from_NN_16() {     // 16bits
-        var addr = fromNN();
+        var addr = fetchNN();
         var low = busRead(addr);
         addr = (addr + 1) & 0xffff;
         return (busRead(addr) << 8) | low;
     }
 
     function to_NN_16(val) {    // 16bits
-        var addr = fromNN();
+        var addr = fetchNN();
         busWrite(addr, val & 255);
         addr = (addr + 1) & 0xffff;
         busWrite(addr, val >>> 8);
@@ -835,12 +835,12 @@ wmsx.Z80 = function() {
     }
 
     function JR() {
-        var addr = fromN();
+        var addr = fetchN();
         PC = sum16Signed(PC, addr);
     }
 
     function DJNZ() {
-        var relat = fromN();
+        var relat = fetchN();
         B = (B - 1) & 0xff;
         if (B !== 0) {
             PC = sum16Signed(PC, relat);
@@ -849,7 +849,7 @@ wmsx.Z80 = function() {
     }
 
     function CALL() {
-        var addr = fromNN();
+        var addr = fetchNN();
         push16(PC);
         PC = addr;
     }
@@ -869,7 +869,7 @@ wmsx.Z80 = function() {
     }
 
     function INAn() {
-        var port = fromN();
+        var port = fetchN();
         A = bus.input((A << 8) | port);
 
         // if (DEBUG_LOOP) console.log("IN", ((A << 8) | port).toString(16), "=", A.toString(16));
@@ -912,7 +912,7 @@ wmsx.Z80 = function() {
     }
 
     function OUTnA() {
-        var port = fromN();
+        var port = fetchN();
         bus.output((A << 8) | port, A);            // Must be the last operation on the instruction processing, because of CPU mode switch
 
         // if (DEBUG_LOOP) console.log("OUT", ((A << 8) | port).toString(16), ":", A.toString(16));
@@ -1374,7 +1374,7 @@ wmsx.Z80 = function() {
 
     function newJPcc(flag, val) {
         return function JPcc() {
-            var addr = fromNN();
+            var addr = fetchNN();
             if ((F & flag) === val) {
                 PC = addr;
                 if (r800) {
@@ -1386,7 +1386,7 @@ wmsx.Z80 = function() {
 
     function newJRcc(flag, val) {
         return function JRcc() {
-            var relat = fromN();
+            var relat = fetchN();
             if ((F & flag) === val) {
                 PC = sum16Signed(PC, relat);
                 W += r800 ? 1 : 5;
@@ -1396,7 +1396,7 @@ wmsx.Z80 = function() {
 
     function newCALLcc(flag, val) {
         return function CALLcc() {
-            var addr = fromNN();
+            var addr = fetchNN();
             if ((F & flag) === val) {
                 push16(PC);
                 PC = addr;
@@ -1668,7 +1668,7 @@ wmsx.Z80 = function() {
             opcode = opcodeBase | (operTo.bits << 3);
             instr = newLD(
                 operTo.to,
-                fromN
+                fetchN
             );
             prefix = operTo.pref;
             defineInstruction(prefix, null, opcode, 7, 2, instr, "LD " + operTo.desc + ", n", prefix);
@@ -1716,12 +1716,12 @@ wmsx.Z80 = function() {
             if (prefix) {
                 instr = newLD_PreRead_IXYd_(
                     operTo.to.toPreReadAddr,
-                    fromN
+                    fetchN
                 );
             } else {
                 instr = newLD(
                     operTo.to,
-                    fromN
+                    fetchN
                 );
             }
             defineInstruction(prefix, null, opcode, 10 + (prefix ? 5 : 0), 5 + (prefix ? 1 : 0), instr, "LD " + operTo.desc + ", n", false);
@@ -1836,7 +1836,7 @@ wmsx.Z80 = function() {
             opcode = opcodeBase | (operTo.bits << 4);
             instr = newLD(
                 operTo.to,
-                fromNN
+                fetchNN
             );
             prefix = operTo.pref;
             defineInstruction(prefix, null, opcode, 10, 3, instr, "LD " + operTo.desc + ", nn", false);
@@ -2066,7 +2066,7 @@ wmsx.Z80 = function() {
             if (vari) {
                 opcode = vari.opcode;
                 instr = ins.instr(
-                    fromN, null
+                    fetchN, null
                 );
                 defineInstruction(null, null, opcode, 7, 2, instr, ins.desc + "n", false);
             }
@@ -2355,7 +2355,7 @@ wmsx.Z80 = function() {
         // Jump Group  --------------------------------------------------------------------
 
         var operVVp = {
-            nn:   { desc: "nn",   from: fromNN, opcode: 0xc3, T: 10, Tr: 5 },
+            nn:   { desc: "nn",   from: fetchNN, opcode: 0xc3, T: 10, Tr: 5 },
             HL:   { desc: "(HL)", from: fromHL, opcode: 0xe9, T: 4,  Tr: 3 },                   // Not really indirect
             IX:   { desc: "(IX)", from: fromIX, opcode: 0xe9, T: 4,  Tr: 3, pref: 0xdd },       // Not really indirect
             IY:   { desc: "(IY)", from: fromIY, opcode: 0xe9, T: 4,  Tr: 3, pref: 0xfd }        // Not really indirect
