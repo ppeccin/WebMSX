@@ -42,7 +42,7 @@ wmsx.Z80 = function() {
         busCycles = 0;
         ackINT = false; prefix = 0;
         T = 0; W = 0; opcode = 0; instruction = instructionNOP;
-        PC = 0; I = 0; R = 0; IFF1 = 0; IM = 0;
+        PC = 0; I = 0; R = 0; R7 = 0; IFF1 = 0; IM = 0;
         extCurrRunning = null; extExtraIter = 0;
 
         writeState(modeBackState);
@@ -60,7 +60,10 @@ wmsx.Z80 = function() {
 
     // Called once every 228 clocks. 29 / 228 = ~4us refresh time each ~31.8us (~12.7% of processing time)
     this.r800MemoryRefreshPause = function() {
-        if (r800) W += 29;
+        if (r800) {
+            ++R;
+            W += 29;
+        }
     };
 
     this.clockPulses = function(busPulses) {
@@ -68,53 +71,20 @@ wmsx.Z80 = function() {
 
         var cpuPulses = (busPulses * clockMulti) | 0;
         for (var t = cpuPulses; t > 0; --t) {
-            if (W > 0) { --W; continue; }
             if (--T > 1) continue;
-            if (T > 0) {
-                instruction.operation();
-            } else {
-                ++R;
+            if (T === 1) instruction.operation();
+            else {
+                if (W > 0) { --W; continue; }
                 if (ackINT) acknowledgeINT();
-                else fetchNextInstruction();
-                if (T <= 1) instruction.operation();
+                else {
+                    fetchNextInstruction();
+                    if (T === 1) instruction.operation();
+                }
             }
         }
+
         busCycles += busPulses;
     };
-
-    this.clockPulsesNew = function(busPulses) {
-        // if (self.HALT) return;
-
-        var cpuPulses = (busPulses * clockMulti) | 0;
-        for (var t = cpuPulses; t > 0; --t) {
-            if (W > 0) { --W; continue; }
-
-            if (--T > 0) continue;
-
-            instruction.operation();
-
-            ++R;
-            if (ackINT) acknowledgeINT();
-            else fetchNextInstruction();
-        }
-        busCycles += busPulses;
-    };
-
-    // this.clockPulsesPrecise = function(quant) {
-    //     for (var q = quant; q > 0; --q) {
-    //         for (var t = clockMulti; t > 0; --t) {
-    //             if (--T > 1) continue;               // Still counting cycles of current instruction
-    //             if (T > 0) {
-    //                 instruction.operation();
-    //             } else {
-    //                 ++R;                             // Verify: R can have bit 7 = 1 only if set manually. How the increment handles that? Ignoring for now, also do not check for 8 bits overflow
-    //                 if (ackINT) acknowledgeINT();
-    //                 else fetchNextInstruction();
-    //             }
-    //         }
-    //         ++busCycles;                             // Precise bus cycle reporting in original clock (no turbo). Higher precision, worse performance
-    //     }
-    // };
 
     this.setINTChannel = function(chan, state) {
         var val = state ? INT | (1 << chan) : INT & ~(1 << chan);
@@ -205,7 +175,8 @@ wmsx.Z80 = function() {
     var HL2 = 0;    // 16 bits
 
     var I = 0;
-    var R = 0;
+    var R = 0;      // bits 6-0 of R, incremented
+    var R7 = 0;     // bit 7 of R when set manually
 
     // Interrupt flags and mode
     var IFF1 = 0;   // No IFF2 supported as NMI is not supported. Always the same as IFF1
@@ -262,6 +233,7 @@ wmsx.Z80 = function() {
     function fetchNextInstruction() {
         // if (DEBUG_PC_LOCATIONS[PC]) console.log("LOCATION: " + DEBUG_PC_LOCATIONS[PC]);
 
+        ++R;
         opcode = fromN();           // Will inc PC
         selectInstruction();
 
@@ -278,7 +250,29 @@ wmsx.Z80 = function() {
     // }
 
     function acknowledgeINT() {
-        pINT();
+        ++R;
+        IFF1 = 0;
+        ackINT = false;
+        if (instruction === instructionHALT) pcInc();     // To "escape" from the HALT, and continue in the next instruction after RET
+        push16(PC);
+        instruction = instructionADT_CYCLES;
+        if (IM === 1) {
+            // Same as a RST 38h
+            PC = 0x0038;
+            T = r800 ? 8 : 13;
+        } else if (IM === 2) {
+            // Read Jump Table address low from Bus (always FFh in this implementation)
+            // Read Jump Table address high from I
+            var jumpTableEntry = (I << 8) | 0xff;
+            // Call address read from Jump Table
+            PC = bus.read(jumpTableEntry) | (bus.read(jumpTableEntry + 1) << 8);
+            T = r800 ? 11 : 19;
+        } else {
+            // IM 0. Read instruction to execute from Bus (always FFh in this implementation)
+            // Since its always FF, its the same as a RST 38h
+            PC = 0x0038;
+            T = r800 ? 8 : 13;
+        }
     }
 
     function selectInstruction() {
@@ -595,7 +589,7 @@ wmsx.Z80 = function() {
     }
 
     function LDAR() {
-        A = R & 0x7f;                       // TODO Check R value
+        A = R7 | (R & 0x7f);
         // Flags
         F = (F & 0x01)                      // H = 0; N = 0; C = C
             | (A & 0xA8)                    // S = A is negative; f5, f3 copied from A
@@ -608,7 +602,8 @@ wmsx.Z80 = function() {
     }
 
     function LDRA() {
-        R = A;                              // R can have bit 7 = 1 if set manually
+        R = A;
+        R7 = A & 0x80;                      // R can have bit 7 = 1 if set manually. Store bit 7
     }
 
     function newPUSH(from) {
@@ -1507,31 +1502,6 @@ wmsx.Z80 = function() {
 
     // Pseudo instructions
 
-    function pINT() {
-        IFF1 = 0;
-        ackINT = false;
-        if (instruction === instructionHALT) pcInc();     // To "escape" from the HALT, and continue in the next instruction after RET
-        push16(PC);
-        instruction = instructionADT_CYCLES;
-        if (IM === 1) {
-            // Same as a RST 38h
-            PC = 0x0038;
-            T = r800 ? 8 : 13;
-        } else if (IM === 2) {
-            // Read Jump Table address low from Bus (always FFh in this implementation)
-            // Read Jump Table address high from I
-            var jumpTableEntry = (I << 8) | 0xff;
-            // Call address read from Jump Table
-            PC = bus.read(jumpTableEntry) | (bus.read(jumpTableEntry + 1) << 8);
-            T = r800 ? 11 : 19;
-        } else {
-            // IM 0. Read instruction to execute from Bus (always FFh in this implementation)
-            // Since its always FF, its the same as a RST 38h
-            PC = 0x0038;
-            T = r800 ? 8 : 13;
-        }
-    }
-
     function pSET_CB() {
         prefix = 2;
         ackINT = false;
@@ -1578,7 +1548,7 @@ wmsx.Z80 = function() {
             // Check for extraIterations of last extension instruction. No new instruction until iterations end
             if (extCurrRunning !== null) {
                 if (extExtraIter > 0) {                 // Need more iterations?
-                    extExtraIter--;
+                    --extExtraIter;
                     dec2PC();                           // Repeat this instruction
                 } else {                                // End of iterations, perform finish operation
                     var finish = bus.cpuExtensionFinish(extExtractCPUState(num));
@@ -1599,8 +1569,8 @@ wmsx.Z80 = function() {
             return {
                 // extPC points to Extended Instruction being executed
                 extNum: extNum, extPC: PC - 2, PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
-                AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM
-                // No IFF1
+                AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2
+                // No IFF1, IM, I, R
             }
         }
 
@@ -1614,16 +1584,13 @@ wmsx.Z80 = function() {
             if (state.C !== undefined)     C = state.C;
             if (state.DE !== undefined)    DE = state.DE;
             if (state.HL !== undefined)    HL = state.HL;
-            if (state.I !== undefined)     I = state.I;
-            if (state.R !== undefined)     R = state.R;
             if (state.IX !== undefined)    IX = state.IX;
             if (state.IY !== undefined)    IY = state.IY;
             if (state.AF2 !== undefined)   AF2 = state.AF2;
             if (state.BC2 !== undefined)   BC2 = state.BC2;
             if (state.DE2 !== undefined)   DE2 = state.DE2;
             if (state.HL2 !== undefined)   HL2 = state.HL2;
-            // No IFF1
-            if (state.IM !== undefined)    IM = state.IM;
+            // No IFF1, IM, I, R
             if (state.extraIterations > 0) extExtraIter = state.extraIterations;
         }
     }
@@ -2785,7 +2752,7 @@ wmsx.Z80 = function() {
     this.saveState = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
-            AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
+            AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, R7: R7, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
             c: busCycles, T: T, W: W, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
             ecr: extCurrRunning, eei: extExtraIter,
             r8: r800,
@@ -2797,9 +2764,9 @@ wmsx.Z80 = function() {
 
     this.loadState = function(s) {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
-        AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; IM = s.IM; IFF1 = s.IFF1;
+        AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; R7 = s.R7 || 0; IM = s.IM; IFF1 = s.IFF1;                         // Backward compatibility for R7
         setINT(s.nINT ? s.INT : s.INT ? 0xff : 0xfe);   // Backward compatibility
-        busCycles = s.c; T = s.T; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;        // Backward compatibility for W
+        busCycles = s.c; T = s.T; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;    // Backward compatibility for W
         extCurrRunning = s.ecr; extExtraIter = s.eei;
         r800 = !!s.r8;
         if (s.bs) modeBackState = s.bs;                                     // Backward compatibility
