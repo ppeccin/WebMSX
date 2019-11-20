@@ -72,10 +72,12 @@ wmsx.Z80 = function() {
         var cpuPulses = (busPulses * clockMulti) | 0;
         for (var t = cpuPulses; t > 0; --t) {
             if (--T > 1) continue;
-            if (T === 1) instruction.operation();
+            if (T === 1)
+                instruction.operation();
             else {
                 if (W > 0) { --W; continue; }
-                if (ackINT) acknowledgeINT();
+                if (ackINT)
+                    acknowledgeINT();
                 else {
                     fetchNextInstruction();
                     if (T === 1) instruction.operation();
@@ -222,8 +224,7 @@ wmsx.Z80 = function() {
         instructions        // 7  After EI
     ];
 
-    var instructionNOP, instructionHALT;
-    var instructionADT_CYCLES;
+    var instructionNOP, instructionHALT, instructionINT_M01, instructionINT_M2;
 
     this.instructionsAll  = [];
 
@@ -253,26 +254,9 @@ wmsx.Z80 = function() {
         ++R;
         IFF1 = 0;
         ackINT = false;
-        if (instruction === instructionHALT) pcInc();     // To "escape" from the HALT, and continue in the next instruction after RET
-        push16(PC);
-        instruction = instructionADT_CYCLES;
-        if (IM === 1) {
-            // Same as a RST 38h
-            PC = 0x0038;
-            T = r800 ? 8 : 13;
-        } else if (IM === 2) {
-            // Read Jump Table address low from Bus (always FFh in this implementation)
-            // Read Jump Table address high from I
-            var jumpTableEntry = (I << 8) | 0xff;
-            // Call address read from Jump Table
-            PC = bus.read(jumpTableEntry) | (bus.read(jumpTableEntry + 1) << 8);
-            T = r800 ? 11 : 19;
-        } else {
-            // IM 0. Read instruction to execute from Bus (always FFh in this implementation)
-            // Since its always FF, its the same as a RST 38h
-            PC = 0x0038;
-            T = r800 ? 8 : 13;
-        }
+        if (instruction === instructionHALT) pcInc();                                      // To "escape" from HALT, and continue in the next instruction after ISR
+        instruction = IM < 2 ? instructionINT_M01 : instructionINT_M2;
+        T = r800 ? instruction.remainCyclesR800 : instruction.remainCycles;
     }
 
     function selectInstruction() {
@@ -1502,6 +1486,20 @@ wmsx.Z80 = function() {
 
     // Pseudo instructions
 
+    function pINT_IM01() {
+        push16(PC);
+        // IM1 is the same as a RST 38h
+        // IM0 reads instruction to execute from Bus. Always FFh in this implementation, so same as RST 38h
+        PC = 0x0038;
+    }
+
+    function pINT_IM2() {
+        push16(PC);
+        // Read Jump Table address low from Bus (always FFh in this implementation), and address high from I
+        var jumpTableEntry = (I << 8) | 0xff;
+        PC = bus.read(jumpTableEntry) | (bus.read(jumpTableEntry + 1) << 8);
+    }
+
     function pSET_CB() {
         prefix = 2;
         ackINT = false;
@@ -1534,10 +1532,6 @@ wmsx.Z80 = function() {
         ackINT = false;
         preReadIXYd();     // Special case. Pre-reads d before the real opcode
         --R;               // Special case. R should not be incremented next opcode fetch so adjust here
-    }
-
-    function pADT_CYCLES() {
-        // Do nothing
     }
 
     // Extension Point pseudo instructions
@@ -2692,18 +2686,16 @@ wmsx.Z80 = function() {
         defineInstruction(0xfd, null, opcode, 3, 1, instr, "< SET FDCB >", false);         // 3: Discount -1 for wrongly added M1 wait
 
         opcode = 257;
-        instr = pADT_CYCLES;
-        instructionADT_CYCLES = defineInstruction(null, null, opcode, 0, 0, instr, "< ADT CYCLES >", false);
+        instr = NOP;
+        defineInstruction(null, null, opcode, 0, 0, instr, "< ADT CYCLES >", false);       // Only for backward compatibility in old Savestates
 
-        // Testing pseudo instructions
+        opcode = 258;
+        instr = pINT_IM01;
+        instructionINT_M01 = defineInstruction(null, null, opcode, 13, 8, instr, "< INT_M01 >", false);
 
-        //opcode = 258;
-        //instr = pSTOP;
-        //defineInstruction(null, null, opcode, 4, 1, instr, "++ BDOS STOP ++", false);
-        //
-        //opcode = 259;
-        //instr = pCPM_BDOS;
-        //defineInstruction(null, null, opcode, 4, 1, instr, "++ BDOS PRINT ++", false);
+        opcode = 259;
+        instr = pINT_IM2;
+        instructionINT_M2 =  defineInstruction(null, null, opcode, 19, 11, instr, "< INT_M2 >", false);
 
 
         // ------------------------------
