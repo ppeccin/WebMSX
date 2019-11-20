@@ -72,8 +72,7 @@ wmsx.Z80 = function() {
         var cpuPulses = (busPulses * clockMulti) | 0;
         for (var t = cpuPulses; t > 0; --t) {
             if (--T > 1) continue;
-            if (T === 1)
-                instruction.operation();
+            if (T === 1) instruction.operation();
             else {
                 if (W > 0) { --W; continue; }
                 if (ackINT)
@@ -299,6 +298,14 @@ wmsx.Z80 = function() {
         extCurrRunning = from.extCurrRunning; extExtraIter = from.extExtraIters;
     }
 
+    function busRead(addr) {
+        return bus.read(addr);
+    }
+
+    function busWrite(addr, val) {
+        bus.write(addr, val);
+    }
+
     function pcInc() {
         var old = PC;
         PC = (PC + 1) & 0xffff;
@@ -432,108 +439,107 @@ wmsx.Z80 = function() {
     }
 
     function from_BC_8() {
-        return bus.read(fromBC());
+        return busRead(fromBC());
     }
     function from_DE_8() {
-        return bus.read(DE);
+        return busRead(DE);
     }
     function from_HL_8() {
-        return bus.read(HL);
+        return busRead(HL);
     }
     function from_SP_16() {
         var aux = SP + 1; if (aux > 0xffff) aux = 0;
-        return bus.read(SP) | (bus.read(aux) << 8);
+        return busRead(SP) | (busRead(aux) << 8);     // 16bits
     }
 
     function to_BC_8(val) {
-        bus.write(fromBC(), val);
+        busWrite(fromBC(), val);
     }
     function to_DE_8(val) {
-        bus.write(DE, val);
+        busWrite(DE, val);
     }
     function to_HL_8(val) {
-        bus.write(HL, val);
+        busWrite(HL, val);
     }
-    function to_SP_16(val) {
-        bus.write(SP, val & 255);
+    function to_SP_16(val) {        // 16bits
+        busWrite(SP, val & 255);
         var aux = SP + 1; if (aux > 0xffff) aux = 0;
-        bus.write(aux, val >>> 8);
+        busWrite(aux, val >>> 8);
     }
 
     var preReadIXYdOffset = 0;
     function preReadIXYd() {
-        preReadIXYdOffset = bus.read(pcInc());
+        preReadIXYdOffset = busRead(pcInc());
     }
 
     function from_IXd_8() {
-        return bus.read(sum16Signed(IX, bus.read(pcInc())));
+        return busRead(sum16Signed(IX, busRead(pcInc())));
     }
     from_IXd_8.fromPreReadAddr = function() {
-        return bus.read(sum16Signed(IX, preReadIXYdOffset));
+        return busRead(sum16Signed(IX, preReadIXYdOffset));
     };
 
     function from_IYd_8() {
-        return bus.read(sum16Signed(IY, bus.read(pcInc())));
+        return busRead(sum16Signed(IY, busRead(pcInc())));
     }
     from_IYd_8.fromPreReadAddr = function() {
-        return bus.read(sum16Signed(IY, preReadIXYdOffset));
+        return busRead(sum16Signed(IY, preReadIXYdOffset));
     };
 
     function to_IXd_8(val) {
-        bus.write(sum16Signed(IX, bus.read(pcInc())), val);
+        busWrite(sum16Signed(IX, busRead(pcInc())), val);
     }
     to_IXd_8.toPreReadAddr = function(val) {
-        bus.write(sum16Signed(IX, preReadIXYdOffset), val);
+        busWrite(sum16Signed(IX, preReadIXYdOffset), val);
     };
 
     function to_IYd_8(val) {
-        bus.write(sum16Signed(IY, bus.read(pcInc())), val);
+        busWrite(sum16Signed(IY, busRead(pcInc())), val);
     }
     to_IYd_8.toPreReadAddr = function(val) {
-        bus.write(sum16Signed(IY, preReadIXYdOffset), val);
+        busWrite(sum16Signed(IY, preReadIXYdOffset), val);
     };
 
     function fromN() {
-        return bus.read(pcInc());
+        return busRead(pcInc());
     }
     function fromNN() {
-        return bus.read(pcInc()) | (bus.read(pcInc()) << 8);
+        return busRead(pcInc()) | (busRead(pcInc()) << 8);        // 16bits
     }
 
     function from_NN_8() {
-        return bus.read(bus.read(pcInc()) | (bus.read(pcInc()) << 8));
+        return busRead(fromNN());
     }
 
     function to_NN_8(val) {
-        var addr = bus.read(pcInc()) | (bus.read(pcInc()) << 8);
-        bus.write(addr, val);
+        busWrite(fromNN(), val);
     }
 
-    function from_NN_16() {
-        var addr = bus.read(pcInc()) | (bus.read(pcInc()) << 8);
-        var low = bus.read(addr);
+    function from_NN_16() {     // 16bits
+        var addr = fromNN();
+        var low = busRead(addr);
         addr = (addr + 1) & 0xffff;
-        return (bus.read(addr) << 8) | low;
+        return (busRead(addr) << 8) | low;
     }
 
-    function to_NN_16(val) {
-        var addr = bus.read(pcInc()) | (bus.read(pcInc()) << 8);
-        bus.write(addr, val & 255);
+    function to_NN_16(val) {    // 16bits
+        var addr = fromNN();
+        busWrite(addr, val & 255);
         addr = (addr + 1) & 0xffff;
-        bus.write(addr, val >>> 8);
+        busWrite(addr, val >>> 8);
     }
 
     function sum16Signed(a, b) {
         return (a + (b > 127 ? (-256 + b) : b)) & 0xffff;
     }
 
-    function push16(val) {
-        bus.write(decSP(), val >>> 8);
-        bus.write(decSP(), val & 255);
+    function push16(val) {                  // 16bits
+        busWrite(decSP(), val >>> 8);
+        busWrite(decSP(), val & 255);
     }
 
     function pop16() {
-        return bus.read(spInc()) | (bus.read(spInc()) << 8);
+        return busRead(spInc()) | (busRead(spInc()) << 8);        // 16bits
     }
 
     var parities = [    // 0b00000100 ready for P flag
@@ -1497,7 +1503,7 @@ wmsx.Z80 = function() {
         push16(PC);
         // Read Jump Table address low from Bus (always FFh in this implementation), and address high from I
         var jumpTableEntry = (I << 8) | 0xff;
-        PC = bus.read(jumpTableEntry) | (bus.read(jumpTableEntry + 1) << 8);
+        PC = busRead(jumpTableEntry) | (busRead(jumpTableEntry + 1) << 8);        // 16bits
     }
 
     function pSET_CB() {
