@@ -302,8 +302,24 @@ wmsx.Z80 = function() {
         return bus.read(addr);
     }
 
+    function memRead2nd(addr) {
+        return bus.read(addr);
+    }
+
+    function memRead16(addr) {
+        return bus.read(addr) | (bus.read((addr + 1) & 0xffff) << 8);
+    }
+
     function memWrite(addr, val) {
         bus.write(addr, val);
+    }
+
+    function memWrite2nd(addr, val) {
+        bus.write(addr, val);
+    }
+
+    function memWrite16(addr, val) {
+        bus.write(addr, val & 255); bus.write((addr + 1) & 0xffff, val >>> 8);
     }
 
     function pcInc() {
@@ -449,7 +465,7 @@ wmsx.Z80 = function() {
     }
     function from_SP_16() {
         var aux = SP + 1; if (aux > 0xffff) aux = 0;
-        return memRead(SP) | (memRead(aux) << 8);     // 16bits
+        return memRead(SP) | (memRead2nd(aux) << 8);     // 16bits
     }
 
     function to_BC_8(val) {
@@ -464,7 +480,7 @@ wmsx.Z80 = function() {
     function to_SP_16(val) {        // 16bits
         memWrite(SP, val & 255);
         var aux = SP + 1; if (aux > 0xffff) aux = 0;
-        memWrite(aux, val >>> 8);
+        memWrite2nd(aux, val >>> 8);
     }
 
     var preReadIXYdOffset = 0;
@@ -519,14 +535,14 @@ wmsx.Z80 = function() {
         var addr = fetchNN();
         var low = memRead(addr);
         addr = (addr + 1) & 0xffff;
-        return (memRead(addr) << 8) | low;
+        return (memRead2nd(addr) << 8) | low;
     }
 
     function to_NN_16(val) {    // 16bits
         var addr = fetchNN();
         memWrite(addr, val & 255);
         addr = (addr + 1) & 0xffff;
-        memWrite(addr, val >>> 8);
+        memWrite2nd(addr, val >>> 8);
     }
 
     function sum16Signed(a, b) {
@@ -535,11 +551,11 @@ wmsx.Z80 = function() {
 
     function push16(val) {                  // 16bits
         memWrite(decSP(), val >>> 8);
-        memWrite(decSP(), val & 255);
+        memWrite2nd(decSP(), val & 255);
     }
 
     function pop16() {
-        return memRead(spInc()) | (memRead(spInc()) << 8);        // 16bits
+        return memRead(spInc()) | (memRead2nd(spInc()) << 8);        // 16bits
     }
 
     var parities = [    // 0b00000100 ready for P flag
@@ -1378,7 +1394,7 @@ wmsx.Z80 = function() {
             if ((F & flag) === val) {
                 PC = addr;
                 if (r800) {
-                    W += 2;         // r800 add bj (2 waits) if branch taken
+                    W += 1 + bj;         // r800 add wait if branch taken
                 }
             }
         }
@@ -1400,7 +1416,7 @@ wmsx.Z80 = function() {
             if ((F & flag) === val) {
                 push16(PC);
                 PC = addr;
-                W += r800 ? 3 + 1 : 7;      // r800 add bw (1 wait) to overhead if branch taken
+                W += r800 ? 3 + bw : 7;      // r800 add wait overhead if branch taken
             }
         }
     }
@@ -1409,7 +1425,7 @@ wmsx.Z80 = function() {
         return function RETcc() {
             if ((F & flag) === val) {
                 RET();
-                W += r800 ? 2 + 1 : 6;      // r800 add br (1 wait) to overhead if branch taken
+                W += r800 ? 2 + br : 6;      // r800 add wait overhead if branch taken
             }
         }
     }
@@ -1503,7 +1519,7 @@ wmsx.Z80 = function() {
         push16(PC);
         // Read Jump Table address low from Bus (always FFh in this implementation), and address high from I
         var jumpTableEntry = (I << 8) | 0xff;
-        PC = memRead(jumpTableEntry) | (memRead(jumpTableEntry + 1) << 8);        // 16bits
+        PC = memRead(jumpTableEntry) | (memRead2nd(jumpTableEntry + 1) << 8);        // 16bits
     }
 
     function pSET_CB() {
@@ -1605,13 +1621,13 @@ wmsx.Z80 = function() {
 
     // Instructions Definitions  ---------------------------------------------------
 
+    var br = 1;         // R800 Deterministic Page Brake (1 wait) BEFORE Memory Reads. DOES NOT include additional page break in next instruction
+    var bw = 1;         // R800 Deterministic Page Brake (1 wait) BEFORE Memory Writes. DOES NOT include additional page break in next instruction
+    var bj = 0;         // R800 Deterministic Page Brake (1 wait) AFTER JP instructions
+
     function defineAllInstructions() {
 
         var t = 0, tr = 0;
-
-        var br = 1;         // R800 Deterministic Page Brake (1 wait) BEFORE Memory Readss. DOES NOT include additional page break in next instruction
-        var bw = 1;         // R800 Deterministic Page Brake (1 wait) BEFORE Memory Writes. DOES NOT include additional page break in next instruction
-        var bj = 2;         // R800 Deterministic wait (2) in JUMP instructions
 
         // LD 8-bit Group  -------------------------------------------------------------
 
@@ -2359,10 +2375,10 @@ wmsx.Z80 = function() {
         // Jump Group  --------------------------------------------------------------------
 
         var operVVp = {
-            nn:   { desc: "nn",   from: fetchNN, opcode: 0xc3, T: 10, Tr: 3 + bj },
-            HL:   { desc: "(HL)", from: fromHL,  opcode: 0xe9, T: 4,  Tr: 1 + bj },                   // Not really indirect
-            IX:   { desc: "(IX)", from: fromIX,  opcode: 0xe9, T: 4,  Tr: 1 + bj, pref: 0xdd },       // Not really indirect
-            IY:   { desc: "(IY)", from: fromIY,  opcode: 0xe9, T: 4,  Tr: 1 + bj, pref: 0xfd }        // Not really indirect
+            nn:   { desc: "nn",   from: fetchNN, opcode: 0xc3, T: 10, Tr: 4 + bj },
+            HL:   { desc: "(HL)", from: fromHL,  opcode: 0xe9, T: 4,  Tr: 2 + bj },                   // Not really indirect
+            IX:   { desc: "(IX)", from: fromIX,  opcode: 0xe9, T: 4,  Tr: 2 + bj, pref: 0xdd },       // Not really indirect
+            IY:   { desc: "(IY)", from: fromIY,  opcode: 0xe9, T: 4,  Tr: 2 + bj, pref: 0xfd }        // Not really indirect
         };
 
         var operCC = {
