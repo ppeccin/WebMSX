@@ -177,8 +177,6 @@ WMSX.PRESETS_CONFIG = {
     DISK:      { "EXTENSIONS.DISK": 2 },
     DISKA:     { "EXTENSIONS.DISK": 1 },
     NODISK:    { "EXTENSIONS.DISK": 0 },
-    DISKEXTN:  { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatch].rom" },
-    DISKEXTTR: { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatchDOS2TR].rom" },
 
     // RAM type
     RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
@@ -239,6 +237,11 @@ WMSX.PRESETS_CONFIG = {
     ALLSTEREO:  { _INCLUDE: "PSGSTEREO,  SCCSTEREO,  OPLLSTEREO" },
     ALLSTEREO2: { _INCLUDE: "PSGSTEREO2, SCCSTEREO2, OPLLSTEREO" },
 
+    DISKEXTN:    { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatch].rom" },
+    DISKEXTTR:   { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatchDOS2TR].rom" },
+    MSXMUSEXTN:  { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC].rom" },
+    MSXMUSEXTTR: { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC]TR.rom" },
+
     // Alternate Slot Configuration: try to keep RAM alone on primary Slot 3
 
     ALTSLOTCONFIG: {
@@ -258,7 +261,7 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 380
     },
     _MSXTRBASE: {
-        _INCLUDE:           "_MSX2BASE, DISKEXTTR, KANJI"
+        _INCLUDE:           "_MSX2BASE, DISKEXTTR, MSXMUSEXTTR, KANJI"
     },
 
     // MSX2++ Machine Presets. Do not use directly
@@ -364,7 +367,7 @@ WMSX.PRESETS_CONFIG = {
     },
 
     _BASE: {
-        _INCLUDE:           "DISKEXTN",
+        _INCLUDE:           "DISKEXTN, MSXMUSEXTN",
         Z80_CLOCK_MODE:     0,
         VDP_CLOCK_MODE:     0,
         FAKE_TR_TURBO:      -1,

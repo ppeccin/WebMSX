@@ -20,6 +20,7 @@ wmsx.CompressedSystemFilesList = [
     "[DiskPatchDOS2TR].rom",
     "[Nextor16Patch].rom",
     "[MSXMUSIC].rom",
+    "[MSXMUSIC]TR.rom",
     // "[MSXDOS2]v22.rom",      // No more since Nextor support
     "[RAMNormal].rom",
     "[RAMMapper].rom",
