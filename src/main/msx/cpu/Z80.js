@@ -302,10 +302,6 @@ wmsx.Z80 = function() {
         return bus.read(addr);
     }
 
-    function memRead2nd(addr) {
-        return bus.read(addr);
-    }
-
     function memRead16(addr) {
         return bus.read(addr) | (bus.read((addr + 1) & 0xffff) << 8);
     }
@@ -314,12 +310,12 @@ wmsx.Z80 = function() {
         bus.write(addr, val);
     }
 
-    function memWrite2nd(addr, val) {
-        bus.write(addr, val);
-    }
-
     function memWrite16(addr, val) {
         bus.write(addr, val & 255); bus.write((addr + 1) & 0xffff, val >>> 8);
+    }
+
+    function memWrite16Rev(addr, val) {
+        bus.write((addr + 1) & 0xffff, val >>> 8); bus.write(addr, val & 255);
     }
 
     function pcInc() {
@@ -330,16 +326,6 @@ wmsx.Z80 = function() {
 
     function dec2PC() {
         return PC = (PC - 2) & 0xffff;
-    }
-
-    function spInc() {
-        var old = SP;
-        SP = (SP + 1) & 0xffff;
-        return old;
-    }
-
-    function decSP() {
-        return SP = (SP - 1) & 0xffff;
     }
 
     function fromA() {
@@ -463,9 +449,8 @@ wmsx.Z80 = function() {
     function from_HL_8() {
         return memRead(HL);
     }
-    function from_SP_16() {
-        var aux = SP + 1; if (aux > 0xffff) aux = 0;
-        return memRead(SP) | (memRead2nd(aux) << 8);     // 16bits
+    function from_SP_16() {         // bits
+        return memRead16(SP);
     }
 
     function to_BC_8(val) {
@@ -478,9 +463,7 @@ wmsx.Z80 = function() {
         memWrite(HL, val);
     }
     function to_SP_16(val) {        // 16bits
-        memWrite(SP, val & 255);
-        var aux = SP + 1; if (aux > 0xffff) aux = 0;
-        memWrite2nd(aux, val >>> 8);
+        memWrite16(SP, val);
     }
 
     var preReadIXYdOffset = 0;
@@ -532,17 +515,11 @@ wmsx.Z80 = function() {
     }
 
     function from_NN_16() {     // 16bits
-        var addr = fetchNN();
-        var low = memRead(addr);
-        addr = (addr + 1) & 0xffff;
-        return (memRead2nd(addr) << 8) | low;
+        return memRead16(fetchNN());
     }
 
     function to_NN_16(val) {    // 16bits
-        var addr = fetchNN();
-        memWrite(addr, val & 255);
-        addr = (addr + 1) & 0xffff;
-        memWrite2nd(addr, val >>> 8);
+        memWrite16(fetchNN(), val);
     }
 
     function sum16Signed(a, b) {
@@ -550,12 +527,14 @@ wmsx.Z80 = function() {
     }
 
     function push16(val) {                  // 16bits
-        memWrite(decSP(), val >>> 8);
-        memWrite2nd(decSP(), val & 255);
+        SP = (SP - 2) & 0xffff;
+        memWrite16Rev(SP, val);                 // Write High first, then Low
     }
 
-    function pop16() {
-        return memRead(spInc()) | (memRead2nd(spInc()) << 8);        // 16bits
+    function pop16() {                      // 16bits
+        var res = memRead16(SP);
+        SP = (SP + 2) & 0xffff;
+        return res;
     }
 
     var parities = [    // 0b00000100 ready for P flag
@@ -1519,7 +1498,7 @@ wmsx.Z80 = function() {
         push16(PC);
         // Read Jump Table address low from Bus (always FFh in this implementation), and address high from I
         var jumpTableEntry = (I << 8) | 0xff;
-        PC = memRead(jumpTableEntry) | (memRead2nd(jumpTableEntry + 1) << 8);        // 16bits
+        PC = memRead16(jumpTableEntry);        // 16bits
     }
 
     function pSET_CB() {
