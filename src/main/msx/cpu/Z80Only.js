@@ -298,6 +298,15 @@ wmsx.Z80 = function() {
         extCurrRunning = from.extCurrRunning; extExtraIter = from.extExtraIters;
     }
 
+
+    function fetchN() {
+        return bus.read(pcInc());
+    }
+
+    function fetchNN() {
+        return bus.read(pcInc()) | (bus.read(pcInc()) << 8);        // 16bits
+    }
+
     function memRead(addr) {
         return bus.read(addr);
     }
@@ -498,14 +507,6 @@ wmsx.Z80 = function() {
     to_IYd_8.toPreReadAddr = function(val) {
         memWrite(sum16Signed(IY, preReadIXYdOffset), val);
     };
-
-    function fetchN() {
-        return bus.read(pcInc());
-    }
-
-    function fetchNN() {
-        return bus.read(pcInc()) | (bus.read(pcInc()) << 8);        // 16bits
-    }
 
     function from_NN_8() {
         return memRead(fetchNN());

@@ -205,6 +205,8 @@ wmsx.Z80 = function() {
     var instruction;
     var ackINT = false;
 
+    var fetchLastPage = -1;
+
     var instructions =     new Array(270);
     var instructionsED =   new Array(270);
     var instructionsCB =   new Array(270);
@@ -298,24 +300,74 @@ wmsx.Z80 = function() {
         extCurrRunning = from.extCurrRunning; extExtraIter = from.extExtraIters;
     }
 
-    function memRead(addr) {
+
+    function busRead(addr) {
+                                                                // Add slot waits
         return bus.read(addr);
     }
 
-    function memRead16(addr) {
-        return bus.read(addr) | (bus.read((addr + 1) & 0xffff) << 8);
-    }
-
-    function memWrite(addr, val) {
+    function busWrite(addr, val) {
+                                                                // Add slot waits
         bus.write(addr, val);
     }
 
+
+    function fetchN() {
+        var addr = pcInc();
+        var page = addr >> 8;
+
+        if (page !== fetchLastPage) {                           // Add fetch break if real brake OR not slot RAM
+            // console.log("Break:", addr.toString(16), fetchLastPage, page);
+
+            W += 1;
+            fetchLastPage = page;
+        }
+
+        return busRead(addr);
+    }
+
+    function fetchNN() {
+        return fetchN() | (fetchN() << 8);
+    }
+
+
+    function memRead(addr) {
+        W += 1;                                                 // Switch to memory read
+        fetchLastPage = -1;                                     // Force break on next opcode fetch
+
+        return busRead(addr);
+    }
+
+    function memRead16(addr) {
+        W += 1;                                                 // Switch to memory read
+        fetchLastPage = -1;                                     // Force break on next opcode fetch
+                                                                // Add second read break if real brake OR not slot RAM
+
+        return busRead(addr) | (busRead((addr + 1) & 0xffff) << 8);
+    }
+
+
+    function memWrite(addr, val) {
+        W += 1;                                                 // Switch to memory write
+        fetchLastPage = -1;                                     // Force break on next opcode fetch
+
+        busWrite(addr, val);
+    }
+
     function memWrite16(addr, val) {
-        bus.write(addr, val & 255); bus.write((addr + 1) & 0xffff, val >>> 8);
+        W += 1;                                                 // Switch to memory write
+        fetchLastPage = -1;                                     // Force break on next opcode fetch
+                                                                // Add second write break if real brake OR not slot RAM
+
+        busWrite(addr, val & 255); busWrite((addr + 1) & 0xffff, val >>> 8);
     }
 
     function memWrite16Rev(addr, val) {
-        bus.write((addr + 1) & 0xffff, val >>> 8); bus.write(addr, val & 255);
+        W += 1;                                                 // Switch to memory write
+        fetchLastPage = -1;                                     // Force break on next opcode fetch
+                                                                // Add second write break if real brake OR not slot RAM
+
+        busWrite((addr + 1) & 0xffff, val >>> 8); busWrite(addr, val & 255);
     }
 
     function pcInc() {
@@ -498,14 +550,6 @@ wmsx.Z80 = function() {
     to_IYd_8.toPreReadAddr = function(val) {
         memWrite(sum16Signed(IY, preReadIXYdOffset), val);
     };
-
-    function fetchN() {
-        return bus.read(pcInc());
-    }
-
-    function fetchNN() {
-        return bus.read(pcInc()) | (bus.read(pcInc()) << 8);        // 16bits
-    }
 
     function from_NN_8() {
         return memRead(fetchNN());
@@ -1601,8 +1645,8 @@ wmsx.Z80 = function() {
 
     // Instructions Definitions  ---------------------------------------------------
 
-    var br = 1;         // R800 Deterministic Page Brake (1 wait) BEFORE Memory Reads. DOES NOT include additional page break in next instruction
-    var bw = 1;         // R800 Deterministic Page Brake (1 wait) BEFORE Memory Writes. DOES NOT include additional page break in next instruction
+    var br = 0;         // R800 Deterministic Page Brake (1 wait) BEFORE Memory Reads. DOES NOT include additional page break in next instruction
+    var bw = 0;         // R800 Deterministic Page Brake (1 wait) BEFORE Memory Writes. DOES NOT include additional page break in next instruction
     var bj = 0;         // R800 Deterministic Page Brake (1 wait) AFTER JP instructions
 
     function defineAllInstructions() {
