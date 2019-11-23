@@ -99,6 +99,27 @@ wmsx.BUS = function(machine, cpu) {
         }
     };
 
+    this.getAccessWait = function(address) {
+        // Forced first access break already added
+        switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
+            case 0: return 1;
+            case 1: return 2;
+            case 2: return 2;
+            case 3: return 0;
+            // slotModules inaccessible
+        }
+    };
+
+    this.getBreakWait = function(address, lastAddress) {
+        switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
+            case 0: return 1;                                                   // Always have a Forced Page Break
+            case 1: return 1;
+            case 2: return 1;
+            case 3: return 0 + ((address >> 8) !== (lastAddress >> 8));        // Add wait only if we have a real Page Break
+            // slotModules inaccessible
+        }
+    };
+
     this.input = function(port) {
         // Get correct device
         return devicesInputPorts[port & 255](port);

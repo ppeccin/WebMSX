@@ -44,6 +44,7 @@ wmsx.Z80 = function() {
         T = 0; W = 0; opcode = 0; instruction = instructionNOP;
         PC = 0; I = 0; R = 0; R7 = 0; IFF1 = 0; IM = 0;
         extCurrRunning = null; extExtraIter = 0;
+        fetchForceNextBreak();
 
         writeState(modeBackState);
     };
@@ -205,7 +206,7 @@ wmsx.Z80 = function() {
     var instruction;
     var ackINT = false;
 
-    var fetchLastPage = -1;
+    var fetchLastAddress = 0;
 
     var instructions =     new Array(270);
     var instructionsED =   new Array(270);
@@ -300,28 +301,27 @@ wmsx.Z80 = function() {
         extCurrRunning = from.extCurrRunning; extExtraIter = from.extExtraIters;
     }
 
+    function fetchForceNextBreak() {
+        fetchLastAddress = 0x1ffff;
+    }
+
 
     function busRead(addr) {
-                                                                // Add slot waits
+        W += bus.getAccessWait();                               // Add slot waits
         return bus.read(addr);
     }
 
     function busWrite(addr, val) {
-                                                                // Add slot waits
+        W += bus.getAccessWait();                               // Add slot waits
         bus.write(addr, val);
     }
 
 
     function fetchN() {
         var addr = pcInc();
-        var page = addr >> 8;
 
-        if (page !== fetchLastPage) {                           // Add fetch break if real brake OR not slot RAM
-            // console.log("Break:", addr.toString(16), fetchLastPage, page);
-
-            W += 1;
-            fetchLastPage = page;
-        }
+        W += bus.getBreakWait(addr, fetchLastAddress);          // Add page break
+        fetchLastAddress = addr;
 
         return busRead(addr);
     }
@@ -332,40 +332,40 @@ wmsx.Z80 = function() {
 
 
     function memRead(addr) {
-        W += 1;                                                 // Switch to memory read
-        fetchLastPage = -1;                                     // Force break on next opcode fetch
+        // Forced break for first memory read already at instruction T cycles
+        fetchForceNextBreak();
 
         return busRead(addr);
     }
 
     function memRead16(addr) {
-        W += 1;                                                 // Switch to memory read
-        fetchLastPage = -1;                                     // Force break on next opcode fetch
-                                                                // Add second read break if real brake OR not slot RAM
+        // Forced break for first memory read already at instruction T cycles
+        W += bus.getBreakWait(addr, addr + 1);          // Add second read page break
+        fetchForceNextBreak();
 
         return busRead(addr) | (busRead((addr + 1) & 0xffff) << 8);
     }
 
 
     function memWrite(addr, val) {
-        W += 1;                                                 // Switch to memory write
-        fetchLastPage = -1;                                     // Force break on next opcode fetch
+        // Forced break for first memory write already at instruction T cycles
+        fetchForceNextBreak();
 
         busWrite(addr, val);
     }
 
     function memWrite16(addr, val) {
-        W += 1;                                                 // Switch to memory write
-        fetchLastPage = -1;                                     // Force break on next opcode fetch
-                                                                // Add second write break if real brake OR not slot RAM
+        // Forced break for first memory write already at instruction T cycles
+        W += bus.getBreakWait(addr, addr + 1);          // Add second write page break
+        fetchForceNextBreak();
 
         busWrite(addr, val & 255); busWrite((addr + 1) & 0xffff, val >>> 8);
     }
 
     function memWrite16Rev(addr, val) {
-        W += 1;                                                 // Switch to memory write
-        fetchLastPage = -1;                                     // Force break on next opcode fetch
-                                                                // Add second write break if real brake OR not slot RAM
+        // Forced break for first memory write already at instruction T cycles
+        W += bus.getBreakWait(addr, addr + 1);          // Add second write page break
+        fetchForceNextBreak();
 
         busWrite((addr + 1) & 0xffff, val >>> 8); busWrite(addr, val & 255);
     }
@@ -1409,6 +1409,8 @@ wmsx.Z80 = function() {
     function newJP(from) {
         return function JP() {
             PC = from();
+            // r800 force page break on next fetch
+            if (r800) fetchForceNextBreak();
         }
     }
 
@@ -1418,7 +1420,9 @@ wmsx.Z80 = function() {
             if ((F & flag) === val) {
                 PC = addr;
                 if (r800) {
-                    W += 1 + bj;         // r800 add wait if branch taken
+                    // r800 add wait and force page break on next fetch if branch taken
+                    ++W;
+                    fetchForceNextBreak();
                 }
             }
         }
@@ -1645,9 +1649,8 @@ wmsx.Z80 = function() {
 
     // Instructions Definitions  ---------------------------------------------------
 
-    var br = 0;         // R800 Deterministic Page Brake (1 wait) BEFORE Memory Reads. DOES NOT include additional page break in next instruction
-    var bw = 0;         // R800 Deterministic Page Brake (1 wait) BEFORE Memory Writes. DOES NOT include additional page break in next instruction
-    var bj = 0;         // R800 Deterministic Page Brake (1 wait) AFTER JP instructions
+    var br = 1;         // R800 Deterministic Forced Page Brake (1 wait) in First Memory Read.  DOES NOT include additional page break in next instruction
+    var bw = 1;         // R800 Deterministic Forced Page Brake (1 wait) in First Memory Write. DOES NOT include additional page break in next instruction
 
     function defineAllInstructions() {
 
@@ -2399,10 +2402,10 @@ wmsx.Z80 = function() {
         // Jump Group  --------------------------------------------------------------------
 
         var operVVp = {
-            nn:   { desc: "nn",   from: fetchNN, opcode: 0xc3, T: 10, Tr: 4 + bj },
-            HL:   { desc: "(HL)", from: fromHL,  opcode: 0xe9, T: 4,  Tr: 2 + bj },                   // Not really indirect
-            IX:   { desc: "(IX)", from: fromIX,  opcode: 0xe9, T: 4,  Tr: 2 + bj, pref: 0xdd },       // Not really indirect
-            IY:   { desc: "(IY)", from: fromIY,  opcode: 0xe9, T: 4,  Tr: 2 + bj, pref: 0xfd }        // Not really indirect
+            nn:   { desc: "nn",   from: fetchNN, opcode: 0xc3, T: 10, Tr: 4 },
+            HL:   { desc: "(HL)", from: fromHL,  opcode: 0xe9, T: 4,  Tr: 2 },                   // Not really indirect
+            IX:   { desc: "(IX)", from: fromIX,  opcode: 0xe9, T: 4,  Tr: 2, pref: 0xdd },       // Not really indirect
+            IY:   { desc: "(IY)", from: fromIY,  opcode: 0xe9, T: 4,  Tr: 2, pref: 0xfd }        // Not really indirect
         };
 
         var operCC = {
