@@ -44,6 +44,14 @@ wmsx.Slot = function() {
     this.write = function(address, value) {
     };
 
+    this.getBreakWaitSub = function(address, lastAddress) {
+        return 0;
+    };
+
+    this.getAccessWaitSub = function(address) {
+        return 0;
+    };
+
     this.cpuExtensionBegin = function(s) {
     };
 

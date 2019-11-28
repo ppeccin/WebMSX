@@ -85,10 +85,10 @@ wmsx.BUS = function(machine, cpu) {
             // slotModules inaccessible
         }
     };
+    var origWrite = this.write;
 
     this.writeWithBusMonitor = function(address, val) {
-        // BUS Write Monitoring active?
-        if (writeMonitor) writeMonitor(address, val);
+        writeMonitor(address, val);
         // Get correct slot
         switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
             case 0: slot0.write(address, val); return;
@@ -99,24 +99,22 @@ wmsx.BUS = function(machine, cpu) {
         }
     };
 
-    this.getAccessWait = function(address) {
-        // Forced first access break already added
+    this.getBreakWait = function(address, lastAddress) {
         switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
-            case 0: return 1;
-            case 1: return 2;
-            case 2: return 2;
-            case 3: return 0;
-            // slotModules inaccessible
+            case 0: return slot0.getBreakWaitSub(address, lastAddress);     // Slot0 (ROM/RAM)
+            case 1: return 1;                                               // External: Forced Page Break
+            case 2: return 1;                                               // External: Forced Page Break
+            case 3: return slot3.getBreakWaitSub(address, lastAddress);     // Slot3 (ROM/RAM)
         }
     };
 
-    this.getBreakWait = function(address, lastAddress) {
+    this.getAccessWait = function(address) {
+        // Forced first access break already added
         switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
-            case 0: return 1;                                                   // Always have a Forced Page Break
-            case 1: return 1;
-            case 2: return 1;
-            case 3: return 0 + ((address >> 8) !== (lastAddress >> 8));         // Add wait only if we have a real Page Break
-            // slotModules inaccessible
+            case 0: return slot0.getAccessWaitSub(address);     // Slot0 (ROM/RAM)
+            case 1: return 2;                                   // External
+            case 2: return 2;                                   // External
+            case 3: return slot3.getAccessWaitSub(address);     // Slot3 (ROM/RAM)
         }
     };
 
@@ -130,6 +128,7 @@ wmsx.BUS = function(machine, cpu) {
         return devicesOutputPorts[port & 255](val, port);
     };
 
+    // TODO Use same stored page slot as ExpandedSlots?
     this.setPrimarySlotConfig = function(val) {
         //wmsx.Util.log("PrimarySlot Select: " + val.toString(16));
         primarySlotConfig = val;
@@ -180,6 +179,7 @@ wmsx.BUS = function(machine, cpu) {
     this.setWriteMonitor = function(monitor) {      // Only 1 monitor can be active
         writeMonitor = monitor;
         if (writeMonitor) this.write = this.writeWithBusMonitor;
+        else this.write = origWrite;
     };
 
     this.connectSwitchedDevice = function(port, device) {

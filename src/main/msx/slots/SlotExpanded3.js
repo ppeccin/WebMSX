@@ -101,6 +101,23 @@ wmsx.SlotExpanded3 = function() {
         }
     };
 
+    this.getBreakWaitSub = function(address, lastAddress) {
+        if (((secondarySlotConfig >> ((address >> 14) << 1)) & 3) === 0)
+            // if ((address >> 8) === (lastAddress >> 8)) return 0;    // RAM: Only if Real Page Break
+            if ((address & 0xff00) === (lastAddress & 0xff00)) return 0;    // RAM: Only if Real Page Break
+            else return 1;
+        else
+            return 1;                                               // ROM: Forced Page Break
+    };
+
+    this.getAccessWaitSub = function(address) {
+        // Forced first access break already added
+        if (((secondarySlotConfig >> ((address >> 14) << 1)) & 3) === 0)
+            return 0;       // RAM
+        else
+            return 1;       // ROM
+    };
+
     this.setSecondarySlotConfig = function(val) {
         // wmsx.Util.log("SecondarySlot Select: " + val.toString(16));
         secondarySlotConfig = val;

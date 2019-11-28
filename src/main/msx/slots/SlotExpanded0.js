@@ -101,6 +101,21 @@ wmsx.SlotExpanded0 = function() {
         }
     };
 
+    this.getBreakWaitSub = function(address, lastAddress) {
+        if (((secondarySlotConfig >> ((address >> 14) << 1)) & 3) === 0)
+            return 1;     // ROM/RAM: BIOS
+        else
+            return 1;     // ROM
+    };
+
+    this.getAccessWaitSub = function(address) {
+        // Forced first access break already added
+        if (((secondarySlotConfig >> ((address >> 14) << 1)) & 3) === 0)
+            return 1;     // ROM/RAM: BIOS
+        else
+            return 1;     // ROM
+    };
+
     this.setSecondarySlotConfig = function(val) {
         // wmsx.Util.log("SecondarySlot Select: " + val.toString(16));
         secondarySlotConfig = val;
