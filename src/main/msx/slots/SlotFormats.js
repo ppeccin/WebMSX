@@ -20,10 +20,40 @@ wmsx.SlotFormats = {
         }
     },
 
-    "Expanded": {
-        name: "Expanded",
-        desc: "Expanded Slot",
+    "Expanded0": {
+        name: "Expanded0",
+        desc: "Special Expanded Slot 0",
         priority: 1002,
+        internal: true,
+        priorityForRom: function (rom) {
+            // Not Possible to load Expanded Slots
+            return null;
+        },
+        createFromROM: null,
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.SlotExpanded0.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "Expanded3": {
+        name: "Expanded3",
+        desc: "Special Expanded Slot 3",
+        priority: 1003,
+        internal: true,
+        priorityForRom: function (rom) {
+            // Not Possible to load Expanded Slots
+            return null;
+        },
+        createFromROM: null,
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.SlotExpanded3.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "ExpandedS": {
+        name: "ExpandedS",
+        desc: "Simple Expanded Slot",
+        priority: 1004,
         internal: true,
         priorityForRom: function (rom) {
             // Not Possible to load Expanded Slots
@@ -35,25 +65,10 @@ wmsx.SlotFormats = {
         }
     },
 
-    "ExpandedS": {
-        name: "ExpandedS",
-        desc: "Special System Expanded Slot",
-        priority: 1003,
-        internal: true,
-        priorityForRom: function (rom) {
-            // Not Possible to load Expanded Slots
-            return null;
-        },
-        createFromROM: null,
-        recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.SlotExpandedSpecial.recreateFromSaveState(state, previousSlot);
-        }
-    },
-
     "ExpandedM": {
         name: "ExpandedM",
-        desc: "Special System Expanded Slot for Modules (Device-only Slots)",
-        priority: 1004,
+        desc: "Special Expanded Slot 4 (Modules: Device-only Slots)",
+        priority: 1005,
         internal: true,
         priorityForRom: function (rom) {
             // Not Possible to load Expanded Slots
@@ -61,7 +76,7 @@ wmsx.SlotFormats = {
         },
         createFromROM: null,
         recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.SlotExpandedModules.recreateFromSaveState(state, previousSlot);
+            return wmsx.SlotExpandedM.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -936,6 +951,10 @@ wmsx.SlotFormats = {
     }
 
 };
+
+// Backward Compatibility equivalences
+
+wmsx.SlotFormats.Expanded = wmsx.SlotFormats.Expanded3;
 
 // Temporary approximations for formats not yet supported/verified
 

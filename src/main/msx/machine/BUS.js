@@ -115,7 +115,7 @@ wmsx.BUS = function(machine, cpu) {
             case 0: return 1;                                                   // Always have a Forced Page Break
             case 1: return 1;
             case 2: return 1;
-            case 3: return 0 + ((address >> 8) !== (lastAddress >> 8));        // Add wait only if we have a real Page Break
+            case 3: return 0 + ((address >> 8) !== (lastAddress >> 8));         // Add wait only if we have a real Page Break
             // slotModules inaccessible
         }
     };

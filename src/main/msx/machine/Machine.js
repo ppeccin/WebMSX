@@ -366,8 +366,8 @@ wmsx.Machine = function() {
             if (!curPriSlot.isExpanded()) {
                 var oldPriSlot = curPriSlot;
                 // Automatically insert an ExpandedSlot if not present
-                // ExpandedSlotSpecial for primary slot 2. SlotExpandedModules for extra slot 4
-                curPriSlot = pri === 2 ? new wmsx.SlotExpandedSpecial() : pri === 4 ? new wmsx.SlotExpandedModules() : new wmsx.SlotExpanded();
+                // Special ExpandedSlots for primary slot 0, 3, 4. Simple for others
+                curPriSlot = pri === 0 ? new wmsx.SlotExpanded0() : pri === 3 ? new wmsx.SlotExpanded3() : pri === 4 ? new wmsx.SlotExpandedM() : new wmsx.SlotExpanded();
                 bus.insertSlot(curPriSlot, pri);
                 if (oldPriSlot !== EMPTY_SLOT && sec > 0) curPriSlot.insertSubSlot(oldPriSlot, 0);
             }

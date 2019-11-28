@@ -26,7 +26,7 @@ wmsx.SlotCreator = function () {
     this.recreateFromSaveState = function (saveState, previousSlot) {
         var format = wmsx.SlotFormats[saveState.f];
         if (!format) throw new Error("Unsupported ROM Format in Savestate: " + saveState.f);
-        if (previousSlot && previousSlot.format !== format) previousSlot = null;       // Only possible to reuse previousSlot if the format is the same
+        if (previousSlot && (previousSlot.format !== format && previousSlot.formatBack !== format)) previousSlot = null;       // Only possible to reuse previousSlot if the format is the same
         return format.recreateFromSaveState(saveState, previousSlot);
     };
 

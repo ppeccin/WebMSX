@@ -301,18 +301,19 @@ wmsx.Z80 = function() {
         extCurrRunning = from.extCurrRunning; extExtraIter = from.extExtraIters;
     }
 
+
     function fetchForceNextBreak() {
         fetchLastAddress = 0x1ffff;
     }
 
 
     function busRead(addr) {
-        W += bus.getAccessWait();                               // Add slot waits
+        W += bus.getAccessWait(addr);                           // Add slot waits
         return bus.read(addr);
     }
 
     function busWrite(addr, val) {
-        W += bus.getAccessWait();                               // Add slot waits
+        W += bus.getAccessWait(addr);                           // Add slot waits
         bus.write(addr, val);
     }
 

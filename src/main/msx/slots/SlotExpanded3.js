@@ -1,14 +1,16 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Secondary Slot. Controls 4 subSlots. Must be used only as a PrimarySlot
-// Special Expanded Slot for Modules (Device-only Slots). Memory is inaccessible!
+// Special Expanded Slot 3. Controls 4 subSlots. Must be used only as a PrimarySlot
+// 0x0000 - 0xffff
 
-wmsx.SlotExpandedModules = function() {
+wmsx.SlotExpanded3 = function() {
     "use strict";
 
     var self = this;
 
     function init() {
+        // console.log("Creating Expanded3");
+
         create();
     }
 
@@ -31,6 +33,7 @@ wmsx.SlotExpandedModules = function() {
     };
 
     this.powerOn = function() {
+        this.setSecondarySlotConfig(0);
         for (var s = 0; s < 4; s++) subSlots[s].powerOn();
     };
 
@@ -39,6 +42,7 @@ wmsx.SlotExpandedModules = function() {
     };
 
     this.reset = function() {
+        this.setSecondarySlotConfig(0);
         for (var s = 0; s < 4; s++) subSlots[s].reset();
     };
 
@@ -53,38 +57,72 @@ wmsx.SlotExpandedModules = function() {
         if (machine) subSlots[subSlotNumber].disconnect(machine);
         subSlots[subSlotNumber] = subSlot;
         if (machine) subSlots[subSlotNumber].connect(machine);
+
+        this.setSecondarySlotConfig(secondarySlotConfig);
     };
 
     this.getSubSlot = function(subSlotNumber) {
         return subSlots[subSlotNumber];
     };
 
-    this.getSubSlotForAddress = function(address) {
-        // Not needed
-    };
+    function getSubSlotForAddress(address) {
+        switch ((address >> 14) & 3) {
+            case 0: return page0Slot;
+            case 1: return page1Slot;
+            case 2: return page2Slot;
+            case 3: return page3Slot;
+        }
+    }
+    this.getSubSlotForAddress = getSubSlotForAddress;
 
     this.read = function(address) {
-        // Not needed
+        // Get correct subSlot
+        switch ((address >> 14) & 3) {
+            case 0: return page0Slot.read(address);
+            case 1: return page1Slot.read(address);
+            case 2: return page2Slot.read(address);
+            case 3:
+                // Check for control register
+                if (address === 0xffff) return (~secondarySlotConfig) & 0xff;       // Inverted per specification
+                return page3Slot.read(address);
+        }
     };
 
     this.write = function(address, val) {
-        // Not needed
+        // Get correct subSlot
+        switch ((address >> 14) & 3) {
+            case 0: page0Slot.write(address, val); return;
+            case 1: page1Slot.write(address, val); return;
+            case 2: page2Slot.write(address, val); return;
+            case 3:
+                // Check for control register
+                if (address === 0xffff) { this.setSecondarySlotConfig(val); return }
+                page3Slot.write(address, val); return;
+        }
     };
 
     this.setSecondarySlotConfig = function(val) {
-        // Not needed
+        // wmsx.Util.log("SecondarySlot Select: " + val.toString(16));
+        secondarySlotConfig = val;
+        page0Slot = subSlots[val & 3];
+        page1Slot = subSlots[(val >> 2) & 3];
+        page2Slot = subSlots[(val >> 4) & 3];
+        page3Slot = subSlots[(val >> 6) & 3];
     };
 
     this.getSecondarySlotConfig = function() {
-        // Not needed
+        // wmsx.Util.log("SecondarySlot Query: " + secondarySlotConfig.toString(16));
+        return secondarySlotConfig;
     };
 
     this.cpuExtensionBegin = function(s) {
-        // Not needed
+        // Receive all CPU Extensions and pass to slot at instruction
+        return getSubSlotForAddress(s.extPC).cpuExtensionBegin(s);
     };
 
     this.cpuExtensionFinish = function(s) {
-        // Not needed
+        // Receive all CPU Extensions and pass to slot at instruction
+        return getSubSlotForAddress(s.extPC).cpuExtensionFinish(s);
     };
 
     function create() {
@@ -97,10 +135,15 @@ wmsx.SlotExpandedModules = function() {
     var machine;
 
     var subSlots;
+    var secondarySlotConfig = 0;
+
+    var page0Slot, page1Slot, page2Slot, page3Slot;
 
     var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
 
-    this.format = wmsx.SlotFormats.ExpandedM;
+    this.format = wmsx.SlotFormats.Expanded3;
+
+    this.formatBack = wmsx.SlotFormats.Expanded;
 
 
     // Savestate  -------------------------------------------
@@ -108,6 +151,7 @@ wmsx.SlotExpandedModules = function() {
     this.saveState = function() {
         return {
             f: this.format.name,
+            s: secondarySlotConfig,
             s0: subSlots[0].saveState(),
             s1: subSlots[1].saveState(),
             s2: subSlots[2].saveState(),
@@ -120,6 +164,7 @@ wmsx.SlotExpandedModules = function() {
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s1, subSlots[1]), 1);
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s2, subSlots[2]), 2);
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s3, subSlots[3]), 3);
+        this.setSecondarySlotConfig(s.s);
     };
 
 
@@ -127,8 +172,8 @@ wmsx.SlotExpandedModules = function() {
 
 };
 
-wmsx.SlotExpandedModules.recreateFromSaveState = function(state, previousSlot) {
-    var expandedSlot = previousSlot || new wmsx.SlotExpandedModules();
+wmsx.SlotExpanded3.recreateFromSaveState = function(state, previousSlot) {
+    var expandedSlot = previousSlot || new wmsx.SlotExpanded3();
     expandedSlot.loadState(state);
     return expandedSlot;
 };

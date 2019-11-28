@@ -1,14 +1,16 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Secondary Slot. Controls 4 subSlots. Must be used only as a PrimarySlot
+// Special Expanded Slot 0. Controls 4 subSlots. Must be used only as a PrimarySlot
 // 0x0000 - 0xffff
 
-wmsx.SlotExpandedSpecial = function() {
+wmsx.SlotExpanded0 = function() {
     "use strict";
 
     var self = this;
 
     function init() {
+        // console.log("Creating Expanded0");
+
         create();
     }
 
@@ -139,7 +141,9 @@ wmsx.SlotExpandedSpecial = function() {
 
     var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
 
-    this.format = wmsx.SlotFormats.ExpandedS;
+    this.format = wmsx.SlotFormats.Expanded0;
+
+    this.formatBack = wmsx.SlotFormats.Expanded;
 
 
     // Savestate  -------------------------------------------
@@ -168,8 +172,8 @@ wmsx.SlotExpandedSpecial = function() {
 
 };
 
-wmsx.SlotExpandedSpecial.recreateFromSaveState = function(state, previousSlot) {
-    var expandedSlot = previousSlot || new wmsx.SlotExpandedSpecial();
+wmsx.SlotExpanded0.recreateFromSaveState = function(state, previousSlot) {
+    var expandedSlot = previousSlot || new wmsx.SlotExpanded0();
     expandedSlot.loadState(state);
     return expandedSlot;
 };
