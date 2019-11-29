@@ -532,7 +532,7 @@ wmsx.Machine = function() {
         self.rtc = rtc = new wmsx.RTC(videoClockSocket);
         self.syf = syf = new wmsx.SystemFlags();
         self.trd = trd = new wmsx.TurboRDevices(cpu, ledsSocket);
-        self.bus = bus = new wmsx.BUS(self, cpu);
+        self.bus = bus = new wmsx.BUS(self);
         cpu.connectBus(bus);
         ppi.connectBus(bus);
         vdp.connectBus(bus);

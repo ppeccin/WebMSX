@@ -44,6 +44,9 @@ wmsx.Slot = function() {
     this.write = function(address, value) {
     };
 
+    this.setDRAMMode = function(state) {
+    };
+
     this.getBreakWaitSub = function(address, lastAddress) {
         return 0;
     };

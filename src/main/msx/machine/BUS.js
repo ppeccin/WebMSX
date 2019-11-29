@@ -4,7 +4,7 @@
 // I/O ports addressing limited to 8 bits (lower 8 bits of Z80 I/O address)
 // For Turbo R S19990 added waits, assumes the standard Slot configuration
 
-wmsx.BUS = function(machine, cpu) {
+wmsx.BUS = function(machine) {
 "use strict";
 
     var self = this;
