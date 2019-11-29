@@ -160,6 +160,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     };
 
     function setDRAMMode(dramMode) {
+        bus.setDRAMMode(ram && dramMode);
         bios.setDRAMMode(ram && dramMode);
         biosExt.setDRAMMode(ram && dramMode);
         if (ram) ram.setDRAMMode(dramMode);

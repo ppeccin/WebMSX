@@ -2,6 +2,7 @@
 
 // BUS interface. Controls 4 Primary Slots and I/O Device Ports
 // I/O ports addressing limited to 8 bits (lower 8 bits of Z80 I/O address)
+// For Turbo R S19990 added waits, assumes the standard Slot configuration
 
 wmsx.BUS = function(machine, cpu) {
 "use strict";
@@ -99,6 +100,11 @@ wmsx.BUS = function(machine, cpu) {
         }
     };
 
+    this.setDRAMMode = function(state) {
+        slot0.setDRAMMode(!!state);
+        slot3.setDRAMMode(!!state);
+    };
+
     this.getBreakWait = function(address, lastAddress) {
         switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
             case 0: return slot0.getBreakWaitSub(address, lastAddress);     // Slot0 (ROM/RAM)
@@ -111,10 +117,10 @@ wmsx.BUS = function(machine, cpu) {
     this.getAccessWait = function(address) {
         // Forced first access break already added
         switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
-            case 0: return slot0.getAccessWaitSub(address);     // Slot0 (ROM/RAM)
-            case 1: return 2;                                   // External
-            case 2: return 2;                                   // External
-            case 3: return slot3.getAccessWaitSub(address);     // Slot3 (ROM/RAM)
+            case 0: return slot0.getAccessWaitSub(address);                 // Slot0 (ROM/RAM)
+            case 1: return 2;                                               // External: 2 extra waits
+            case 2: return 2;                                               // External: 2 extra waits
+            case 3: return slot3.getAccessWaitSub(address);                 // Slot3 (ROM/RAM)
         }
     };
 
@@ -128,7 +134,6 @@ wmsx.BUS = function(machine, cpu) {
         return devicesOutputPorts[port & 255](val, port);
     };
 
-    // TODO Use same stored page slot as ExpandedSlots?
     this.setPrimarySlotConfig = function(val) {
         //wmsx.Util.log("PrimarySlot Select: " + val.toString(16));
         primarySlotConfig = val;

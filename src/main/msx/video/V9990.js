@@ -1590,7 +1590,7 @@ wmsx.V9990 = function() {
         beginFrame();
     }
 
-    // TODO P2 mode uses strange RAM interleaving
+    // TODO P2 mode uses a strange RAM interleaving not completely implemented
     function updateVRAMInterleaving() {
         if (vramInterleaving === (modeData !== modes.P1)) return;
 

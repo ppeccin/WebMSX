@@ -8,7 +8,7 @@
 // R800 clock is double Z80 clock, and processing pauses for ~4us each ~31us for memory refresh (~12.9% of the processing time)
 // Thus it stops approx. twice each NTSC scanline, for about approx. 29 clocks
 
-// TODO S1990 additional waits (ROM, External Slot, Bus alignment)
+// TODO S1990 additional waits for VDP I/O
 
 wmsx.Z80 = function() {
 "use strict";

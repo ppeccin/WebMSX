@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Main BIOS ROM content >= 16K & <= 64K, starting at 0x0000. Can be bundled with other BIOS/ROMs
+// Main BIOS ROM content >= 16K & <= 32K, starting at 0x0000. Can be bundled with other BIOS/ROMs
 // Also handles turbo R DRAM mode. Redirects reads to top of RAM
 // 0x0000 - ????
 
@@ -65,7 +65,7 @@ wmsx.SlotBIOS = function(rom) {
 
     this.read = function(address) {
         if (address < topAddress)
-            return dramMode && address < 32768 ? ramBytes[ramBase + address] : bytes[address];
+            return dramMode ? ramBytes[ramBase + address] : bytes[address];
         else
             return 0xff;
     };

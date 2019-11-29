@@ -42,6 +42,7 @@ wmsx.SlotExpanded0 = function() {
     };
 
     this.reset = function() {
+        this.setDRAMMode(false);
         this.setSecondarySlotConfig(0);
         for (var s = 0; s < 4; s++) subSlots[s].reset();
     };
@@ -101,19 +102,22 @@ wmsx.SlotExpanded0 = function() {
         }
     };
 
+    this.setDRAMMode = function(state) {
+        dramMode = state;
+        drramModeAccessWait = dramMode | 0;
+    };
+
     this.getBreakWaitSub = function(address, lastAddress) {
-        if (((secondarySlotConfig >> ((address >> 14) << 1)) & 3) === 0)
-            return 1;     // ROM/RAM: BIOS
+        // Performance trade-off: consider ALL subSlots the same as Slot 0 (BIOS), so all have DRAM Mode
+        if (dramMode)
+            return ((address >>> 8) !== (lastAddress >>> 8)) | 0;       // RAM: Only if Real Page Break
         else
-            return 1;     // ROM
+            return 1;                                                   // ROM: Forced Page Break
     };
 
     this.getAccessWaitSub = function(address) {
-        // Forced first access break already added
-        if (((secondarySlotConfig >> ((address >> 14) << 1)) & 3) === 0)
-            return 1;     // ROM/RAM: BIOS
-        else
-            return 1;     // ROM
+        // Performance trade-off: consider ALL subSlots the same as Slot 0 (BIOS), so all have DRAM Mode
+        return drramModeAccessWait;                                     // RAM: 0 extra wait, ROM: 1 extra wait
     };
 
     this.setSecondarySlotConfig = function(val) {
@@ -151,6 +155,7 @@ wmsx.SlotExpanded0 = function() {
 
     var subSlots;
     var secondarySlotConfig = 0;
+    var dramMode = false, drramModeAccessWait = 1;
 
     var page0Slot, page1Slot, page2Slot, page3Slot;
 
@@ -170,7 +175,8 @@ wmsx.SlotExpanded0 = function() {
             s0: subSlots[0].saveState(),
             s1: subSlots[1].saveState(),
             s2: subSlots[2].saveState(),
-            s3: subSlots[3].saveState()
+            s3: subSlots[3].saveState(),
+            d: dramMode
         };
     };
 
@@ -180,6 +186,7 @@ wmsx.SlotExpanded0 = function() {
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s2, subSlots[2]), 2);
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s3, subSlots[3]), 3);
         this.setSecondarySlotConfig(s.s);
+        this.setDRAMMode(!!s.d);       // Backward Compatibility
     };
 
 
