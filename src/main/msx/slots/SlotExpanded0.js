@@ -104,7 +104,7 @@ wmsx.SlotExpanded0 = function() {
 
     this.setDRAMMode = function(state) {
         dramMode = state;
-        drramModeAccessWait = dramMode | 0;
+        drramModeAccessWait = !dramMode | 0;
     };
 
     this.getBreakWaitSub = function(address, lastAddress) {
