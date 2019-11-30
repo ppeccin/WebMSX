@@ -371,6 +371,16 @@ wmsx.Z80 = function() {
         busWrite((addr + 1) & 0xffff, val >>> 8); busWrite(addr, val & 255);
     }
 
+
+    function busInput(port) {
+        return bus.input(port);
+    }
+
+    function busOutput(port, val) {
+        bus.output(port,  val);
+    }
+
+
     function pcInc() {
         var old = PC;
         PC = (PC + 1) & 0xffff;
@@ -911,14 +921,14 @@ wmsx.Z80 = function() {
 
     function INAn() {
         var port = fetchN();
-        A = bus.input((A << 8) | port);
+        A = busInput((A << 8) | port);
 
         // if (DEBUG_LOOP) console.log("IN", ((A << 8) | port).toString(16), "=", A.toString(16));
         // A = res;
     }
 
     function INI() {
-        to_HL_8(bus.input(fromBC()));
+        to_HL_8(busInput(fromBC()));
         HL = (HL + 1) & 0xffff;
         B = (B - 1) & 0xff;
         // Flags
@@ -936,7 +946,7 @@ wmsx.Z80 = function() {
     }
 
     function IND() {
-        to_HL_8(bus.input(fromBC()));
+        to_HL_8(busInput(fromBC()));
         HL = (HL - 1) & 0xffff;
         B = (B - 1) & 0xff;
         // Flags
@@ -954,7 +964,7 @@ wmsx.Z80 = function() {
 
     function OUTnA() {
         var port = fetchN();
-        bus.output((A << 8) | port, A);            // Must be the last operation on the instruction processing, because of CPU mode switch
+        busOutput((A << 8) | port, A);            // Must be the last operation on the instruction processing, because of CPU mode switch
 
         // if (DEBUG_LOOP) console.log("OUT", ((A << 8) | port).toString(16), ":", A.toString(16));
     }
@@ -967,7 +977,7 @@ wmsx.Z80 = function() {
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
 
-        bus.output(fromBC(), val);                 // Must be the last operation on the instruction processing, because of CPU mode switch
+        busOutput(fromBC(), val);                 // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
     function OTIR() {
@@ -987,7 +997,7 @@ wmsx.Z80 = function() {
         F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
             | ((B === 0) << nZ);                   // Z = B is 0
 
-        bus.output(fromBC(), val);                 // Must be the last operation on the instruction processing, because of CPU mode switch
+        busOutput(fromBC(), val);                 // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
     function OTDR() {
@@ -1468,7 +1478,7 @@ wmsx.Z80 = function() {
 
     function newINrC(to) {
         return function INrC() {
-            var val = bus.input(fromBC());
+            var val = busInput(fromBC());
             to(val);
             // Flags
             F = (F & bC)                               // H = 0; N = 0; C = C
@@ -1480,7 +1490,7 @@ wmsx.Z80 = function() {
 
     function newOUTCr(from) {
         return function OUTCr() {
-            bus.output(fromBC(), from());               // Must be the last operation on the instruction processing, because of CPU mode switch
+            busOutput(fromBC(), from());               // Must be the last operation on the instruction processing, because of CPU mode switch
         }
     }
 
@@ -1523,7 +1533,7 @@ wmsx.Z80 = function() {
     }
 
     function uIN_C() {                       // Like the normal IN r, (C) but does not store the data
-        var val = bus.input(fromBC());
+        var val = busInput(fromBC());
         // Flags
         F = (F & bC)                               // H = 0; N = 0; C = C
             | (val & 0xa8)                         // S = val is negative; f5, f3 copied from res
@@ -1532,7 +1542,7 @@ wmsx.Z80 = function() {
     }
 
     function uOUTC0() {                      // Like the normal OUT (C), r but always output 0
-        bus.output(fromBC(), 0);                   // Must be the last operation on the instruction processing, because of CPU mode switch
+        busOutput(fromBC(), 0);                   // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
     // Pseudo instructions
