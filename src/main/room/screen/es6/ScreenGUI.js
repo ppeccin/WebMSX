@@ -328,8 +328,8 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     cursor: auto;
 }
 #wmsx-bar-turbo     { left: 88px; padding-left: 25px; cursor: pointer; }
-#wmsx-bar-caps      { left: calc(141px + 10%); height: 29px; background: none; }
-#wmsx-bar-kana      { left: calc(143px + 25%); height: 29px; background: none; }
+#wmsx-bar-caps      { left: calc(144px + 10%); height: 29px; background: none; }
+#wmsx-bar-kana      { left: calc(145px + 25%); height: 29px; background: none; }
 
 #wmsx-bar.wmsx-narrow #wmsx-bar-turbo {
     position: static;
