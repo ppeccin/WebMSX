@@ -958,7 +958,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (quickOtionsDialog) quickOtionsDialog.machineTurboModesStateUpdate();
         turboButton.classList.toggle("wmsx-hidden", !ledsStatePending[2] && !ledsStatePending[3]);
         turboButton.textContent = ledsStatePending[3] ? ledsInfoPending[3] : ledsInfoPending[2];
-        turboButton.style.backgroundPositionX = "" + (ledsStatePending[3] === 1 ? -25 : ledsStatePending[3] === 2 ? -49 : -73) + "px";
+        turboButton.style.backgroundPositionY = "" + (ledsStatePending[3] === 1 ? -116 : ledsStatePending[3] === 2 ? -141 : -166) + "px";
 
         ledsStatePending = undefined;
     }
@@ -1219,7 +1219,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (isTouchDevice) logoButton.classList.add("wmsx-full-screen-hidden");
         logoButton.classList.add("wmsx-narrow-hidden");
 
-        turboButton  = addPeripheralControlButton("wmsx-bar-turbo", -70, -91, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
+        turboButton  = addPeripheralControlButton("wmsx-bar-turbo", -2, -116, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
         turboButton.classList.add("wmsx-hidden");
 
         capsLed  = addPeripheralControlButton("wmsx-bar-caps", 0, 0);
