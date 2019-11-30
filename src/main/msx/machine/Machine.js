@@ -279,8 +279,8 @@ wmsx.Machine = function() {
     };
 
     this.toggleR800ClockMode = function(dec) {
-        if (dec) this.setR800ClockMode(r800ClockMode <= 0 ? 2 : (((r800ClockMode * 4) | 0) - 1) / 4);
-        else     this.setR800ClockMode(r800ClockMode >= 2 ? 0 : (((r800ClockMode * 4) | 0) + 1) / 4);
+        if (dec) this.setR800ClockMode(r800ClockMode <= 0 ? 2 : r800ClockMode <= 0.5 ? 0 : Math.max((((r800ClockMode * 4) | 0) - 1) / 4, 0.5));
+        else     this.setR800ClockMode(r800ClockMode >= 2 ? 0 : Math.max((((r800ClockMode * 4) | 0) + 1) / 4, 0.5));
         this.showR800ClockModeMessage();
     };
 
