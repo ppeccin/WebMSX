@@ -239,11 +239,10 @@ wmsx.Z80 = function() {
         ++R;
         opcode = fetchN();
         selectInstruction();
-
         T = r800 ? instruction.remainCyclesR800 : instruction.remainCycles;
     }
-    // if (self.trace) self.breakpoint("TRACE");
 
+    // if (self.trace) self.breakpoint("TRACE");
     // if (DEBUG_LOOP) {
     //     var pc = PC- 1;
     //     console.log((pc).toString(16) + ":", instruction.opcodeString);
@@ -2755,11 +2754,11 @@ wmsx.Z80 = function() {
 
         opcode = 258;
         instr = pINT_IM01;
-        instructionINT_M01 = defineInstruction(null, null, opcode, 13, 6 + bw, instr, "< INT_M01 >", false);        // r800 VERIFY
+        instructionINT_M01 = defineInstruction(null, null, opcode, 13, 3 + bw, instr, "< INT_M01 >", false);        // r800 VERIFY
 
         opcode = 259;
         instr = pINT_IM2;
-        instructionINT_M2 =  defineInstruction(null, null, opcode, 19, 8 + br + bw, instr, "< INT_M2 >", false);    // r800 VERIFY
+        instructionINT_M2 =  defineInstruction(null, null, opcode, 19, 5 + bw + br, instr, "< INT_M2 >", false);    // r800 VERIFY
 
 
         // ------------------------------
