@@ -59,11 +59,11 @@ wmsx.Z80 = function() {
         swapModeState();
     };
 
-    // Called once every 228 clocks. 29 / 228 = ~4us refresh time each ~31.8us (~12.7% of processing time)
+    // Called once every 228 clocks. 28 / 228 = ~4us refresh time each ~31.8us (~12.3% of processing time)
     this.r800MemoryRefreshPause = function() {
         if (r800) {
             ++R;
-            W += 29;
+            W += 28;
         }
     };
 
