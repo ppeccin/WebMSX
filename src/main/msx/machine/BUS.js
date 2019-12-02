@@ -4,7 +4,7 @@
 // I/O ports addressing limited to 8 bits (lower 8 bits of Z80 I/O address)
 // For Turbo R S19990 added waits, assumes the standard Slot configuration
 
-wmsx.BUS = function(machine) {
+wmsx.BUS = function(machine, cpu) {
 "use strict";
 
     var self = this;
@@ -24,6 +24,7 @@ wmsx.BUS = function(machine) {
     };
 
     this.reset = function() {
+        vdpIOClock = 0;
         switchedDevices.reset();
         this.setPrimarySlotConfig(0);
         for (var i = 0; i < 5; i++) slots[i].reset();
@@ -134,6 +135,17 @@ wmsx.BUS = function(machine) {
         return devicesOutputPorts[port & 255](val, port);
     };
 
+    this.getIOWait = function(port) {
+        if (port > 0x9b || port < 0x98) return 0;       // Not a VDP port
+
+        var last = vdpIOClock;
+        vdpIOClock = cpu.getBUSCycles();
+
+        var wait = 31 - (vdpIOClock - last);            // Minimum 31 BUS clocks between VDP accesses
+
+        return wait > 0 ? wait << 1 : 0;                // Wait in R800 clocks, so * 2
+    };
+
     this.setPrimarySlotConfig = function(val) {
         //wmsx.Util.log("PrimarySlot Select: " + val.toString(16));
         primarySlotConfig = val;
@@ -227,9 +239,9 @@ wmsx.BUS = function(machine) {
     var devicesInputPorts;
     var devicesOutputPorts;
 
-    var switchedDevices;
-
     var writeMonitor;
+    var switchedDevices;
+    var vdpIOClock = 0;
 
     var cpuExtensionHandlers = {};
 
@@ -243,7 +255,8 @@ wmsx.BUS = function(machine) {
             s1: slot1.saveState(),
             s2: slot2.saveState(),
             s3: slot3.saveState(),
-            sM: slotModules.saveState()
+            sM: slotModules.saveState(),
+            vc: vdpIOClock
         };
     };
 
@@ -254,6 +267,7 @@ wmsx.BUS = function(machine) {
         this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s3, slot3), 3);
         this.insertSlot(s.sM ? wmsx.SlotCreator.recreateFromSaveState(s.sM, slotModules) : slotEmpty, 4);
         this.setPrimarySlotConfig(s.p);
+        vdpIOClock = s.vc || 0;             // Backward Compatibility
     };
 
 
