@@ -16,7 +16,7 @@ wmsx.Z80 = function() {
     var self = this;
 
     function init() {
-        defineAllInstructions();
+        defineAllInstructions(false);
     }
 
     this.connectBus = function(aBus) {
@@ -307,77 +307,106 @@ wmsx.Z80 = function() {
 
 
     function busRead(addr) {
+        return bus.read(addr);
+    }
+    function busWrite(addr, val) {
+        bus.write(addr, val);
+    }
+
+    function fetchN() {
+        return busRead(pcInc());
+    }
+    function fetchNN() {
+        return fetchN() | (fetchN() << 8);
+    }
+
+    function memRead(addr) {
+        return busRead(addr);
+    }
+    function memRead16(addr) {
+        return busRead(addr) | (busRead((addr + 1) & 0xffff) << 8);
+    }
+
+    function memWrite(addr, val) {
+        busWrite(addr, val);
+    }
+    function memWrite16(addr, val) {
+        busWrite(addr, val & 255); busWrite((addr + 1) & 0xffff, val >>> 8);
+    }
+    function memWrite16Rev(addr, val) {
+        busWrite((addr + 1) & 0xffff, val >>> 8); busWrite(addr, val & 255);
+    }
+
+    function busInput(port) {
+        return bus.input(port);
+    }
+    function busOutput(port, val) {
+        bus.output(port,  val);
+    }
+
+
+    function busRead_R800(addr) {
         W += bus.getAccessWait(addr);                           // Add slot waits
         return bus.read(addr);
     }
-
-    function busWrite(addr, val) {
+    function busWrite_R800(addr, val) {
         W += bus.getAccessWait(addr);                           // Add slot waits
         bus.write(addr, val);
     }
 
-
-    function fetchN() {
+    function fetchN_R800() {
         var addr = pcInc();
 
         W += bus.getBreakWait(addr, fetchLastAddress);          // Add page break
         fetchLastAddress = addr;
 
-        return busRead(addr);
+        return busRead_R800(addr);
+    }
+    function fetchNN_R800() {
+        return fetchN_R800() | (fetchN_R800() << 8);
     }
 
-    function fetchNN() {
-        return fetchN() | (fetchN() << 8);
-    }
-
-
-    function memRead(addr) {
+    function memRead_R800(addr) {
         // Forced break for first memory read already at instruction T cycles
         fetchForceNextBreak();
 
-        return busRead(addr);
+        return busRead_R800(addr);
     }
-
-    function memRead16(addr) {
+    function memRead16_R800(addr) {
         // Forced break for first memory read already at instruction T cycles
         W += bus.getBreakWait(addr, addr + 1);          // Add second read page break
         fetchForceNextBreak();
 
-        return busRead(addr) | (busRead((addr + 1) & 0xffff) << 8);
+        return busRead_R800(addr) | (busRead_R800((addr + 1) & 0xffff) << 8);
     }
 
-
-    function memWrite(addr, val) {
+    function memWrite_R800(addr, val) {
         // Forced break for first memory write already at instruction T cycles
         fetchForceNextBreak();
 
-        busWrite(addr, val);
+        busWrite_R800(addr, val);
     }
-
-    function memWrite16(addr, val) {
+    function memWrite16_R800(addr, val) {
         // Forced break for first memory write already at instruction T cycles
         W += bus.getBreakWait(addr, addr + 1);          // Add second write page break
         fetchForceNextBreak();
 
-        busWrite(addr, val & 255); busWrite((addr + 1) & 0xffff, val >>> 8);
+        busWrite_R800(addr, val & 255); busWrite_R800((addr + 1) & 0xffff, val >>> 8);
     }
-
-    function memWrite16Rev(addr, val) {
+    function memWrite16Rev_R800(addr, val) {
         // Forced break for first memory write already at instruction T cycles
         W += bus.getBreakWait(addr, addr + 1);          // Add second write page break
         fetchForceNextBreak();
 
-        busWrite((addr + 1) & 0xffff, val >>> 8); busWrite(addr, val & 255);
+        busWrite_R800((addr + 1) & 0xffff, val >>> 8); busWrite_R800(addr, val & 255);
     }
 
-
-    function busInput(port) {
-        //W += bus.getIOWait(port);                           // Add IO waits
+    function busInput_R800(port) {
+        W += bus.getIOWait(port);                           // Add IO waits
         return bus.input(port);
     }
-
-    function busOutput(port, val) {
-        //W += bus.getIOWait(port);                           // Add IO waits
+    function busOutput_R800(port, val) {
+        W += bus.getIOWait(port);                           // Add IO waits
         bus.output(port,  val);
     }
 
@@ -507,32 +536,59 @@ wmsx.Z80 = function() {
     function from_BC_8() {
         return memRead(fromBC());
     }
+    function from_BC_8_R800() {
+        return memRead_R800(fromBC());
+    }
     function from_DE_8() {
         return memRead(DE);
+    }
+    function from_DE_8_R800() {
+        return memRead_R800(DE);
     }
     function from_HL_8() {
         return memRead(HL);
     }
+    function from_HL_8_R800() {
+        return memRead_R800(HL);
+    }
     function from_SP_16() {         // bits
         return memRead16(SP);
+    }
+    function from_SP_16_R800() {         // bits
+        return memRead16_R800(SP);
     }
 
     function to_BC_8(val) {
         memWrite(fromBC(), val);
     }
+    function to_BC_8_R800(val) {
+        memWrite_R800(fromBC(), val);
+    }
     function to_DE_8(val) {
         memWrite(DE, val);
+    }
+    function to_DE_8_R800(val) {
+        memWrite_R800(DE, val);
     }
     function to_HL_8(val) {
         memWrite(HL, val);
     }
+    function to_HL_8_R800(val) {
+        memWrite_R800(HL, val);
+    }
     function to_SP_16(val) {
         memWrite16(SP, val);
+    }
+    function to_SP_16_R800(val) {
+        memWrite16_R800(SP, val);
     }
 
     var preReadIXYdOffset = 0;
     function preReadIXYd() {
         preReadIXYdOffset = fetchN();
+    }
+    function preReadIXYd_R800() {
+        preReadIXYdOffset = fetchN_R800();
     }
 
     function from_IXd_8() {
@@ -541,12 +597,24 @@ wmsx.Z80 = function() {
     from_IXd_8.fromPreReadAddr = function() {
         return memRead(sum16Signed(IX, preReadIXYdOffset));
     };
+    function from_IXd_8_R800() {
+        return memRead_R800(sum16Signed(IX, fetchN_R800()));
+    }
+    from_IXd_8_R800.fromPreReadAddr = function() {
+        return memRead_R800(sum16Signed(IX, preReadIXYdOffset));
+    };
 
     function from_IYd_8() {
         return memRead(sum16Signed(IY, fetchN()));
     }
     from_IYd_8.fromPreReadAddr = function() {
         return memRead(sum16Signed(IY, preReadIXYdOffset));
+    };
+    function from_IYd_8_R800() {
+        return memRead_R800(sum16Signed(IY, fetchN_R800()));
+    }
+    from_IYd_8_R800.fromPreReadAddr = function() {
+        return memRead_R800(sum16Signed(IY, preReadIXYdOffset));
     };
 
     function to_IXd_8(val) {
@@ -555,6 +623,12 @@ wmsx.Z80 = function() {
     to_IXd_8.toPreReadAddr = function(val) {
         memWrite(sum16Signed(IX, preReadIXYdOffset), val);
     };
+    function to_IXd_8_R800(val) {
+        memWrite_R800(sum16Signed(IX, fetchN_R800()), val);
+    }
+    to_IXd_8_R800.toPreReadAddr = function(val) {
+        memWrite_R800(sum16Signed(IX, preReadIXYdOffset), val);
+    };
 
     function to_IYd_8(val) {
         memWrite(sum16Signed(IY, fetchN()), val);
@@ -562,30 +636,48 @@ wmsx.Z80 = function() {
     to_IYd_8.toPreReadAddr = function(val) {
         memWrite(sum16Signed(IY, preReadIXYdOffset), val);
     };
+    function to_IYd_8_R800(val) {
+        memWrite_R800(sum16Signed(IY, fetchN_R800()), val);
+    }
+    to_IYd_8_R800.toPreReadAddr = function(val) {
+        memWrite_R800(sum16Signed(IY, preReadIXYdOffset), val);
+    };
 
     function from_NN_8() {
         return memRead(fetchNN());
+    }
+    function from_NN_8_R800() {
+        return memRead_R800(fetchNN_R800());
     }
 
     function to_NN_8(val) {
         memWrite(fetchNN(), val);
     }
+    function to_NN_8_R800(val) {
+        memWrite_R800(fetchNN_R800(), val);
+    }
 
     function from_NN_16() {
         return memRead16(fetchNN());
+    }
+    function from_NN_16_R800() {
+        return memRead16_R800(fetchNN_R800());
     }
 
     function to_NN_16(val) {
         memWrite16(fetchNN(), val);
     }
-
-    function sum16Signed(a, b) {
-        return (a + (b > 127 ? (-256 + b) : b)) & 0xffff;
+    function to_NN_16_R800(val) {
+        memWrite16_R800(fetchNN_R800(), val);
     }
 
     function push16(val) {
         SP = (SP - 2) & 0xffff;
         memWrite16Rev(SP, val);                 // Write High first, then Low
+    }
+    function push16_R800(val) {
+        SP = (SP - 2) & 0xffff;
+        memWrite16Rev_R800(SP, val);                 // Write High first, then Low
     }
 
     function pop16() {
@@ -593,6 +685,17 @@ wmsx.Z80 = function() {
         SP = (SP + 2) & 0xffff;
         return res;
     }
+    function pop16_R800() {
+        var res = memRead16_R800(SP);
+        SP = (SP + 2) & 0xffff;
+        return res;
+    }
+
+
+    function sum16Signed(a, b) {
+        return (a + (b > 127 ? (-256 + b) : b)) & 0xffff;
+    }
+
 
     var parities = [    // 0b00000100 ready for P flag
         4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,0,4,4,0,4,0,0,4,4,0,0,4,0,4,4,0,
@@ -684,84 +787,106 @@ wmsx.Z80 = function() {
         AF2 = temp;
     }
 
-    function LDI() {
-        to_DE_8(from_HL_8());
-        DE = (DE + 1) & 0xffff;
-        HL = (HL + 1) & 0xffff;
-        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
-        // Flags
-        F = (F & 0xc1)                        // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
-            | ((B + C !== 0) << nPV);         // PV = BC != 0
-        // Verify: Undocumented f5/f3 behavior for all LD block instructions, not implemented. Left 0
-    }
-
-    function LDIR() {
-        LDI();
-        if (F & bPV) {
-            dec2PC();     // Repeat this instruction
-            W += r800 ? 1 : 5;
+    function newLDI(r8) {
+        var from = r8 ? from_HL_8_R800 : from_HL_8;
+        var to =   r8 ? to_DE_8_R800 : to_DE_8;
+        return function LDI() {
+            to(from());
+            DE = (DE + 1) & 0xffff;
+            HL = (HL + 1) & 0xffff;
+            if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
+            // Flags
+            F = (F & 0xc1)                        // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
+                | ((B + C !== 0) << nPV);         // PV = BC != 0
+            // Verify: Undocumented f5/f3 behavior for all LD block instructions, not implemented. Left 0
         }
     }
 
-    function LDD() {
-        to_DE_8(from_HL_8());
-        DE = (DE - 1) & 0xffff;
-        HL = (HL - 1) & 0xffff;
-        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
-        // Flags
-        F = (F & 0xc1)                      // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
-            | ((B + C !== 0) << nPV);       // PV = BC != 0
-    }
-
-    function LDDR() {
-        LDD();
-        if (F & bPV) {
-            dec2PC();     // Repeat this instruction
-            W += r800 ? 1 : 5;
+    function newLDIR(instr) {
+        return function LDIR() {
+            instr();
+            if (F & bPV) {
+                dec2PC();     // Repeat this instruction
+                W += r800 ? 1 : 5;
+            }
         }
     }
 
-    function CPI() {
-        var val = from_HL_8();
-        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
-        HL = (HL + 1) & 0xffff;
-        // Flags
-        var res = A - val;
-        var compare = A ^ val ^ res;
-        F = (F & bC) | bN                   // N = 1; C = C
-            | (res & 0xa8)                  // S = res is negative; f5, f3 copied from res
-            | ((res === 0) << nZ)           // Z = res is 0
-            | (compare & bH)                // H = borrow from bit 4
-            | ((B + C !== 0) << nPV);       // PV = BC != 0
-    }
-
-    function CPIR() {
-        CPI();
-        if ((F & bPV) && !(F & bZ)) {
-            dec2PC();     // Repeat this instruction
-            W += r800 ? 1 : 5;              // r800 VERIFY
+    function newLDD(r8) {
+        var from = r8 ? from_HL_8_R800 : from_HL_8;
+        var to =   r8 ? to_DE_8_R800 : to_DE_8;
+        return function LDD() {
+            to(from());
+            DE = (DE - 1) & 0xffff;
+            HL = (HL - 1) & 0xffff;
+            if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
+            // Flags
+            F = (F & 0xc1)                      // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
+                | ((B + C !== 0) << nPV);       // PV = BC != 0
         }
     }
 
-    function CPD() {
-        var val = from_HL_8();
-        if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
-        HL = (HL - 1) & 0xffff;
-        // Flags
-        var res = A - val;
-        var compare = A ^ val ^ res;
-        F = (F & bC) | bN                   // N = 1; C = C
-            | (res & 0xa8)                  // S = res is negative; f5, f3 copied from res
-            | ((res === 0) << nZ)           // Z = res is 0
-            | (compare & bH)                // H = borrow from bit 4
-            | ((B + C !== 0) << nPV);       // PV = BC != 0
+    function newLDDR(instr) {
+        return function LDDR() {
+            instr();
+            if (F & bPV) {
+                dec2PC();     // Repeat this instruction
+                W += r800 ? 1 : 5;
+            }
+        }
     }
 
-    function CPDR() {
-        CPD();
-        if ((F & bPV) && !(F & bZ)) {
-            dec2PC();     // Repeat this instruction
-            W += r800 ? 1 : 5;
+    function newCPI(r8) {
+        var from = r8 ? from_HL_8_R800 : from_HL_8;
+        return function CPI() {
+            var val = from();
+            if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
+            HL = (HL + 1) & 0xffff;
+            // Flags
+            var res = A - val;
+            var compare = A ^ val ^ res;
+            F = (F & bC) | bN                   // N = 1; C = C
+                | (res & 0xa8)                  // S = res is negative; f5, f3 copied from res
+                | ((res === 0) << nZ)           // Z = res is 0
+                | (compare & bH)                // H = borrow from bit 4
+                | ((B + C !== 0) << nPV);       // PV = BC != 0
+        }
+    }
+
+    function newCPIR(instr) {
+        return function CPIR() {
+            instr();
+            if ((F & bPV) && !(F & bZ)) {
+                dec2PC();     // Repeat this instruction
+                W += r800 ? 1 : 5;              // r800 VERIFY
+            }
+        }
+    }
+
+    function newCPD(r8) {
+        var from = r8 ? from_HL_8_R800 : from_HL_8;
+        return function CPD() {
+            var val = from();
+            if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
+            HL = (HL - 1) & 0xffff;
+            // Flags
+            var res = A - val;
+            var compare = A ^ val ^ res;
+            F = (F & bC) | bN                   // N = 1; C = C
+                | (res & 0xa8)                  // S = res is negative; f5, f3 copied from res
+                | ((res === 0) << nZ)           // Z = res is 0
+                | (compare & bH)                // H = borrow from bit 4
+                | ((B + C !== 0) << nPV);       // PV = BC != 0
+        }
+    }
+
+    function newCPDR(instr) {
+        return function CPDR() {
+            instr();
+            if ((F & bPV) && !(F & bZ)) {
+                dec2PC();     // Repeat this instruction
+                W += r800 ? 1 : 5;
+            }
         }
     }
 
@@ -864,26 +989,34 @@ wmsx.Z80 = function() {
             | (oldA & bC);                   // C = bit 0 of A before
     }
 
-    function RLD() {
-        var val = from_HL_8();
-        to_HL_8(((val << 4) | (A & 0x0f)) & 255);
-        A = (A & 0xf0) | (val >>> 4);
-        // Flags
-        F = (F & bC)                               // H = 0; N = 0; C = C
-            | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
-            | ((A === 0) << nZ)                    // Z = A is 0
-            | parities[A];                         // P = parity of A
+    function newRLD(r8) {
+        var from = r8 ? from_HL_8_R800 : from_HL_8;
+        var to =   r8 ? to_HL_8_R800 : to_HL_8;
+        return function RLD() {
+            var val = from();
+            to(((val << 4) | (A & 0x0f)) & 255);
+            A = (A & 0xf0) | (val >>> 4);
+            // Flags
+            F = (F & bC)                               // H = 0; N = 0; C = C
+                | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
+                | ((A === 0) << nZ)                    // Z = A is 0
+                | parities[A];                         // P = parity of A
+        }
     }
 
-    function RRD() {
-        var val = from_HL_8();
-        to_HL_8(((A << 4) | (val >>> 4)) & 255);
-        A = (A & 0xf0) | (val & 0x0f);
-        // Flags
-        F = (F & bC)                               // H = 0; N = 0; C = C
-            | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
-            | ((A === 0) << nZ)                    // Z = A is 0
-            | parities[A];                         // P = parity of A
+    function newRRD(r8) {
+        var from = r8 ? from_HL_8_R800 : from_HL_8;
+        var to =   r8 ? to_HL_8_R800 : to_HL_8;
+        return function RRD() {
+            var val = from();
+            to(((A << 4) | (val >>> 4)) & 255);
+            A = (A & 0xf0) | (val & 0x0f);
+            // Flags
+            F = (F & bC)                               // H = 0; N = 0; C = C
+                | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
+                | ((A === 0) << nZ)                    // Z = A is 0
+                | parities[A];                         // P = parity of A
+        }
     }
 
     function JR() {
@@ -923,105 +1056,123 @@ wmsx.Z80 = function() {
     function INAn() {
         var port = fetchN();
         A = busInput((A << 8) | port);
-
-        // if (DEBUG_LOOP) console.log("IN", ((A << 8) | port).toString(16), "=", A.toString(16));
-        // A = res;
     }
 
-    function INI() {
-        to_HL_8(busInput(fromBC()));
-        HL = (HL + 1) & 0xffff;
-        B = (B - 1) & 0xff;
-        // Flags
-        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((B === 0) << nZ);                   // Z = B is 0
-        // Verify: Undocumented S/f5/H/f3/PV behavior for all IN/OUT block instructions, not implemented. Left 0
-    }
-
-    function INIR() {
-        INI();
-        if (B !== 0) {
-            dec2PC();     // Repeat this instruction
-            W += r800 ? 1 : 5;                     // r800 VERIFY
+    function newINI(r8) {
+        var to = r8 ? to_HL_8_R800 : to_HL_8;
+        return function INI() {
+            to(busInput(fromBC()));
+            HL = (HL + 1) & 0xffff;
+            B = (B - 1) & 0xff;
+            // Flags
+            F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+                | ((B === 0) << nZ);                   // Z = B is 0
+            // Verify: Undocumented S/f5/H/f3/PV behavior for all IN/OUT block instructions, not implemented. Left 0
         }
     }
 
-    function IND() {
-        to_HL_8(busInput(fromBC()));
-        HL = (HL - 1) & 0xffff;
-        B = (B - 1) & 0xff;
-        // Flags
-        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((B === 0) << nZ);                   // Z = B is 0
+    function newINIR(instr) {
+        return function INIR() {
+            instr();
+            if (B !== 0) {
+                dec2PC();     // Repeat this instruction
+                W += r800 ? 1 : 5;                     // r800 VERIFY
+            }
+        }
     }
 
-    function INDR() {
-        IND();
-        if (B !== 0) {
-            dec2PC();     // Repeat this instruction
-            W += r800 ? 1 : 5;                     // r800 VERIFY
+    function newIND(r8) {
+        var to = r8 ? to_HL_8_R800 : to_HL_8;
+        return function IND() {
+            to(busInput(fromBC()));
+            HL = (HL - 1) & 0xffff;
+            B = (B - 1) & 0xff;
+            // Flags
+            F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+                | ((B === 0) << nZ);                   // Z = B is 0
+        }
+    }
+
+    function newINDR(instr) {
+        return function INDR() {
+            instr();
+            if (B !== 0) {
+                dec2PC();     // Repeat this instruction
+                W += r800 ? 1 : 5;                     // r800 VERIFY
+            }
         }
     }
 
     function OUTnA() {
         var port = fetchN();
         busOutput((A << 8) | port, A);            // Must be the last operation on the instruction processing, because of CPU mode switch
-
-        // if (DEBUG_LOOP) console.log("OUT", ((A << 8) | port).toString(16), ":", A.toString(16));
     }
 
-    function OUTI() {                              // IMPORTANT: Called by OTIR
-        var val = from_HL_8();
-        B = (B - 1) & 0xff;
-        HL = (HL + 1) & 0xffff;
-        // Flags
-        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((B === 0) << nZ);                   // Z = B is 0
+    function newOUTI(r8) {                              // IMPORTANT: Called by OTIR
+        var from = r8 ? from_HL_8_R800 : from_HL_8;
+        return function OUTI() {
+            var val = from();
+            B = (B - 1) & 0xff;
+            HL = (HL + 1) & 0xffff;
+            // Flags
+            F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+                | ((B === 0) << nZ);                   // Z = B is 0
 
-        busOutput(fromBC(), val);                 // Must be the last operation on the instruction processing, because of CPU mode switch
-    }
-
-    function OTIR() {
-        if (B !== 1) {                             // OUTI below will DEC B. If B !== 0 after OUTI, repeat this instruction
-            dec2PC();
-            W += r800 ? 1 : 5;                     // r800 VERIFY
+            busOutput(fromBC(), val);                 // Must be the last operation on the instruction processing, because of CPU mode switch
         }
-
-        OUTI();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
-    function OUTD() {                              // IMPORTANT: Called by OTDR
-        var val = from_HL_8();
-        B = (B - 1) & 0xff;
-        HL = (HL - 1) & 0xffff;
-        // Flags
-        F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-            | ((B === 0) << nZ);                   // Z = B is 0
+    function newOTIR(instr) {
+        return function OTIR() {
+            if (B !== 1) {                             // OUTI below will DEC B. If B !== 0 after OUTI, repeat this instruction
+                dec2PC();
+                W += r800 ? 1 : 5;                     // r800 VERIFY
+            }
 
-        busOutput(fromBC(), val);                 // Must be the last operation on the instruction processing, because of CPU mode switch
-    }
-
-    function OTDR() {
-        if (B !== 1) {                             // OUTD below will DEC B. If B !== 0 after OUTD, repeat this instruction
-            dec2PC();
-            W += r800 ? 1 : 5;                     // r800 VERIFY
+            instr();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
         }
-
-        OUTD();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
-    function newLD_PreRead_IXYd_(to, from) {
+    function newOUTD(r8) {                              // IMPORTANT: Called by OTDR
+        var from = r8 ? from_HL_8_R800 : from_HL_8;
+        return function OUTD() {
+            var val = from();
+            B = (B - 1) & 0xff;
+            HL = (HL - 1) & 0xffff;
+            // Flags
+            F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+                | ((B === 0) << nZ);                   // Z = B is 0
+
+            busOutput(fromBC(), val);                  // Must be the last operation on the instruction processing, because of CPU mode switch
+        }
+    }
+
+    function newOTDR(instr) {
+        return function OTDR() {
+            if (B !== 1) {                             // OUTD below will DEC B. If B !== 0 after OUTD, repeat this instruction
+                dec2PC();
+                W += r800 ? 1 : 5;                     // r800 VERIFY
+            }
+
+            instr();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
+        }
+    }
+
+    function newLD_PreRead_IXYd_(to, from, r8) {
+        var preRead = r8 ? preReadIXYd_R800 : preReadIXYd;
         return function LD_PreRead_IXYd_() {
             // Special case. Pre-reads d before n to ensure correct order of reads
-            preReadIXYd();
+            preRead();
             to(from());
         };
     }
 
-    function newEXr_SP_16(to, from) {
+    function newEXr_SP_16(to, from, r8) {
+        var fromSP_16 = r8 ? from_SP_16_R800 : from_SP_16;
+        var toSP_16 =   r8 ? to_SP_16_R800 : to_SP_16;
         return function EXr_SP_16() {
-            var temp = from_SP_16();
-            to_SP_16(from());
+            var temp = fromSP_16();
+            toSP_16(from());
             to(temp);
         }
     }
@@ -1152,9 +1303,10 @@ wmsx.Z80 = function() {
         };
     }
 
-    function newINC_PreRead_IXYd_(from, to) {
+    function newINC_PreRead_IXYd_(from, to, r8) {
+        var preRead = r8 ? preReadIXYd_R800 : preReadIXYd;
         return function INC_PreRead_IXYd_() {
-            preReadIXYd();
+            preRead();
             var res = (from() + 1) & 255;
             to(res);
             // Flags
@@ -1179,9 +1331,10 @@ wmsx.Z80 = function() {
         };
     }
 
-    function newDEC_PreRead_IXYd_(from, to) {
+    function newDEC_PreRead_IXYd_(from, to, r8) {
+        var preRead = r8 ? preReadIXYd_R800 : preReadIXYd;
         return function DEC_PreRead_IXYd_() {
-            preReadIXYd();
+            preRead();
             var res = (from() - 1) & 255;
             to(res);
             // Flags
@@ -1543,7 +1696,7 @@ wmsx.Z80 = function() {
     }
 
     function uOUTC0() {                      // Like the normal OUT (C), r but always output 0
-        busOutput(fromBC(), 0);                   // Must be the last operation on the instruction processing, because of CPU mode switch
+        busOutput(fromBC(), 0);                    // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
     // Pseudo instructions
@@ -1582,18 +1735,24 @@ wmsx.Z80 = function() {
         ackINT = false;
     }
 
-    function pSET_DDCB() {
-        prefix = 5;
-        ackINT = false;
-        preReadIXYd();     // Special case. Pre-reads d before the real opcode
-        --R;               // Special case. R should not be incremented next opcode fetch so adjust here
+    function newpSET_DDCB(r8) {
+        var preRead = r8 ? preReadIXYd_R800 : preReadIXYd;
+        return function pSET_DDCB() {
+            prefix = 5;
+            ackINT = false;
+            preRead();         // Special case. Pre-reads d before the real opcode
+            --R;               // Special case. R should not be incremented next opcode fetch so adjust here
+        }
     }
 
-    function pSET_FDCB() {
-        prefix = 6;
-        ackINT = false;
-        preReadIXYd();     // Special case. Pre-reads d before the real opcode
-        --R;               // Special case. R should not be incremented next opcode fetch so adjust here
+    function newpSET_FDCB(r8) {
+        var preRead = r8 ? preReadIXYd_R800 : preReadIXYd;
+        return function pSET_FDCB() {
+            prefix = 6;
+            ackINT = false;
+            preRead();         // Special case. Pre-reads d before the real opcode
+            --R;               // Special case. R should not be incremented next opcode fetch so adjust here
+        }
     }
 
     // Extension Point pseudo instructions
@@ -1664,8 +1823,9 @@ wmsx.Z80 = function() {
     var br = 1;         // R800 Deterministic Forced Page Brake (1 wait) in First Memory Read.  DOES NOT include additional page break in next instruction
     var bw = 1;         // R800 Deterministic Forced Page Brake (1 wait) in First Memory Write. DOES NOT include additional page break in next instruction
 
-    function defineAllInstructions() {
+    function defineAllInstructions(r8) {
 
+        var from, to;
         var t = 0, tr = 0;
 
         // LD 8-bit Group  -------------------------------------------------------------
@@ -1695,16 +1855,16 @@ wmsx.Z80 = function() {
         };
 
         var oper_HLp_ = {
-            _HL_ :  { to: to_HL_8,  from: from_HL_8,  desc: "(HL)" },
-            _IXd_ : { to: to_IXd_8, from: from_IXd_8, desc: "(IX+d)", pref: 0xdd },
-            _IYd_ : { to: to_IYd_8, from: from_IYd_8, desc: "(IY+d)", pref: 0xfd }
+            _HL_ :  { to: r8 ? to_HL_8_R800 : to_HL_8,   from: r8 ? from_HL_8_R800 : from_HL_8,   desc: "(HL)" },
+            _IXd_ : { to: r8 ? to_IXd_8_R800 : to_IXd_8, from: r8 ? from_IXd_8_R800 : from_IXd_8, desc: "(IX+d)", pref: 0xdd },
+            _IYd_ : { to: r8 ? to_IYd_8_R800 : to_IYd_8, from: r8 ? from_IYd_8_R800 : from_IYd_8, desc: "(IY+d)", pref: 0xfd }
         };
 
         // 1byte *+1, 1M *+1, 4T *+4: - LD rp, rp'          * Includes DD and FD prefixed variations for r
         var opcodeBase = 0x40;
-        for (var to in operRp) {
+        for (to in operRp) {
             var operTo = operRp[to];
-            for (var from in operRp) {
+            for (from in operRp) {
                 var operFrom = operRp[from];
                 // can't mix prefixes in the wrong combinations
                 if ((operTo.pref && (operFrom.nopref || (operFrom.pref && (operFrom.pref != operTo.pref))))
@@ -1775,7 +1935,8 @@ wmsx.Z80 = function() {
             if (prefix) {
                 instr = newLD_PreRead_IXYd_(
                     operTo.to.toPreReadAddr,
-                    fetchN
+                    fetchN,
+                    r8
                 );
             } else {
                 instr = newLD(
@@ -1790,7 +1951,7 @@ wmsx.Z80 = function() {
         opcode = 0x0a;
         instr = newLD(
             toA,
-            from_BC_8
+            r8 ? from_BC_8_R800 : from_BC_8
         );
         defineInstruction(null, null, opcode, 7, 2 + br, instr, "LD A, (BC)", false);
 
@@ -1798,7 +1959,7 @@ wmsx.Z80 = function() {
         opcode = 0x1a;
         instr = newLD(
             toA,
-            from_DE_8
+            r8? from_DE_8_R800 : from_DE_8
         );
         defineInstruction(null, null, opcode, 7, 2 + br, instr, "LD A, (DE)", false);
 
@@ -1806,14 +1967,14 @@ wmsx.Z80 = function() {
         opcode = 0x3a;
         instr = newLD(
             toA,
-            from_NN_8
+            r8 ? from_NN_8_R800 : from_NN_8
         );
         defineInstruction(null, null, opcode, 13, 4 + br, instr, "LD A, (nn)", false);
 
         // 1 byte, 2M, 7T: - LD (BC), A
         opcode = 0x02;
         instr = newLD(
-            to_BC_8,
+            r8 ? to_BC_8_R800 : to_BC_8,
             fromA
         );
         defineInstruction(null, null, opcode, 7, 2 + bw, instr, "LD (BC), A", false);
@@ -1821,7 +1982,7 @@ wmsx.Z80 = function() {
         // 1 byte, 2M, 7T: - LD (DE), A
         opcode = 0x12;
         instr = newLD(
-            to_DE_8,
+            r8 ? to_DE_8_R800 : to_DE_8,
             fromA
         );
         defineInstruction(null, null, opcode, 7, 2 + bw, instr, "LD (DE), A", false);
@@ -1829,7 +1990,7 @@ wmsx.Z80 = function() {
         // 3 bytes, 4M, 13T: - LD (nn), A
         opcode = 0x32;
         instr = newLD(
-            to_NN_8,
+            r8 ? to_NN_8_R800 : to_NN_8,
             fromA
         );
         defineInstruction(null, null, opcode, 13, 4 + bw, instr, "LD (nn), A", false);
@@ -1907,7 +2068,7 @@ wmsx.Z80 = function() {
             operTo = operHLp[to];
             instr = newLD(
                 operTo.to,
-                from_NN_16
+                r8 ? from_NN_16_R800 : from_NN_16
             );
             prefix = operTo.pref;
             defineInstruction(prefix, null, opcode, 16, 5 + br, instr, "LD " + operTo.desc + ", (nn)", false);
@@ -1920,7 +2081,7 @@ wmsx.Z80 = function() {
             opcode = opcodeBase | (operTo.bits << 4);
             instr = newLD(
                 operTo.to,
-                from_NN_16
+                r8 ? from_NN_16_R800 : from_NN_16
             );
             defineInstruction(null, 0xed, opcode, 16, 5 + br, instr, "LD " + operTo.desc + ", (nn)", false);
         }
@@ -1930,7 +2091,7 @@ wmsx.Z80 = function() {
         for (from in operHLp) {
             operFrom = operHLp[from];
             instr = newLD(
-                to_NN_16,
+                r8 ? to_NN_16_R800 : to_NN_16,
                 operFrom.from
             );
             prefix = operFrom.pref;
@@ -1943,7 +2104,7 @@ wmsx.Z80 = function() {
             operFrom = operDD[from];
             opcode = opcodeBase | (operFrom.bits << 4);
             instr = newLD(
-                to_NN_16,
+                r8 ? to_NN_16_R800 : to_NN_16,
                 operFrom.from
             );
             defineInstruction(null, 0xed, opcode, 16, 5 + bw, instr, "LD (nn), " + operFrom.desc, false);
@@ -2006,49 +2167,49 @@ wmsx.Z80 = function() {
         opcode = 0xe3;
         for (var op in operHLp) {
             var oper = operHLp[op];
-            instr = newEXr_SP_16(oper.to, oper.from);
+            instr = newEXr_SP_16(oper.to, oper.from, r8);
             prefix = oper.pref;
             defineInstruction(prefix, null, opcode, 19, 5 + bw, instr, "EX (SP), " + oper.desc, false);
         }
 
         // 2 bytes, 4M, 16T: - LDI
         opcode = 0xa0;
-        instr = LDI;
+        instr = newLDI(r8);
         defineInstruction(null, 0xed, opcode, 12, 3 + br + bw, instr, "LDI", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - LDIR         *  in case a repeat occurs
         opcode = 0xb0;
-        instr = LDIR;
+        instr = newLDIR(instr);
         defineInstruction(null, 0xed, opcode, 12, 3 + br + bw, instr, "LDIR", false);
 
         // 2 bytes, 4M, 16T: - LDD
         opcode = 0xa8;
-        instr = LDD;
+        instr = newLDD(r8);
         defineInstruction(null, 0xed, opcode, 12, 3 + br + bw, instr, "LDD", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - LDDR         *  in case a repeat occurs
         opcode = 0xb8;
-        instr = LDDR;
+        instr = newLDDR(instr);
         defineInstruction(null, 0xed, opcode, 12, 3 + br + bw, instr, "LDDR", false);
 
         // 2 bytes, 4M, 16T: - CPI
         opcode = 0xa1;
-        instr = CPI;
+        instr = newCPI(r8);
         defineInstruction(null, 0xed, opcode, 12, 3 + br, instr, "CPI", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - CPIR         *  in case a repeat occurs
         opcode = 0xb1;
-        instr = CPIR;
+        instr = newCPIR(instr);
         defineInstruction(null, 0xed, opcode, 12, 4 + br, instr, "CPIR", false);    // r800 VERIFY
 
         // 2 bytes, 4M, 16T: - CPD
         opcode = 0xa9;
-        instr = CPD;
+        instr = newCPD(r8);
         defineInstruction(null, 0xed, opcode, 12, 3 + br, instr, "CPD", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - CPDR         *  in case a repeat occurs
         opcode = 0xb9;
-        instr = CPDR;
+        instr = newCPDR(instr);
         defineInstruction(null, 0xed, opcode, 12, 4 + br, instr, "CPDR", false);    // r800 VERIFY
 
         // 8-bit Arithmetic Group  ----------------------------------------------------
@@ -2138,7 +2299,7 @@ wmsx.Z80 = function() {
                 prefix = oper.pref;
                 if (prefix && ins.selfModifyInstr) {
                     instr = ins.selfModifyInstr(
-                        oper.from.fromPreReadAddr, oper.to.toPreReadAddr
+                        oper.from.fromPreReadAddr, oper.to.toPreReadAddr, r8
                     );
                 } else {
                     instr = ins.instr(
@@ -2301,12 +2462,12 @@ wmsx.Z80 = function() {
             E:    { bits: 3, to: toE,     from: fromE,     desc: "E" },
             H:    { bits: 4, to: toH,     from: fromH,     desc: "H" },
             L:    { bits: 5, to: toL,     from: fromL,     desc: "L" },
-            _HL_: { bits: 6, to: to_HL_8, from: from_HL_8, desc: "(HL)" }
+            _HL_: { bits: 6, to: r8 ? to_HL_8_R800 : to_HL_8, from: r8 ? from_HL_8_R800 : from_HL_8, desc: "(HL)" }
         } ;
 
         var oper_IXIY_pre = {
-            _IXd_: { prefix: 0xdd, to: to_IXd_8.toPreReadAddr, from: from_IXd_8.fromPreReadAddr, desc: "(IX+d)" },
-            _IYd_: { prefix: 0xfd, to: to_IYd_8.toPreReadAddr, from: from_IYd_8.fromPreReadAddr, desc: "(IY+d)" }
+            _IXd_: { prefix: 0xdd, to: (r8 ? to_IXd_8_R800 : to_IXd_8).toPreReadAddr, from: (r8 ? from_IXd_8_R800 : from_IXd_8).fromPreReadAddr, desc: "(IX+d)" },
+            _IYd_: { prefix: 0xfd, to: (r8 ? to_IYd_8_R800 : to_IYd_8).toPreReadAddr, from: (r8 ? from_IYd_8_R800 : from_IYd_8).fromPreReadAddr, desc: "(IY+d)" }
         };
 
         var rotateShiftRegOrMem = {
@@ -2355,12 +2516,12 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 5M, 18T: - RLD
         opcode = 0x6f;
-        instr = RLD;
+        instr = newRLD(r8);
         defineInstruction(null, 0xed, opcode, 14, 4 + br + bw, instr, "RLD", false);
 
         // 2 bytes, 5M, 18T: - RRD
         opcode = 0x67;
-        instr = RRD;
+        instr = newRRD(r8);
         defineInstruction(null, 0xed, opcode, 14, 4 + br + bw, instr, "RRD", false);
 
         // Bit Set, Reset, and Test Group  --------------------------------------------------
@@ -2570,22 +2731,22 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 4M, 16T: - INI
         opcode = 0xa2;
-        instr = INI;
+        instr = newINI(r8);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "INI", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - INIR         *  in case a repeat occurs
         opcode = 0xb2;
-        instr = INIR;
+        instr = newINIR(instr);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "INIR", false);
 
         // 2 bytes, 4M, 16T: - IND
         opcode = 0xaa;
-        instr = IND;
+        instr = newIND(r8);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "IND", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - INDR         *  in case a repeat occurs
         opcode = 0xba;
-        instr = INDR;
+        instr = newINDR(instr);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "INDR", false);
 
         // 2 bytes, 3M, 11T: - OUT (n), A
@@ -2606,22 +2767,22 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 4M, 16T: - OUTI
         opcode = 0xa3;
-        instr = OUTI;
+        instr = newOUTI(r8);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "OUTI", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - OTIR         *  in case a repeat occurs
         opcode = 0xb3;
-        instr = OTIR;
+        instr = newOTIR(instr);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "OTIR", false);
 
         // 2 bytes, 4M, 16T: - OUTD
         opcode = 0xab;
-        instr = OUTD;
+        instr = newOUTD(r8);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "OUTD", false);
 
         // 2 bytes, 4M *+1, 16T *+5: - OTDR         *  in case a repeat occurs
         opcode = 0xbb;
-        instr = OTDR;
+        instr = newOTDR(instr);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "OTDR", false);
 
         // R800 exclusive instructions
@@ -2734,7 +2895,7 @@ wmsx.Z80 = function() {
         instr = pSET_FD;
         defineInstruction(0xdd, null, opcode, 4, 1, instr, "< SWITCH to FD >", false);
         opcode = 0xcb;
-        instr = pSET_DDCB;
+        instr = newpSET_DDCB(r8);
         defineInstruction(0xdd, null, opcode, 3, 1, instr, "< SET DDCB >", false);         // 3: Discount -1 for wrongly added M1 wait
 
         opcode = 0xfd;
@@ -2747,7 +2908,7 @@ wmsx.Z80 = function() {
         instr = pSET_DD;
         defineInstruction(0xfd, null, opcode, 4, 1, instr, "< SWITCH to DD >", false);
         opcode = 0xcb;
-        instr = pSET_FDCB;
+        instr = newpSET_FDCB(r8);
         defineInstruction(0xfd, null, opcode, 3, 1, instr, "< SET FDCB >", false);         // 3: Discount -1 for wrongly added M1 wait
 
         opcode = 257;
