@@ -114,7 +114,7 @@ wmsx.ImageDiskDriver = function(dos2) {
         }
     };
 
-    this.rePatchDiskBIOSOldStateForExtensions = function (bytes, patchBase, driverStart, inihrd, drives,) {
+    this.rePatchDiskBIOSOldStateForExtensions = function (bytes, patchBase, driverStart, inihrd, drives) {
         if (bytes[patchBase + driverStart + 16 + 0 + 1] === 0xe4) return;       // already correct
 
         bytes[patchBase + inihrd  + 1] =               0xe0;
