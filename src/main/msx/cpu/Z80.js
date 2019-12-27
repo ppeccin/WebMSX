@@ -41,7 +41,8 @@ wmsx.Z80 = function() {
         r800 = false;
         busCycles = 0;
         ackINT = false; prefix = 0;
-        T = 0; W = 0; opcode = 0; instruction = instructionNOP;
+        T = 0; W = 0;
+        opcode = 0; instruction = instructions[opcode];      // NOP
         PC = 0; I = 0; R = 0; R7 = 0; IFF1 = 0; IM = 0;
         extCurrRunning = null; extExtraIter = 0;
         fetchForceNextBreak();
@@ -226,7 +227,7 @@ wmsx.Z80 = function() {
         instructions        // 7  After EI
     ];
 
-    var instructionNOP, instructionHALT, instructionINT_M01, instructionINT_M2;
+    var instructionHALT;
 
     this.instructionsAll  = [];
 
@@ -237,9 +238,9 @@ wmsx.Z80 = function() {
         // if (DEBUG_PC_LOCATIONS[PC]) console.log("LOCATION: " + DEBUG_PC_LOCATIONS[PC]);
 
         ++R;
-        opcode = fetchN();
+        opcode = r800 ? fetchN_R800() : fetchN();
         selectInstruction();
-        T = r800 ? instruction.remainCyclesR800 : instruction.remainCycles;
+        T = instruction.remainCycles;
     }
 
     // if (self.trace) self.breakpoint("TRACE");
@@ -256,8 +257,8 @@ wmsx.Z80 = function() {
         IFF1 = 0;
         ackINT = false;
         if (instruction === instructionHALT) pcInc();                                      // To "escape" from HALT, and continue in the next instruction after ISR
-        instruction = IM < 2 ? instructionINT_M01 : instructionINT_M2;
-        T = r800 ? instruction.remainCyclesR800 : instruction.remainCycles;
+        instruction = IM < 2 ? instructions[258] : instructions[259];
+        T = instruction.remainCycles;
     }
 
     function selectInstruction() {
@@ -374,7 +375,7 @@ wmsx.Z80 = function() {
     }
     function memRead16_R800(addr) {
         // Forced break for first memory read already at instruction T cycles
-        W += bus.getBreakWait(addr, addr + 1);          // Add second read page break
+        W += bus.getBreakWait(addr, addr + 1);              // Add second read page break
         fetchForceNextBreak();
 
         return busRead_R800(addr) | (busRead_R800((addr + 1) & 0xffff) << 8);
@@ -388,14 +389,14 @@ wmsx.Z80 = function() {
     }
     function memWrite16_R800(addr, val) {
         // Forced break for first memory write already at instruction T cycles
-        W += bus.getBreakWait(addr, addr + 1);          // Add second write page break
+        W += bus.getBreakWait(addr, addr + 1);              // Add second write page break
         fetchForceNextBreak();
 
         busWrite_R800(addr, val & 255); busWrite_R800((addr + 1) & 0xffff, val >>> 8);
     }
     function memWrite16Rev_R800(addr, val) {
         // Forced break for first memory write already at instruction T cycles
-        W += bus.getBreakWait(addr, addr + 1);          // Add second write page break
+        W += bus.getBreakWait(addr, addr + 1);              // Add second write page break
         fetchForceNextBreak();
 
         busWrite_R800((addr + 1) & 0xffff, val >>> 8); busWrite_R800(addr, val & 255);
@@ -677,7 +678,7 @@ wmsx.Z80 = function() {
     }
     function push16_R800(val) {
         SP = (SP - 2) & 0xffff;
-        memWrite16Rev_R800(SP, val);                 // Write High first, then Low
+        memWrite16Rev_R800(SP, val);            // Write High first, then Low
     }
 
     function pop16() {
@@ -751,16 +752,24 @@ wmsx.Z80 = function() {
         R7 = A & 0x80;                      // R can have bit 7 = 1 if set manually. Store bit 7
     }
 
-    function newPUSH(from) {
-        return function PUSH() {
-            push16(from());
-        };
+    function newPUSH(from, r8) {
+        return r8
+            ? function PUSH_R800() {
+                push16_R800(from());
+            }
+            : function PUSH() {
+                push16(from());
+            };
     }
 
-    function newPOP(to) {
-        return function POP() {
-            to(pop16());
-        };
+    function newPOP(to, r8) {
+        return r8
+            ? function POP_R800() {
+                to(pop16_R800());
+            }
+            : function POP() {
+                to(pop16());
+            };
     }
 
     function EXDEHL() {
@@ -802,12 +811,13 @@ wmsx.Z80 = function() {
         }
     }
 
-    function newLDIR(instr) {
+    function newLDIR(instr, r8) {
+        var w = r8 ? 1 : 5;
         return function LDIR() {
             instr();
             if (F & bPV) {
                 dec2PC();     // Repeat this instruction
-                W += r800 ? 1 : 5;
+                W += w;
             }
         }
     }
@@ -826,12 +836,13 @@ wmsx.Z80 = function() {
         }
     }
 
-    function newLDDR(instr) {
+    function newLDDR(instr, r8) {
+        var w = r8 ? 1 : 5;
         return function LDDR() {
             instr();
             if (F & bPV) {
                 dec2PC();     // Repeat this instruction
-                W += r800 ? 1 : 5;
+                W += w;
             }
         }
     }
@@ -853,12 +864,13 @@ wmsx.Z80 = function() {
         }
     }
 
-    function newCPIR(instr) {
+    function newCPIR(instr, r8) {
+        var w = r8 ? 1 : 5;                     // r800 VERIFY
         return function CPIR() {
             instr();
             if ((F & bPV) && !(F & bZ)) {
-                dec2PC();     // Repeat this instruction
-                W += r800 ? 1 : 5;              // r800 VERIFY
+                dec2PC();                       // Repeat this instruction
+                W += w;
             }
         }
     }
@@ -880,12 +892,13 @@ wmsx.Z80 = function() {
         }
     }
 
-    function newCPDR(instr) {
+    function newCPDR(instr, r8) {
+        var w = r8 ? 1 : 5;
         return function CPDR() {
             instr();
             if ((F & bPV) && !(F & bZ)) {
                 dec2PC();     // Repeat this instruction
-                W += r800 ? 1 : 5;
+                W += w;
             }
         }
     }
@@ -1023,13 +1036,25 @@ wmsx.Z80 = function() {
         var addr = fetchN();
         PC = sum16Signed(PC, addr);
     }
+    function JR_R800() {
+        var addr = fetchN_R800();
+        PC = sum16Signed(PC, addr);
+    }
 
     function DJNZ() {
         var relat = fetchN();
         B = (B - 1) & 0xff;
         if (B !== 0) {
             PC = sum16Signed(PC, relat);
-            W += r800 ? 1 : 5;
+            W += 5;
+        }
+    }
+    function DJNZ_R800() {
+        var relat = fetchN_R800();
+        B = (B - 1) & 0xff;
+        if (B !== 0) {
+            PC = sum16Signed(PC, relat);
+            W += 1;
         }
     }
 
@@ -1038,30 +1063,33 @@ wmsx.Z80 = function() {
         push16(PC);
         PC = addr;
     }
+    function CALL_R800() {
+        var addr = fetchNN_R800();
+        push16_R800(PC);
+        PC = addr;
+    }
 
     function RET() {
         PC = pop16();
     }
-
-    function RETI() {
-        // No IFF2 supported
-        RET();
-    }
-
-    function RETN() {
-        // No IFF2 supported
-        RET();
+    function RET_R800() {
+        PC = pop16_R800();
     }
 
     function INAn() {
         var port = fetchN();
         A = busInput((A << 8) | port);
     }
+    function INAn_R800() {
+        var port = fetchN_R800();
+        A = busInput_R800((A << 8) | port);
+    }
 
     function newINI(r8) {
         var to = r8 ? to_HL_8_R800 : to_HL_8;
+        var input = r8 ? busInput_R800 : busInput;
         return function INI() {
-            to(busInput(fromBC()));
+            to(input(fromBC()));
             HL = (HL + 1) & 0xffff;
             B = (B - 1) & 0xff;
             // Flags
@@ -1071,20 +1099,22 @@ wmsx.Z80 = function() {
         }
     }
 
-    function newINIR(instr) {
+    function newINIR(instr, r8) {
+        var w = r8 ? 1 : 5;                             // r800 VERIFY
         return function INIR() {
             instr();
             if (B !== 0) {
-                dec2PC();     // Repeat this instruction
-                W += r800 ? 1 : 5;                     // r800 VERIFY
+                dec2PC();                               // Repeat this instruction
+                W += w;
             }
         }
     }
 
     function newIND(r8) {
         var to = r8 ? to_HL_8_R800 : to_HL_8;
+        var input = r8 ? busInput_R800 : busInput;
         return function IND() {
-            to(busInput(fromBC()));
+            to(input(fromBC()));
             HL = (HL - 1) & 0xffff;
             B = (B - 1) & 0xff;
             // Flags
@@ -1093,40 +1123,47 @@ wmsx.Z80 = function() {
         }
     }
 
-    function newINDR(instr) {
+    function newINDR(instr, r8) {
+        var w = r8 ? 1 : 5;                            // r800 VERIFY
         return function INDR() {
             instr();
             if (B !== 0) {
-                dec2PC();     // Repeat this instruction
-                W += r800 ? 1 : 5;                     // r800 VERIFY
+                dec2PC();                              // Repeat this instruction
+                W += w;
             }
         }
     }
 
     function OUTnA() {
         var port = fetchN();
-        busOutput((A << 8) | port, A);            // Must be the last operation on the instruction processing, because of CPU mode switch
+        busOutput((A << 8) | port, A);                  // Must be the last operation on the instruction processing, because of CPU mode switch
+    }
+    function OUTnA_R800() {
+        var port = fetchN_R800();
+        busOutput_R800((A << 8) | port, A);             // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
     function newOUTI(r8) {                              // IMPORTANT: Called by OTIR
         var from = r8 ? from_HL_8_R800 : from_HL_8;
+        var output = r8 ? busOutput_R800 : busOutput;
         return function OUTI() {
             var val = from();
             B = (B - 1) & 0xff;
             HL = (HL + 1) & 0xffff;
             // Flags
-            F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-                | ((B === 0) << nZ);                   // Z = B is 0
+            F = (F & bC) | bN                           // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+                | ((B === 0) << nZ);                    // Z = B is 0
 
-            busOutput(fromBC(), val);                 // Must be the last operation on the instruction processing, because of CPU mode switch
+            output(fromBC(), val);                      // Must be the last operation on the instruction processing, because of CPU mode switch
         }
     }
 
-    function newOTIR(instr) {
+    function newOTIR(instr, r8) {
+        var w = r8 ? 1 : 5;                             // r800 VERIFY
         return function OTIR() {
-            if (B !== 1) {                             // OUTI below will DEC B. If B !== 0 after OUTI, repeat this instruction
+            if (B !== 1) {                              // OUTI below will DEC B. If B !== 0 after OUTI, repeat this instruction
                 dec2PC();
-                W += r800 ? 1 : 5;                     // r800 VERIFY
+                W += w;
             }
 
             instr();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
@@ -1135,23 +1172,25 @@ wmsx.Z80 = function() {
 
     function newOUTD(r8) {                              // IMPORTANT: Called by OTDR
         var from = r8 ? from_HL_8_R800 : from_HL_8;
+        var output = r8 ? busOutput_R800 : busOutput;
         return function OUTD() {
             var val = from();
             B = (B - 1) & 0xff;
             HL = (HL - 1) & 0xffff;
             // Flags
-            F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-                | ((B === 0) << nZ);                   // Z = B is 0
+            F = (F & bC) | bN                           // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
+                | ((B === 0) << nZ);                    // Z = B is 0
 
-            busOutput(fromBC(), val);                  // Must be the last operation on the instruction processing, because of CPU mode switch
+            output(fromBC(), val);                      // Must be the last operation on the instruction processing, because of CPU mode switch
         }
     }
 
-    function newOTDR(instr) {
+    function newOTDR(instr, r8) {
+        var w = r8 ? 1 : 5;                             // r800 VERIFY
         return function OTDR() {
-            if (B !== 1) {                             // OUTD below will DEC B. If B !== 0 after OUTD, repeat this instruction
+            if (B !== 1) {                              // OUTD below will DEC B. If B !== 0 after OUTD, repeat this instruction
                 dec2PC();
-                W += r800 ? 1 : 5;                     // r800 VERIFY
+                W += w;
             }
 
             instr();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
@@ -1507,13 +1546,11 @@ wmsx.Z80 = function() {
         }
     }
 
-    function newSLL(to, from, toExt) {
+    function newSLL(to, from, toExt, r8) {
+        var bit0 = r8 ? 0 : 1;                         // In R800, SLL is just like SLA, so bit 0 is not set
         return function SLL() {
             var val = from();
-
-            // In R800, SLL is just like SLA, so bit 0 is not set
-            var res = r800 ? (val << 1) & 255 : ((val << 1) | 1) & 255;
-
+            var res = ((val << 1) | bit0) & 255;
             to(res);
             if (toExt) toExt(res);
             // Flags
@@ -1571,68 +1608,100 @@ wmsx.Z80 = function() {
         }
     }
 
-    function newJP(from) {
-        return function JP() {
-            PC = from();
-            // r800 force page break on next fetch
-            if (r800) fetchForceNextBreak();
-        }
+    function newJP(from, r8) {
+        return r8
+            ? function JP_R800() {
+                PC = from();
+                fetchForceNextBreak();
+            }
+            : function JP() {
+                PC = from();
+            }
     }
 
-    function newJPcc(flag, val) {
-        return function JPcc() {
-            var addr = fetchNN();
-            if ((F & flag) === val) {
-                PC = addr;
-                if (r800) {
+    function newJPcc(flag, val, r8) {
+        return r8
+            ? function JPcc_R800() {
+                var addr = fetchNN_R800();
+                if ((F & flag) === val) {
+                    PC = addr;
                     // r800 add wait and force page break on next fetch if branch taken
                     ++W;
                     fetchForceNextBreak();
                 }
             }
-        }
+            : function JPcc() {
+                var addr = fetchNN();
+                if ((F & flag) === val) {
+                    PC = addr;
+                }
+            }
     }
 
-    function newJRcc(flag, val) {
-        return function JRcc() {
-            var relat = fetchN();
+    function newJRcc(flag, val, r8) {
+        return r8
+            ? function JRcc_R800() {
+                var relat = fetchN_R800();
+                if ((F & flag) === val) {
+                    PC = sum16Signed(PC, relat);
+                    W += 1;
+                }
+            }
+            : function JRcc() {
+                var relat = fetchN();
+                if ((F & flag) === val) {
+                    PC = sum16Signed(PC, relat);
+                    W += 5;
+                }
+            }
+    }
+
+    function newCALLcc(flag, val, r8) {
+        var fetch = r8 ? fetchNN_R800 : fetchNN;
+        var push = r8 ? push16_R800 : push16;
+        var w = r8 ? 3 + bw : 7;
+        return function CALLcc() {
+            var addr = fetch();
             if ((F & flag) === val) {
-                PC = sum16Signed(PC, relat);
-                W += r800 ? 1 : 5;
+                push(PC);
+                PC = addr;
+                W += w;
             }
         }
     }
 
-    function newCALLcc(flag, val) {
-        return function CALLcc() {
-            var addr = fetchNN();
-            if ((F & flag) === val) {
+    function newRETcc(flag, val, r8) {
+        return r8
+            ? function RETcc_R800() {
+                if ((F & flag) === val) {
+                    RET_R800();
+                    W += 2 + br;
+                }
+            }
+            : function RETcc() {
+                if ((F & flag) === val) {
+                    RET();
+                    W += 6;
+                }
+            }
+    }
+
+    function newRST(addr, r8) {
+        return r8
+            ? function RST_R800() {
+                push16_R800(PC);
+                PC = addr;
+            }
+            : function RST() {
                 push16(PC);
                 PC = addr;
-                W += r800 ? 3 + bw : 7;      // r800 add wait overhead if branch taken
             }
-        }
     }
 
-    function newRETcc(flag, val) {
-        return function RETcc() {
-            if ((F & flag) === val) {
-                RET();
-                W += r800 ? 2 + br : 6;      // r800 add wait overhead if branch taken
-            }
-        }
-    }
-
-    function newRST(addr) {
-        return function RST() {
-            push16(PC);
-            PC = addr;
-        }
-    }
-
-    function newINrC(to) {
+    function newINrC(to, r8) {
+        var input = r8 ? busInput_R800 : busInput;
         return function INrC() {
-            var val = busInput(fromBC());
+            var val = input(fromBC());
             to(val);
             // Flags
             F = (F & bC)                               // H = 0; N = 0; C = C
@@ -1642,9 +1711,10 @@ wmsx.Z80 = function() {
         }
     }
 
-    function newOUTCr(from) {
+    function newOUTCr(from, r8) {
+        var output = r8 ? busOutput_R800 : busOutput;
         return function OUTCr() {
-            busOutput(fromBC(), from());               // Must be the last operation on the instruction processing, because of CPU mode switch
+            output(fromBC(), from());                  // Must be the last operation on the instruction processing, because of CPU mode switch
         }
     }
 
@@ -1652,9 +1722,6 @@ wmsx.Z80 = function() {
 
     function newMULUB(from) {
         return function MULUB() {
-            // In Z80, MULUB is just like NOP
-            if (!r800) return;
-
             var res = A * from();
             HL = res;
             // Flags
@@ -1667,9 +1734,6 @@ wmsx.Z80 = function() {
 
     function newMULUW(from) {
         return function MULUW() {
-            // In Z80, MULUW is just like NOP
-            if (!r800) return;
-
             var res = HL * from();
             DE = res >>> 16; HL = res & 0xffff;
             // Flags
@@ -1694,9 +1758,20 @@ wmsx.Z80 = function() {
             | ((val === 0) << nZ)                  // Z = res is 0
             | parities[val];                       // P = parity of res
     }
+    function uIN_C_R800() {                  // Like the normal IN r, (C) but does not store the data
+        var val = busInput_R800(fromBC());
+        // Flags
+        F = (F & bC)                               // H = 0; N = 0; C = C
+            | (val & 0xa8)                         // S = val is negative; f5, f3 copied from res
+            | ((val === 0) << nZ)                  // Z = res is 0
+            | parities[val];                       // P = parity of res
+    }
 
     function uOUTC0() {                      // Like the normal OUT (C), r but always output 0
         busOutput(fromBC(), 0);                    // Must be the last operation on the instruction processing, because of CPU mode switch
+    }
+    function uOUTC0_R800() {                 // Like the normal OUT (C), r but always output 0
+        busOutput_R800(fromBC(), 0);               // Must be the last operation on the instruction processing, because of CPU mode switch
     }
 
     // Pseudo instructions
@@ -1707,12 +1782,24 @@ wmsx.Z80 = function() {
         // IM0 reads instruction to execute from Bus. Always FFh in this implementation, so same as RST 38h
         PC = 0x0038;
     }
+    function pINT_IM01_R800() {
+        push16_R800(PC);
+        // IM1 is the same as a RST 38h
+        // IM0 reads instruction to execute from Bus. Always FFh in this implementation, so same as RST 38h
+        PC = 0x0038;
+    }
 
     function pINT_IM2() {
         push16(PC);
         // Read Jump Table address low from Bus (always FFh in this implementation), and address high from I
         var jumpTableEntry = (I << 8) | 0xff;
         PC = memRead16(jumpTableEntry);
+    }
+    function pINT_IM2_R800() {
+        push16_R800(PC);
+        // Read Jump Table address low from Bus (always FFh in this implementation), and address high from I
+        var jumpTableEntry = (I << 8) | 0xff;
+        PC = memRead16_R800(jumpTableEntry);
     }
 
     function pSET_CB() {
@@ -1887,7 +1974,7 @@ wmsx.Z80 = function() {
             opcode = opcodeBase | (operTo.bits << 3);
             instr = newLD(
                 operTo.to,
-                fetchN
+                r8 ? fetchN_R800 : fetchN
             );
             prefix = operTo.pref;
             defineInstruction(prefix, null, opcode, 7, 2, instr, "LD " + operTo.desc + ", n", prefix);
@@ -1935,13 +2022,13 @@ wmsx.Z80 = function() {
             if (prefix) {
                 instr = newLD_PreRead_IXYd_(
                     operTo.to.toPreReadAddr,
-                    fetchN,
+                    r8 ? fetchN_R800 : fetchN,
                     r8
                 );
             } else {
                 instr = newLD(
                     operTo.to,
-                    fetchN
+                    r8 ? fetchN_R800 : fetchN
                 );
             }
             defineInstruction(prefix, null, opcode, 10 + (prefix ? 5 : 0), 3 + bw + (prefix ? 1 : 0), instr, "LD " + operTo.desc + ", n", false);
@@ -2056,7 +2143,7 @@ wmsx.Z80 = function() {
             opcode = opcodeBase | (operTo.bits << 4);
             instr = newLD(
                 operTo.to,
-                fetchNN
+                r8 ? fetchNN_R800 : fetchNN
             );
             prefix = operTo.pref;
             defineInstruction(prefix, null, opcode, 10, 3, instr, "LD " + operTo.desc + ", nn", false);
@@ -2128,7 +2215,8 @@ wmsx.Z80 = function() {
             operFrom = operQQp[from];
             opcode = opcodeBase | (operFrom.bits << 4);
             instr = newPUSH(
-                operFrom.from
+                operFrom.from,
+                r8
             );
             prefix = operFrom.pref;
             defineInstruction(prefix, null, opcode, 11, 4 + bw, instr, "PUSH " + operFrom.desc, false);
@@ -2140,7 +2228,8 @@ wmsx.Z80 = function() {
             operTo = operQQp[to];
             opcode = opcodeBase | (operTo.bits << 4);
             instr = newPOP(
-                operTo.to
+                operTo.to,
+                r8
             );
             prefix = operTo.pref;
             defineInstruction(prefix, null, opcode, 10, 3 + br, instr, "POP " + operTo.desc, false);
@@ -2179,7 +2268,7 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 4M *+1, 16T *+5: - LDIR         *  in case a repeat occurs
         opcode = 0xb0;
-        instr = newLDIR(instr);
+        instr = newLDIR(instr, r8);
         defineInstruction(null, 0xed, opcode, 12, 3 + br + bw, instr, "LDIR", false);
 
         // 2 bytes, 4M, 16T: - LDD
@@ -2189,7 +2278,7 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 4M *+1, 16T *+5: - LDDR         *  in case a repeat occurs
         opcode = 0xb8;
-        instr = newLDDR(instr);
+        instr = newLDDR(instr, r8);
         defineInstruction(null, 0xed, opcode, 12, 3 + br + bw, instr, "LDDR", false);
 
         // 2 bytes, 4M, 16T: - CPI
@@ -2199,7 +2288,7 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 4M *+1, 16T *+5: - CPIR         *  in case a repeat occurs
         opcode = 0xb1;
-        instr = newCPIR(instr);
+        instr = newCPIR(instr, r8);
         defineInstruction(null, 0xed, opcode, 12, 4 + br, instr, "CPIR", false);    // r800 VERIFY
 
         // 2 bytes, 4M, 16T: - CPD
@@ -2209,7 +2298,7 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 4M *+1, 16T *+5: - CPDR         *  in case a repeat occurs
         opcode = 0xb9;
-        instr = newCPDR(instr);
+        instr = newCPDR(instr, r8);
         defineInstruction(null, 0xed, opcode, 12, 4 + br, instr, "CPDR", false);    // r800 VERIFY
 
         // 8-bit Arithmetic Group  ----------------------------------------------------
@@ -2286,7 +2375,8 @@ wmsx.Z80 = function() {
             if (vari) {
                 opcode = vari.opcode;
                 instr = ins.instr(
-                    fetchN, null
+                    r8 ? fetchN_R800 : fetchN,
+                    null
                 );
                 defineInstruction(null, null, opcode, 7, 2, instr, ins.desc + "n", false);
             }
@@ -2340,7 +2430,7 @@ wmsx.Z80 = function() {
         // 1 bytes, 1M, 4T: - NOP
         opcode = 0x00;
         instr = NOP;
-        instructionNOP = defineInstruction(null, null, opcode, 4, 1, instr, "NOP", false);
+        defineInstruction(null, null, opcode, 4, 1, instr, "NOP", false);
 
         // 1 bytes, 1M, 4T: - HALT
         opcode = 0x76;
@@ -2477,7 +2567,7 @@ wmsx.Z80 = function() {
             RR:  { desc: "RR ",   instr: newRR,   opcode: 0x18 },
             SLA: { desc: "SLA ",  instr: newSLA,  opcode: 0x20 },
             SRA: { desc: "SRA ",  instr: newSRA,  opcode: 0x28 },
-            SLL: { desc: "SLL ",  instr: newSLL,  opcode: 0x30, undoc: true },
+            SLL: { desc: "SLL ",  instr: newSLL,  opcode: 0x30, undoc: !r8 },
             SRL: { desc: "SRL ",  instr: newSRL,  opcode: 0x38 }
         };
 
@@ -2491,7 +2581,8 @@ wmsx.Z80 = function() {
                 instr = ins.instr(
                     oper.to,
                     oper.from,
-                    null
+                    null,
+                    r8
                 );
                 t = op === "_HL_" ? 11 : 4;
                 tr = op === "_HL_" ? 4 + br + bw : 1;
@@ -2507,7 +2598,8 @@ wmsx.Z80 = function() {
                     instr = ins.instr(
                         pref.to,
                         pref.from,
-                        toExt         // Also store result in the register! Undocumented.
+                        toExt,        // Also store result in the register! Undocumented.
+                        r8
                     );
                     defineInstruction(pref.prefix, 0xcb, opcode, 15, 5 + br + bw, instr, ins.desc + pref.desc + (toExt ? ", " + oper.desc : ""), ins.undoc || toExt);
                 }
@@ -2575,10 +2667,10 @@ wmsx.Z80 = function() {
         // Jump Group  --------------------------------------------------------------------
 
         var operVVp = {
-            nn:   { desc: "nn",   from: fetchNN, opcode: 0xc3, T: 10, Tr: 4 },
-            HL:   { desc: "(HL)", from: fromHL,  opcode: 0xe9, T: 4,  Tr: 2 },                   // Not really indirect
-            IX:   { desc: "(IX)", from: fromIX,  opcode: 0xe9, T: 4,  Tr: 2, pref: 0xdd },       // Not really indirect
-            IY:   { desc: "(IY)", from: fromIY,  opcode: 0xe9, T: 4,  Tr: 2, pref: 0xfd }        // Not really indirect
+            nn:   { desc: "nn",   from: r8 ? fetchNN_R800 : fetchNN, opcode: 0xc3, T: 10, Tr: 4 },
+            HL:   { desc: "(HL)", from: fromHL,                      opcode: 0xe9, T: 4,  Tr: 2 },                   // Not really indirect
+            IX:   { desc: "(IX)", from: fromIX,                      opcode: 0xe9, T: 4,  Tr: 2, pref: 0xdd },       // Not really indirect
+            IY:   { desc: "(IY)", from: fromIY,                      opcode: 0xe9, T: 4,  Tr: 2, pref: 0xfd }        // Not really indirect
         };
 
         var operCC = {
@@ -2597,7 +2689,8 @@ wmsx.Z80 = function() {
             oper = operVVp[op];
             opcode = oper.opcode;
             instr = newJP(
-                oper.from
+                oper.from,
+                r8
             );
             prefix = oper.pref;
             defineInstruction(prefix, null, opcode, oper.T, oper.Tr, instr, "JP " + oper.desc, false);
@@ -2610,14 +2703,15 @@ wmsx.Z80 = function() {
             opcode = opcodeBase | (oper.bits << 3);
             instr = newJPcc(
                 oper.flag,
-                oper.val
+                oper.val,
+                r8
             );
             defineInstruction(null, null, opcode, 10, 3, instr, "JP " + oper.desc + ", nn", false);
         }
 
         // 2 bytes, 3M, 12T: - JR e
         opcode = 0x18;
-        instr = JR;
+        instr = r8 ? JR_R800 : JR;
         defineInstruction(null, null, opcode, 12, 3, instr, "JR e", false);
 
         var operCCe = {
@@ -2633,21 +2727,22 @@ wmsx.Z80 = function() {
             opcode = oper.opcode;
             instr = newJRcc(
                 oper.flag,
-                oper.val
+                oper.val,
+                r8
             );
             defineInstruction(null, null, opcode, 7, 2, instr, "JR " + oper.desc + ", e", false);
         }
 
         // 2 bytes, 2M *+1, 8T *+5: - DJNZ e       * if condition is true and branch taken
         opcode = 0x10;
-        instr = DJNZ;
+        instr = r8 ? DJNZ_R800 : DJNZ;
         defineInstruction(null, null, opcode, 8, 2, instr, "DJNZ e", false);
 
         // Call and Return Group  ----------------------------------------------------------
 
         // 3 bytes, 5M,  17T: - CALL nn
         opcode = 0xcd;
-        instr = CALL;
+        instr = r8 ? CALL_R800 : CALL;
         defineInstruction(null, null, opcode, 17, 6 + bw, instr, "CALL nn", false);
 
         // 3 bytes, 3M *+2, 10T *+7: - CALL cc, nn       * if condition is true and branch taken
@@ -2657,14 +2752,15 @@ wmsx.Z80 = function() {
             opcode = opcodeBase | (oper.bits << 3);
             instr = newCALLcc(
                 oper.flag,
-                oper.val
+                oper.val,
+                r8
             );
             defineInstruction(null, null, opcode, 10, 3, instr, "CALL " + oper.desc + ", nn", false);
         }
 
         // 1 bytes, 3M, 10T: - RET
         opcode = 0xc9;
-        instr = RET;
+        instr = r8 ? RET_R800 : RET;
         defineInstruction(null, null, opcode, 10, 3 + br, instr, "RET", false);
 
         // 1 bytes, 1M *+2, 5T *+6: - RET cc          * if condition is true and branch taken
@@ -2674,19 +2770,20 @@ wmsx.Z80 = function() {
             opcode = opcodeBase | (oper.bits << 3);
             instr = newRETcc(
                 oper.flag,
-                oper.val
+                oper.val,
+                r8
             );
             defineInstruction(null, null, opcode, 5, 1, instr, "RET " + oper.desc, false);
         }
 
         // 2 bytes, 4M, 14T: - RETI
         opcode = 0x4d;
-        instr = RETI;
+        instr = r8 ? RET_R800 : RET;    // Same as RET, no IFF2 supported
         defineInstruction(null, 0xed, opcode, 10, 4 + br, instr, "RETI", false);
 
         // 2 bytes, 4M, 14T: - RETN
         opcode = 0x45;
-        instr = RETN;
+        instr = r8 ? RET_R800 : RET;    // Same as RET, no IFF2 supported
         defineInstruction(null, 0xed, opcode, 10, 4 + br, instr, "RETN", false);
 
         var operRST = {
@@ -2706,7 +2803,8 @@ wmsx.Z80 = function() {
             oper = operRST[op];
             opcode = opcodeBase | (oper.bits << 3);
             instr = newRST(
-                oper.addr
+                oper.addr,
+                r8
             );
             defineInstruction(null, null, opcode, 11, 5 + bw, instr, "RST " + oper.desc, false);
         }
@@ -2715,7 +2813,7 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 3M, 11T: - IN A, (n)
         opcode = 0xdb;
-        instr = INAn;
+        instr = r8 ? INAn_R800 : INAn;
         defineInstruction(null, null, opcode, 11, 9, instr, "IN A, (n)", false);
 
         // 2 bytes, 3M, 12T: - IN r, (C)
@@ -2724,7 +2822,8 @@ wmsx.Z80 = function() {
             oper = operR[op];
             opcode = opcodeBase | (oper.bits << 3);
             instr = newINrC(
-                oper.to
+                oper.to,
+                r8
             );
             defineInstruction(null, 0xed, opcode, 8, 8, instr, "IN " + oper.desc + ", (C)", false);
         }
@@ -2736,7 +2835,7 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 4M *+1, 16T *+5: - INIR         *  in case a repeat occurs
         opcode = 0xb2;
-        instr = newINIR(instr);
+        instr = newINIR(instr, r8);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "INIR", false);
 
         // 2 bytes, 4M, 16T: - IND
@@ -2746,12 +2845,12 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 4M *+1, 16T *+5: - INDR         *  in case a repeat occurs
         opcode = 0xba;
-        instr = newINDR(instr);
+        instr = newINDR(instr, r8);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "INDR", false);
 
         // 2 bytes, 3M, 11T: - OUT (n), A
         opcode = 0xd3;
-        instr = OUTnA;
+        instr = r8 ? OUTnA_R800 : OUTnA;
         defineInstruction(null, null, opcode, 11, 9, instr, "OUT (n), A", false);
 
         // 2 bytes, 3M, 12T: - OUT (C), r
@@ -2760,7 +2859,8 @@ wmsx.Z80 = function() {
             oper = operR[op];
             opcode = opcodeBase | (oper.bits << 3);
             instr = newOUTCr(
-                oper.from
+                oper.from,
+                r8
             );
             defineInstruction(null, 0xed, opcode, 8, 8, instr, "OUT (C), " + oper.desc, false);
         }
@@ -2772,7 +2872,7 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 4M *+1, 16T *+5: - OTIR         *  in case a repeat occurs
         opcode = 0xb3;
-        instr = newOTIR(instr);
+        instr = newOTIR(instr, r8);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "OTIR", false);
 
         // 2 bytes, 4M, 16T: - OUTD
@@ -2782,56 +2882,60 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 4M *+1, 16T *+5: - OTDR         *  in case a repeat occurs
         opcode = 0xbb;
-        instr = newOTDR(instr);
+        instr = newOTDR(instr, r8);
         defineInstruction(null, 0xed, opcode, 12, 10, instr, "OTDR", false);
 
         // R800 exclusive instructions
 
-        // 2 bytes, ?M, 14T: - R800 MULUB A, r
-        opcodeBase = 0xc1;
-        for (op in operR) {
-            oper = operR[op];
-            opcode = opcodeBase | (oper.bits << 3);
-            instr = newMULUB(
-                oper.from
-            );
-            defineInstruction(null, 0xed, opcode, 4, 13, instr, "MULUB A, " + oper.desc, false);
-        }
+        if (r8) {
 
-        // 2 bytes, ?M, 36T: - R800 MULUW HL, dd
-        opcodeBase = 0xc3;
-        for (op in operDD) {
-            oper = operDD[op];
-            opcode = opcodeBase | (oper.bits << 4);
-            instr = newMULUW(
-                oper.from
-            );
-            defineInstruction(null, 0xed, opcode, 4, 35, instr, "MULUW HL, " + oper.desc, false);
+            // 2 bytes, ?M, 14T: - R800 MULUB A, r
+            opcodeBase = 0xc1;
+            for (op in operR) {
+                oper = operR[op];
+                opcode = opcodeBase | (oper.bits << 3);
+                instr = newMULUB(
+                    oper.from
+                );
+                defineInstruction(null, 0xed, opcode, 4, 13, instr, "MULUB A, " + oper.desc, false);
+            }
+
+            // 2 bytes, ?M, 36T: - R800 MULUW HL, dd
+            opcodeBase = 0xc3;
+            for (op in operDD) {
+                oper = operDD[op];
+                opcode = opcodeBase | (oper.bits << 4);
+                instr = newMULUW(
+                    oper.from
+                );
+                defineInstruction(null, 0xed, opcode, 4, 35, instr, "MULUW HL, " + oper.desc, false);
+            }
+
         }
 
         // Undocumented instructions, besides DD and FD prefixed variations already defined
 
         // 2 bytes, 2M, 8T: - uNEG
         var ops = [0x4c, 0x54, 0x5c, 0x64, 0x6c, 0x74, 0x7c];
+        instr = NEG;
         for (i = 0; i < ops.length; i++) {
             opcode = ops[i];
-            instr = NEG;
             defineInstruction(null, 0xed, opcode, 4, 1, instr, "NEG", true);
         }
 
         // 2 bytes, 4M, 14T: - uRETN
         ops = [0x55, 0x5d, 0x65, 0x6d, 0x75, 0x7d];
+        instr = r8 ? RET_R800 : RET;    // Same as RET, no IFF2 supported
         for (i = 0; i < ops.length; i++) {
             opcode = ops[i];
-            instr = RETN;
             defineInstruction(null, 0xed, opcode, 10, 4 + br, instr, "RETN", true);
         }
 
         // 2 bytes, 2M, 8T: - uIM 0
         ops = [0x4e, 0x66, 0x6e];
+        instr = newIM(0);
         for (i = 0; i < ops.length; i++) {
             opcode = ops[i];
-            instr = newIM(0);
             defineInstruction(null, 0xed, opcode, 4, 2, instr, "IM 0", true);
         }
 
@@ -2847,18 +2951,18 @@ wmsx.Z80 = function() {
 
         // 2 bytes, 3M, 12T: - uIN (C)
         opcode = 0x70;
-        instr = uIN_C;
+        instr = r8 ? uIN_C_R800 : uIN_C;
         defineInstruction(null, 0xed, opcode, 8, 8, instr, "IN (C)", true);
 
         // 2 bytes, 3M, 12T: - uOUT (C)
         opcode = 0x71;
-        instr = uOUTC0;
+        instr = r8 ? uOUTC0_R800 : uOUTC0;
         defineInstruction(null, 0xed, opcode, 8, 8, instr, "OUT (C), 0", true);
 
-        // Extension pseudo Instructions (ED E0 to ED FF), not yet defined (excludes E1, E3, E9, F3, F9 which are R800 instructions)
+        // Extension pseudo Instructions (ED E0 to ED FF), not yet defined (may exclude E1, E3, E9, F3, F9 which are R800 instructions)
 
         for (opcode = 0xe0; opcode <= 0xff; opcode++) {
-            if (!instructionsED[i]) {
+            if (!instructionsED[opcode]) {
                 instr = newpEXT(opcode);
                 defineInstruction(null, 0xed, opcode, 4, 1, instr, "EXT " + opcode.toString(16), true);
             }
@@ -2867,10 +2971,9 @@ wmsx.Z80 = function() {
         // All remaining ED extended instructions not yet defined are NOPs
 
         // 2 bytes, 2M, 8T: - uNOP
-        for (i = 0x00; i <= 0xff; i++) {
-            if (!instructionsED[i]) {
-                opcode = i;
-                instr = uNOP;
+        instr = uNOP;
+        for (opcode = 0x00; opcode <= 0xff; opcode++) {
+            if (!instructionsED[opcode]) {
                 defineInstruction(null, 0xed, opcode, 4, 1, instr, "NOP", true);
             }
         }
@@ -2916,12 +3019,12 @@ wmsx.Z80 = function() {
         defineInstruction(null, null, opcode, 0, 0, instr, "< ADT CYCLES >", false);       // Dummy, only for backward compatibility in old Savestates
 
         opcode = 258;
-        instr = pINT_IM01;
-        instructionINT_M01 = defineInstruction(null, null, opcode, 13, 3 + bw, instr, "< INT_M01 >", false);        // r800 VERIFY
+        instr = r8 ? pINT_IM01_R800 : pINT_IM01;
+        defineInstruction(null, null, opcode, 13, 3 + bw, instr, "< INT_M01 >", false);        // r800 VERIFY
 
         opcode = 259;
-        instr = pINT_IM2;
-        instructionINT_M2 =  defineInstruction(null, null, opcode, 19, 5 + bw + br, instr, "< INT_M2 >", false);    // r800 VERIFY
+        instr = r8 ? pINT_IM2_R800 : pINT_IM2;
+        defineInstruction(null, null, opcode, 19, 5 + bw + br, instr, "< INT_M2 >", false);    // r800 VERIFY
 
 
         // ------------------------------
@@ -2930,10 +3033,12 @@ wmsx.Z80 = function() {
             var instr = {};
             instr.prefix = prefix2 ? ((prefix1 << 8) | prefix2) : prefix1;
             instr.opcode = opcode;
-            instr.remainCycles = cycles + 1;                                                        // extra M1 wait for Z80
-            instr.remainCyclesR800 = cyclesR800;                                                    // NO extra M1 wait for R800
-            instr.totalCycles = instr.remainCycles + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);         // only informative: each prefix adds 4T + 1 extra M1 state for the first prefix
-            instr.totalCyclesR800 = instr.remainCyclesR800 + (prefix1 ? 1 : 0) + (prefix2 ? 1 : 0); // only informative: each prefix adds 1T
+            instr.remainCyclesZ80 =  cycles + 1;                                                        // extra M1 wait for Z80
+            instr.remainCyclesR800 = cyclesR800;                                                        // NO extra M1 wait for R800
+            instr.totalCyclesZ80 =  instr.remainCyclesZ80 + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);      // only informative: each prefix adds 4T + 1 extra M1 state for the first prefix
+            instr.totalCyclesR800 = instr.remainCyclesR800 + (prefix1 ? 1 : 0) + (prefix2 ? 1 : 0);     // only informative: each prefix adds 1T
+
+            instr.remainCycles = r8 ? instr.remainCyclesR800 : instr.remainCyclesZ80;
             instr.operation = operation;
             instr.mnemonic = mnemonic;
             instr.undocumented = undocumented;
@@ -3028,18 +3133,18 @@ wmsx.Z80 = function() {
     //        throw new Error("Oh my gosh!");
     //}
 
-    //this.printInstructions = function() {
-    //    this.instructionsAll.sort(function(a,b) {
-    //        return a == b ? 0 : a.opcodeString > b.opcodeString ? 1 : -1;
-    //    });
-    //    var res = "";
-    //    for (var i = 0, len = this.instructionsAll.length; i < len; i++) {
-    //        var opcodeString = this.instructionsAll[i].opcodeString;
-    //        for (; opcodeString.length < 30;) opcodeString += " ";
-    //        res += "\n" + opcodeString + " : " + this.instructionsAll[i].totalCycles;
-    //    }
-    //    return res;
-    //};
+    this.printInstructions = function() {
+       this.instructionsAll.sort(function(a,b) {
+           return a == b ? 0 : a.opcodeString > b.opcodeString ? 1 : -1;
+       });
+       var res = "";
+       for (var i = 0, len = this.instructionsAll.length; i < len; i++) {
+           var opcodeString = this.instructionsAll[i].opcodeString;
+           for (; opcodeString.length < 30;) opcodeString += " ";
+           res += "\n" + opcodeString + " : " + this.instructionsAll[i].totalCyclesZ80 + " , " + this.instructionsAll[i].totalCyclesR800;
+       }
+       return res;
+    };
 
     //this.breakpoint = function(mes) {
     //    self.stop = true;

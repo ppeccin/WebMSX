@@ -5,6 +5,8 @@
 // 2K, 8K or 32K SRAM, depending on format
 // 0x4000 - 0xbfff
 
+// TODO Bug in Dires ROM probably related to SRAM
+
 wmsx.CartridgeASCII8KSRAM = function(rom, format) {
     "use strict";
 
@@ -13,13 +15,16 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
         bytes = wmsx.Util.asNormalArray(rom.content);
         self.bytes = bytes;
         numBanks = (bytes.length / 8192) | 0;
-        var sramSize = format === wmsx.SlotFormats.KoeiSRAM32 ? 32768 : format === wmsx.SlotFormats.ASCII16SRAM2 ? 2048 : 8192;
+        var sramSize = format === wmsx.SlotFormats.KoeiSRAM32 ? 32768 : format === wmsx.SlotFormats.ASCII8SRAM2 ? 2048 : 8192;
         sramSizeMask = sramSize - 1;
         sram = wmsx.Util.arrayFill(new Array(sramSize), 0);
         self.sram = sram;
         var aboveROMBankBit = Math.max(0x20, 1 << Math.ceil(wmsx.Util.log2(numBanks)));         // Bit above max ROM bank number. Starting at bit 5 minimum
         romSelectMask = aboveROMBankBit - 1;
         sramSelectMask = format === wmsx.SlotFormats.Wizardry ? 0x80 : aboveROMBankBit;         // Bits for SRAM Bank Select
+
+        // console.log(numBanks, romSelectMask.toString(16), sramSelectMask.toString(16), sramSizeMask.toString(16));
+        // sramSelectMask = 0xe0;
     }
 
     this.connect = function(machine) {
