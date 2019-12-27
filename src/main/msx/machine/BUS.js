@@ -130,7 +130,7 @@ wmsx.BUS = function(machine, cpu) {
         return devicesOutputPorts[port & 255](val, port);
     };
 
-    this.getIOWait = function(port) {
+    this.getIOWait = function(port, clockMulti) {
         if (port > 0x9b || port < 0x98) return 0;       // Not a VDP port
 
         var last = vdpIOClock;
@@ -138,7 +138,7 @@ wmsx.BUS = function(machine, cpu) {
 
         var wait = 31 - (vdpIOClock - last);            // Minimum 31 BUS clocks between VDP accesses
 
-        return wait > 0 ? wait << 1 : 0;                // Wait in R800 clocks, so * 2
+        return wait > 0 ? wait * clockMulti: 0;         // Wait in BUS cycles, so use CPU clock multi
     };
 
     this.setPrimarySlotConfig = function(val) {

@@ -8,8 +8,6 @@
 // R800 clock is double Z80 clock, and processing pauses for ~4us each ~31us for memory refresh (~12.9% of the processing time)
 // Thus it stops approx. twice each NTSC scanline, for about approx. 29 clocks
 
-// TODO Disable S1990 additional waits in Z80 mode
-
 wmsx.Z80 = function() {
 "use strict";
 
@@ -94,7 +92,7 @@ wmsx.Z80 = function() {
             }
         }
 
-        busCycles += busPulses;
+        busCycles += busPulses;         // TODO This is too low resolution for things like the S1990 VDP IO wait
     };
 
     this.setINTChannel = function(chan, state) {
@@ -419,11 +417,11 @@ wmsx.Z80 = function() {
     }
 
     function busInput_R800(port) {
-        W += bus.getIOWait(port);                           // Add IO waits
+        W += bus.getIOWait(port, clockMulti);
         return bus.input(port);
     }
     function busOutput_R800(port, val) {
-        W += bus.getIOWait(port);                           // Add IO waits
+        W += bus.getIOWait(port, clockMulti);
         bus.output(port,  val);
     }
 
