@@ -107,22 +107,17 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     this.getBreakWait = function(address, lastAddress) {
-        switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
-            case 0: return slot0.getBreakWaitSub(address, lastAddress);     // Slot0 (ROM/RAM)
-            case 1: return 1;                                               // External: Forced Page Break
-            case 2: return 1;                                               // External: Forced Page Break
-            case 3: return slot3.getBreakWaitSub(address, lastAddress);     // Slot3 (ROM/RAM)
-        }
+        var s = (primarySlotConfig >> ((address >> 14) << 1)) & 3;
+        if (s === 3) return slot3.getBreakWaitSub(address, lastAddress);     // Slot3 (ROM/RAM)
+        if (s === 0) return slot0.getBreakWaitSub(address, lastAddress);     // Slot0 (ROM/RAM)
+        return 1;                                                            // External: Forced Page Break
     };
 
     this.getAccessWait = function(address) {
-        // Forced first access break already added
-        switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
-            case 0: return slot0.getAccessWaitSub(address);                 // Slot0 (ROM/RAM)
-            case 1: return 2;                                               // External: 2 extra waits
-            case 2: return 2;                                               // External: 2 extra waits
-            case 3: return slot3.getAccessWaitSub(address);                 // Slot3 (ROM/RAM)
-        }
+        var s = (primarySlotConfig >> ((address >> 14) << 1)) & 3;
+        if (s === 3) return slot3.getAccessWaitSub(address);                 // Slot3 (ROM/RAM)
+        if (s === 0) return slot0.getAccessWaitSub(address);                 // Slot0 (ROM/RAM)
+        return 2;                                                            // External: 2 extra waits
     };
 
     this.input = function(port) {

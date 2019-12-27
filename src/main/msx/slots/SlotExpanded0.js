@@ -109,15 +109,15 @@ wmsx.SlotExpanded0 = function() {
 
     this.getBreakWaitSub = function(address, lastAddress) {
         // Performance trade-off: consider ALL subSlots the same as Slot 0 (BIOS), so all have DRAM Mode
-        if (dramMode)
-            return ((address >>> 8) !== (lastAddress >>> 8)) | 0;       // RAM: Only if Real Page Break
+        if (dramMode && (address >>> 8) === (lastAddress >>> 8))
+            return 0;                               // RAM without Page Break
         else
-            return 1;                                                   // ROM: Forced Page Break
+            return 1;                               // RAM with Page Break or ROM Forced Break
     };
 
     this.getAccessWaitSub = function(address) {
         // Performance trade-off: consider ALL subSlots the same as Slot 0 (BIOS), so all have DRAM Mode
-        return drramModeAccessWait;                                     // RAM: 0 extra wait, ROM: 1 extra wait
+        return drramModeAccessWait;                 // RAM: 0 extra wait, ROM: 1 extra wait
     };
 
     this.setSecondarySlotConfig = function(val) {

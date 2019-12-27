@@ -16,7 +16,8 @@ wmsx.Z80 = function() {
     var self = this;
 
     function init() {
-        defineAllInstructions(false);
+        defineAllInstructions(instructionsByPrefixZ80,  false);
+        defineAllInstructions(instructionsByPrefixR800, true);
     }
 
     this.connectBus = function(aBus) {
@@ -42,12 +43,13 @@ wmsx.Z80 = function() {
         busCycles = 0;
         ackINT = false; prefix = 0;
         T = 0; W = 0;
-        opcode = 0; instruction = instructions[opcode];      // NOP
+        opcode = 0; instruction = null;
         PC = 0; I = 0; R = 0; R7 = 0; IFF1 = 0; IM = 0;
         extCurrRunning = null; extExtraIter = 0;
         fetchForceNextBreak();
 
         writeState(modeBackState);
+        updateInstructionSet();
     };
 
     this.setR800Mode = function(state) {
@@ -58,7 +60,13 @@ wmsx.Z80 = function() {
         r800 = !r800;
         clockMulti = r800 ? r800ClockMulti : z80ClockMulti;
         swapModeState();
+        updateInstructionSet();
     };
+
+    function updateInstructionSet() {
+        instructionsNoPrefix = r800 ? instructionsNoPrefixR800 : instructionsNoPrefixZ80;
+        instructionsByPrefix = r800 ? instructionsByPrefixR800 : instructionsByPrefixZ80;
+    }
 
     // Called once every 228 clocks. 28 / 228 = ~4us refresh time each ~31.8us (~12.3% of processing time)
     this.r800MemoryRefreshPause = function() {
@@ -202,34 +210,42 @@ wmsx.Z80 = function() {
     var T = -1;                         // Clocks remaining in the current instruction
     var W = 0;                          // Clocks remaining of additional wait states (besides M1)
 
-    var opcode;
-    var prefix;
-    var instruction;
+    var opcode = 0;
+    var prefix = 0;
+    var instruction = null;
     var ackINT = false;
 
     var fetchLastAddress = 0;
 
-    var instructions =     new Array(270);
-    var instructionsED =   new Array(270);
-    var instructionsCB =   new Array(270);
-    var instructionsDD =   new Array(270);
-    var instructionsFD =   new Array(270);
-    var instructionsDDCB = new Array(270);
-    var instructionsFDCB = new Array(270);
-    var instructionsByPrefix = [
-        instructions,       // 0
-        instructionsED,     // 1
-        instructionsCB,     // 2
-        instructionsDD,     // 3
-        instructionsFD,     // 4
-        instructionsDDCB,   // 5
-        instructionsFDCB,   // 6
-        instructions        // 7  After EI
+    var instructionsNoPrefixZ80 = new Array(270);
+    var instructionsByPrefixZ80 = [
+        instructionsNoPrefixZ80,   // 0
+        new Array(270),            // 1  ED
+        new Array(270),            // 2  CB
+        new Array(270),            // 3  DD
+        new Array(270),            // 4  FD
+        new Array(270),            // 5  DDCB
+        new Array(270),            // 6  FDCB
+        instructionsNoPrefixZ80    // 7  After EI
     ];
 
-    var instructionHALT;
+    var instructionsNoPrefixR800 = new Array(270);
+    var instructionsByPrefixR800 = [
+        instructionsNoPrefixR800,  // 0
+        new Array(270),            // 1  ED
+        new Array(270),            // 2  CB
+        new Array(270),            // 3  DD
+        new Array(270),            // 4  FD
+        new Array(270),            // 5  DDCB
+        new Array(270),            // 6  FDCB
+        instructionsNoPrefixR800   // 7  After EI
+    ];
 
-    this.instructionsAll  = [];
+    var instructionsNoPrefix, instructionsByPrefix;
+
+    var instructionsAll = [];
+
+    var HALTopcode = 0x76;
 
 
     // Internal operations
@@ -256,16 +272,16 @@ wmsx.Z80 = function() {
         ++R;
         IFF1 = 0;
         ackINT = false;
-        if (instruction === instructionHALT) pcInc();                                      // To "escape" from HALT, and continue in the next instruction after ISR
-        instruction = IM < 2 ? instructions[258] : instructions[259];
+        if (instruction === instructionsNoPrefix[HALTopcode]) pcInc();                             // To "escape" from HALT, and continue in the next instruction after ISR
+        instruction = IM < 2 ? instructionsNoPrefix[258] : instructionsNoPrefix[259];
         T = instruction.remainCycles;
     }
 
     function selectInstruction() {
         if (prefix === 0) {
-            instruction = instructions[opcode];                                            // always found
+            instruction = instructionsNoPrefix[opcode];                                            // always found
         } else {
-            instruction = instructionsByPrefix[prefix][opcode] || instructions[opcode];    // if nothing found, ignore prefix
+            instruction = instructionsByPrefix[prefix][opcode] || instructionsNoPrefix[opcode];    // if nothing found, ignore prefix
             if (INT !== 0xff && IFF1) ackINT = true;
             prefix = 0;
         }
@@ -1910,7 +1926,7 @@ wmsx.Z80 = function() {
     var br = 1;         // R800 Deterministic Forced Page Brake (1 wait) in First Memory Read.  DOES NOT include additional page break in next instruction
     var bw = 1;         // R800 Deterministic Forced Page Brake (1 wait) in First Memory Write. DOES NOT include additional page break in next instruction
 
-    function defineAllInstructions(r8) {
+    function defineAllInstructions(instructionsByPrefix, r8) {
 
         var from, to;
         var t = 0, tr = 0;
@@ -2435,7 +2451,7 @@ wmsx.Z80 = function() {
         // 1 bytes, 1M, 4T: - HALT
         opcode = 0x76;
         instr = HALT;
-        instructionHALT = defineInstruction(null, null, opcode, 4, 2, instr, "HALT", false);
+        defineInstruction(null, null, opcode, 4, 2, instr, "HALT", false);
 
         // 1 bytes, 1M, 4T: - DI
         opcode = 0xf3;
@@ -2962,7 +2978,7 @@ wmsx.Z80 = function() {
         // Extension pseudo Instructions (ED E0 to ED FF), not yet defined (may exclude E1, E3, E9, F3, F9 which are R800 instructions)
 
         for (opcode = 0xe0; opcode <= 0xff; opcode++) {
-            if (!instructionsED[opcode]) {
+            if (!instructionsByPrefix[1][opcode]) {
                 instr = newpEXT(opcode);
                 defineInstruction(null, 0xed, opcode, 4, 1, instr, "EXT " + opcode.toString(16), true);
             }
@@ -2973,7 +2989,7 @@ wmsx.Z80 = function() {
         // 2 bytes, 2M, 8T: - uNOP
         instr = uNOP;
         for (opcode = 0x00; opcode <= 0xff; opcode++) {
-            if (!instructionsED[opcode]) {
+            if (!instructionsByPrefix[1][opcode]) {
                 defineInstruction(null, 0xed, opcode, 4, 1, instr, "NOP", true);
             }
         }
@@ -3029,11 +3045,11 @@ wmsx.Z80 = function() {
 
         // ------------------------------
 
-        function defineInstruction(prefix1, prefix2, opcode, cycles, cyclesR800, operation, mnemonic, undocumented) {
+        function defineInstruction(prefix1, prefix2, opcode, cyclesZ80, cyclesR800, operation, mnemonic, undocumented) {
             var instr = {};
             instr.prefix = prefix2 ? ((prefix1 << 8) | prefix2) : prefix1;
             instr.opcode = opcode;
-            instr.remainCyclesZ80 =  cycles + 1;                                                        // extra M1 wait for Z80
+            instr.remainCyclesZ80 =  cyclesZ80 + 1;                                                     // extra M1 wait for Z80
             instr.remainCyclesR800 = cyclesR800;                                                        // NO extra M1 wait for R800
             instr.totalCyclesZ80 =  instr.remainCyclesZ80 + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);      // only informative: each prefix adds 4T + 1 extra M1 state for the first prefix
             instr.totalCyclesR800 = instr.remainCyclesR800 + (prefix1 ? 1 : 0) + (prefix2 ? 1 : 0);     // only informative: each prefix adds 1T
@@ -3057,15 +3073,15 @@ wmsx.Z80 = function() {
         }
 
         function registerInstruction(instr) {
-            self.instructionsAll.push(instr);
+            instructionsAll.push(instr);
 
-            if (!instr.prefix)                instructions[instr.opcode] = instr;
-            else if (instr.prefix === 0xed)   instructionsED[instr.opcode] = instr;
-            else if (instr.prefix === 0xcb)   instructionsCB[instr.opcode] = instr;
-            else if (instr.prefix === 0xddcb) instructionsDDCB[instr.opcode] = instr;
-            else if (instr.prefix === 0xfdcb) instructionsFDCB[instr.opcode] = instr;
-            else if (instr.prefix === 0xdd)   instructionsDD[instr.opcode] = instr;
-            else if (instr.prefix === 0xfd)   instructionsFD[instr.opcode] = instr;
+            if (!instr.prefix)                instructionsByPrefix[0][instr.opcode] = instr;
+            else if (instr.prefix === 0xed)   instructionsByPrefix[1][instr.opcode] = instr;
+            else if (instr.prefix === 0xcb)   instructionsByPrefix[2][instr.opcode] = instr;
+            else if (instr.prefix === 0xdd)   instructionsByPrefix[3][instr.opcode] = instr;
+            else if (instr.prefix === 0xfd)   instructionsByPrefix[4][instr.opcode] = instr;
+            else if (instr.prefix === 0xddcb) instructionsByPrefix[5][instr.opcode] = instr;
+            else if (instr.prefix === 0xfdcb) instructionsByPrefix[6][instr.opcode] = instr;
             else throw new Error("Invalid instruction prefix!");
         }
     }
@@ -3076,7 +3092,7 @@ wmsx.Z80 = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, R7: R7, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
-            c: busCycles, T: T, W: W, o: opcode, p: prefix, ai: ackINT, ii: this.instructionsAll.indexOf(instruction),
+            c: busCycles, T: T, W: W, o: opcode, p: prefix, ai: ackINT, ii: instructionsAll.indexOf(instruction),
             ecr: extCurrRunning, eei: extExtraIter,
             r8: r800,
             bs: modeBackState,
@@ -3089,13 +3105,14 @@ wmsx.Z80 = function() {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; R7 = s.R7 || 0; IM = s.IM; IFF1 = s.IFF1;                         // Backward compatibility for R7
         setINT(s.nINT ? s.INT : s.INT ? 0xff : 0xfe);   // Backward compatibility
-        busCycles = s.c; T = s.T; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = this.instructionsAll[s.ii] || null;    // Backward compatibility for W
+        busCycles = s.c; T = s.T; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = instructionsAll[s.ii] || null;    // Backward compatibility for W
         extCurrRunning = s.ecr; extExtraIter = s.eei;
         r800 = !!s.r8;
         if (s.bs) modeBackState = s.bs;                                     // Backward compatibility
         z80ClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;    // Backward compatibility
         r800ClockMulti = s.rcm !== undefined ? s.rcm : 2;                   // Backward compatibility
         clockMulti = r800 ? r800ClockMulti : z80ClockMulti;
+        updateInstructionSet();
     };
 
 
@@ -3133,18 +3150,18 @@ wmsx.Z80 = function() {
     //        throw new Error("Oh my gosh!");
     //}
 
-    this.printInstructions = function() {
-       this.instructionsAll.sort(function(a,b) {
-           return a == b ? 0 : a.opcodeString > b.opcodeString ? 1 : -1;
-       });
-       var res = "";
-       for (var i = 0, len = this.instructionsAll.length; i < len; i++) {
-           var opcodeString = this.instructionsAll[i].opcodeString;
-           for (; opcodeString.length < 30;) opcodeString += " ";
-           res += "\n" + opcodeString + " : " + this.instructionsAll[i].totalCyclesZ80 + " , " + this.instructionsAll[i].totalCyclesR800;
-       }
-       return res;
-    };
+    // this.printInstructions = function() {
+    //    instructionsAll.sort(function(a,b) {
+    //        return a == b ? 0 : a.opcodeString > b.opcodeString ? 1 : -1;
+    //    });
+    //    var res = "";
+    //    for (var i = 0, len = instructionsAll.length; i < len; i++) {
+    //        var opcodeString = instructionsAll[i].opcodeString;
+    //        for (; opcodeString.length < 30;) opcodeString += " ";
+    //        res += "\n" + opcodeString + " : " + instructionsAll[i].totalCyclesZ80 + " , " + instructionsAll[i].totalCyclesR800;
+    //    }
+    //    return res;
+    // };
 
     //this.breakpoint = function(mes) {
     //    self.stop = true;
