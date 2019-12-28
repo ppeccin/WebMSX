@@ -185,6 +185,7 @@ wmsx.Configurator = {
         WMSX.MEGARAM_SIZE |= 0;
         WMSX.PANA_TURBO |= 0;
         WMSX.FAKE_TR_TURBO |= 0;
+        WMSX.R800_WAITS |= 0;
 
         // Boolean parameters (only single parameters known)
         WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED === "true";

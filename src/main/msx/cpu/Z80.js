@@ -13,6 +13,8 @@ wmsx.Z80 = function() {
 
     var self = this;
 
+    var r800Waits = !!WMSX.R800_WAITS;
+
     function init() {
         defineAllInstructions(instructionsByPrefixZ80,  false, false);
         defineAllInstructions(instructionsByPrefixR800, true, true);
@@ -422,7 +424,22 @@ wmsx.Z80 = function() {
     }
     function busOutput_R800(port, val) {
         W += bus.getIOWait(port, clockMulti);
-        bus.output(port,  val);
+        bus.output(port, val);
+    }
+
+
+    if (!r800Waits) {
+        busRead_R800 = busRead;
+        busWrite_R800 = busWrite;
+        fetchN_R800 = fetchN;
+        fetchNN_R800 = fetchNN;
+        memRead_R800 = memRead;
+        memRead16_R800 = memRead16;
+        memWrite_R800 = memWrite;
+        memWrite16_R800 = memWrite16;
+        memWrite16Rev_R800 = memWrite16Rev;
+        busInput_R800 = busInput;
+        busOutput_R800 = busOutput;
     }
 
 

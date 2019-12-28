@@ -101,6 +101,7 @@ WMSX = {
     LIGHT_STATES:                   true,
     FAKE_TR_TURBO:                  -1,
     PANA_TURBO:                     -1,
+    R800_WAITS:                     1,
 
     PSG_VOL:                        "f",                        // 0..f (hex digit):       PSG Volume adjust. Set globally or for each channel (4 values)
     PSG_PAN:                        "8",                        // 0; 1..8..f (hex digit): PSG PanPot adjust. Set globally or for each channel (4 values)
