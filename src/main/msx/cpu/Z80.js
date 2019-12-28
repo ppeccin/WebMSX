@@ -40,7 +40,7 @@ wmsx.Z80 = function() {
 
     this.reset = function() {
         r800 = false;
-        busCycles = 0;
+        cpuCycles = 0; busCycles = 0; cpuToBusCycles = 0;
         ackINT = false; prefix = 0;
         T = 0; W = 0;
         opcode = 0; instruction = null;
@@ -58,14 +58,20 @@ wmsx.Z80 = function() {
         if (r800 === !!state) return;
 
         r800 = !r800;
-        clockMulti = r800 ? r800ClockMulti : z80ClockMulti;
         swapModeState();
         updateInstructionSet();
+        updateClockMulti();
     };
 
     function updateInstructionSet() {
         instructionsNoPrefix = r800 ? instructionsNoPrefixR800 : instructionsNoPrefixZ80;
         instructionsByPrefix = r800 ? instructionsByPrefixR800 : instructionsByPrefixZ80;
+    }
+
+    function updateClockMulti() {
+        self.getBUSCycles();        // update before changing multi
+
+        clockMulti = r800 ? r800ClockMulti : z80ClockMulti;
     }
 
     // Called once every 228 clocks. 28 / 228 = ~4us refresh time each ~31.8us (~12.3% of processing time)
@@ -79,8 +85,8 @@ wmsx.Z80 = function() {
     this.clockPulses = function(busPulses) {
         // if (self.HALT) return;
 
-        var cpuPulses = (busPulses * clockMulti) | 0;
-        for (var t = cpuPulses; t > 0; --t) {
+        var toCycle = cpuCycles + ((busPulses * clockMulti) | 0);
+        for (; cpuCycles < toCycle; ++cpuCycles) {
             if (--T > 1) continue;
             if (T === 1) instruction.operation();
             else {
@@ -93,8 +99,6 @@ wmsx.Z80 = function() {
                 }
             }
         }
-
-        busCycles += busPulses;         // TODO This is too low resolution for things like the S1990 VDP IO wait
     };
 
     this.setINTChannel = function(chan, state) {
@@ -110,6 +114,8 @@ wmsx.Z80 = function() {
     }
 
     this.getBUSCycles = function() {
+        busCycles += ((cpuCycles - cpuToBusCycles) / clockMulti) | 0;
+        cpuToBusCycles = cpuCycles;
         return busCycles;
     };
 
@@ -117,7 +123,7 @@ wmsx.Z80 = function() {
         // console.log("Z80 CLOCK MULTI:" + multi);
 
         z80ClockMulti = multi <= 0 ? 1 : multi > 8 ? 8 : multi;    // (0..8]
-        if (!r800) clockMulti = z80ClockMulti;
+        if (!r800) updateClockMulti();
     };
 
     this.getZ80ClockMulti = function() {
@@ -128,7 +134,7 @@ wmsx.Z80 = function() {
         // console.log("R800 CLOCK MULTI:" + multi);
 
         r800ClockMulti = 2 * (multi <= 0 ? 1 : multi > 2 ? 2 : multi);    // 2 * (0..2]
-        if (r800) clockMulti = r800ClockMulti;
+        if (r800) updateClockMulti();
     };
 
     this.getR800ClockMulti = function() {
@@ -155,9 +161,11 @@ wmsx.Z80 = function() {
     var r800 = false;
     var modeBackState = {}, modeFrontState = {};
 
-    // Speed mode
+    // Speed Control
     var z80ClockMulti = 1, r800ClockMulti = 2;              // relative to BUS clock
     var clockMulti = z80ClockMulti;                         // active CPU multi
+
+    var cpuCycles = 0, busCycles = 0, cpuToBusCycles = 0;
 
     // Extension Handling
     var extCurrRunning = null;
@@ -206,8 +214,7 @@ wmsx.Z80 = function() {
 
     // Fetch and Instruction control
 
-    var busCycles = 0;
-    var T = -1;                         // Clocks remaining in the current instruction
+    var T = 0;                          // Clocks remaining in the current instruction
     var W = 0;                          // Clocks remaining of additional wait states (besides M1)
 
     var opcode = 0;
@@ -3105,7 +3112,8 @@ wmsx.Z80 = function() {
         return {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, R7: R7, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
-            c: busCycles, T: T, W: W, o: opcode, p: prefix, ai: ackINT, ii: instructionsAll.indexOf(instruction),
+            cc: cpuCycles, bc: busCycles, cbc: cpuToBusCycles,
+            T: T, W: W, o: opcode, p: prefix, ai: ackINT, ii: instructionsAll.indexOf(instruction),
             ecr: extCurrRunning, eei: extExtraIter,
             r8: r800,
             bs: modeBackState,
@@ -3116,16 +3124,17 @@ wmsx.Z80 = function() {
 
     this.loadState = function(s) {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
-        AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; R7 = s.R7 || 0; IM = s.IM; IFF1 = s.IFF1;                         // Backward compatibility for R7
+        AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; R7 = s.R7 || 0; IM = s.IM; IFF1 = s.IFF1;         // Backward compatibility for R7
         setINT(s.nINT ? s.INT : s.INT ? 0xff : 0xfe);   // Backward compatibility
-        busCycles = s.c; T = s.T; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = instructionsAll[s.ii] || null;    // Backward compatibility for W
+        cpuCycles = s.cc || 0; busCycles = s.bc || s.c || 0; cpuToBusCycles = s.cbc || 0;                                       // Backward compatibility
+        T = s.T; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = instructionsAll[s.ii] || null;          // Backward compatibility for W
         extCurrRunning = s.ecr; extExtraIter = s.eei;
         r800 = !!s.r8;
         if (s.bs) modeBackState = s.bs;                                     // Backward compatibility
         z80ClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;    // Backward compatibility
         r800ClockMulti = s.rcm !== undefined ? s.rcm : 2;                   // Backward compatibility
-        clockMulti = r800 ? r800ClockMulti : z80ClockMulti;
         updateInstructionSet();
+        updateClockMulti();
     };
 
 
