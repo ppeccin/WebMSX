@@ -91,8 +91,8 @@ wmsx.DOMPeripheralControls = function(room) {
                 break;
             case pc.MACHINE_SAVE_STATE_FILE:
             case pc.TAPE_AUTO_RUN:
-                if (!secPort) return machineControls.processControlState(wmsx.MachineControls.SAVE_STATE_FILE, true);
-                cassetteDeck.userTypeCurrentAutoRunCommand();
+                if (secPort) return cassetteDeck.userTypeCurrentAutoRunCommand();
+                if (!user || !mediaChangeDisabledWarning(control)) machineControls.processControlState(wmsx.MachineControls.SAVE_STATE_FILE, true);
                 break;
             case pc.MACHINE_LOAD_STATE_MENU:
                 screen.openSaveStateDialog(false);
@@ -131,7 +131,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 if (hasDisk && (!user || !mediaChangeDisabledWarning(control))) diskDrive.insertNewDisk(port, null, true);
                 break;
             case pc.DISK_SAVE_FILE:
-                if (hasDisk) diskDrive.saveDiskFile(port);
+                if (hasDisk && (!user || !mediaChangeDisabledWarning(control))) diskDrive.saveDiskFile(port);
                 break;
             case pc.DISK_SELECT:
                 if (hasDisk) diskDrive.openDiskSelectDialog(port, 0, altPower);
@@ -210,7 +210,7 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.HARDDISK_SAVE_FILE:
             case pc.TAPE_SAVE_FILE:
                 if (!secPort && hasHardDisk) return diskDrive.saveDiskFile(2);
-                cassetteDeck.saveTapeFile();
+                if (!user || !mediaChangeDisabledWarning(control)) cassetteDeck.saveTapeFile();
                 break;
             case pc.TAPE_REWIND:
                 cassetteDeck.userRewind();
@@ -268,7 +268,7 @@ wmsx.DOMPeripheralControls = function(room) {
                 screen.openTouchConfigDialog();
                 break;
             case pc.SCREEN_OPEN_MACHINE_SELECT:
-                if (!user || !mediaChangeDisabledWarning(control)) screen.openMachineSelectDialog();
+                screen.openMachineSelectDialog();
                 break;
             case pc.SCREEN_TOGGLE_VIRTUAL_KEYBOARD:
                 screen.toggleVirtualKeyboard();
@@ -336,11 +336,11 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var mediaChangeDisabledWarning = function(control) {
         if (WMSX.MEDIA_CHANGE_DISABLED) {
-            monitor.showOSD("Media change is disabled!", true, true);
+            monitor.showOSD("Media operations are disabled!", true, true);
             return true;
         }
         if (room.netPlayMode === 2 && (!control || netServerOnlyControls.has(control) || netClientBlockedControls.has(control))) {
-            monitor.showOSD("Media loading is disabled in NetPlay Client mode!", true, true);
+            monitor.showOSD("Media operations are disabled in NetPlay Client mode!", true, true);
             return true;
         }
         return false;
