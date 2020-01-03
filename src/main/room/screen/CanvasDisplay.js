@@ -160,6 +160,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.openMachineSelectDialog = function() {
         closeAllOverlays();
+        if (WMSX.MEDIA_CHANGE_DISABLED) return this.showOSD("Machine change is disabled!", true, true);
         if (!machineSelectDialog) machineSelectDialog = new wmsx.MachineSelectDialog(fsElementCenter, machineTypeSocket, peripheralControls);
         machineSelectDialog.show();
     };
