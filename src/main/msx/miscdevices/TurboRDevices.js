@@ -50,16 +50,12 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         ram = slot;
         if (bios) bios.connectRAM(ram, 65536);
         if (biosExt) biosExt.connectRAM(ram, 32768);
-
-        // console.error("TRD Connect RAM")
     };
     this.disconnectRAM = function(slot) {
         if (ram !== slot) return;
         if (bios) bios.disconnectRAM(ram);
         if (biosExt) biosExt.disconnectRAM(ram);
         ram = undefined;
-
-        // console.error("TRD Disconnect RAM")
     };
 
     this.powerOn = function() {
@@ -80,8 +76,6 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     };
 
     this.outputA7 = function(val) {
-        // console.log("tR LEDS write: " + val.toString(16));
-
         val &= 0x81;
         if (!active || leds === val) return;
 
@@ -93,16 +87,10 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     };
 
     this.outputE4 = function(val) {
-        // console.log("S1990 Register select write: " + val.toString(16));
-
         if (active) registerSelect = val;
     };
     this.inputE4 = function() {
-        var res = active ? registerSelect : 0xff;
-
-        // console.log("S1990 Register select read: " + res.toString(16));
-
-        return res;
+        return active ? registerSelect : 0xff;
     };
 
     this.outputE5 = function(val) {
@@ -125,32 +113,18 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         }
     };
     this.inputE5 = function() {
-        var res =
-              registerSelect === 5 ? register5
-            : registerSelect === 6 ? register6
-            : 0xff;
-
-        // var pri = bus.getPrimarySlotConfig();
-        // console.log("S1990 Register: " + registerSelect.toString(16) + " read: " + res.toString(16)
-        //     + " Slots: " + wmsx.Util.toHex2(pri)
-        //     + " Sub Slots: " + wmsx.Util.toHex2(~bus.slots[pri >> 6].read(0xffff) & 0xff));
-
-        return res;
+        return registerSelect === 5 ? register5
+             : registerSelect === 6 ? register6
+             : 0xff;
     };
 
     this.outputE6 = function(val) {
-        // console.log("S1990 Counter reset");
-
         counterBase = cpu.getBUSCycles();
     };
     this.inputE6 = function() {
-        // console.log("S1990 Counter LOW read");
-
         return active ? getCounterValue() & 0xff : 0xff;
     };
     this.inputE7 = function() {
-        // console.log("S1990 Counter HIGH read");
-
         return active ? getCounterValue() >> 8 : 0xff;
     };
 
@@ -164,12 +138,17 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
 
     this.setCPUPause = function(pause) {
         cpuPause = pause;
-        updateCPUPause();
     };
 
-    // TODO Detect CPU Pause ON only at VBLANK
-    function updateCPUPause() {
-        cpu.setZ80BUSRQ(cpuPause);
+    this.vSyncPulse = function() {
+        if (cpuPause === z80Paused) return;
+
+        z80Paused = cpuPause;
+        updateZ80Pause();
+    };
+
+    function updateZ80Pause() {
+        cpu.setZ80BUSRQ(z80Paused);
     }
 
     function setDRAMMode(dramMode) {
@@ -189,8 +168,6 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     }
 
     this.patchPCMBIOS = function(bytes) {
-        // console.log("Patch PCB BIOS, active: ", active);
-
         if (!active) return;
 
         // PCMPLY routine (EXT c)
@@ -232,6 +209,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     var active = false;
 
     var cpuPause = false;
+    var z80Paused = false;
     var leds = 0x00;                // bit 7: R800 LED (1 = on), bit 1: Z80 pause??? (1 = yes), bit 0: pause LED (1 = on)
     var r800DramLed = 0;
     var registerSelect = 0;
@@ -247,7 +225,8 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     this.saveState = function() {
         return {
             a: active,
-            pa: cpuPause,
+            cp: cpuPause,
+            zp: z80Paused,
             ld: leds,
             rl: r800DramLed,
             rs: registerSelect,
@@ -262,9 +241,12 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         if (!s) {
             active = false;
             this.reset();
+            cpuPause = false;
+            z80Paused = false;
         } else {
             active = s.a;
-            cpuPause = s.pa;
+            cpuPause = s.cp;
+            z80Paused = s.zp;
             leds = s.ld;
             r800DramLed = s.rl || 0;
             registerSelect = s.rs;
@@ -273,7 +255,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
             counterBase = s.cb;
         }
 
-        updateCPUPause();
+        updateZ80Pause();
         updateLeds();
     };
 

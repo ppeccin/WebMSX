@@ -5,7 +5,7 @@
 // Digitize, Superimpose, LightPen, Mouse, Color Bus, External Synch, B/W Mode, Wait Function not supported
 // Original base clock: 21477270 Hz which is 6x CPU clock. Rectified to real 60Hz: 21504960 Hz
 
-wmsx.VDP = function(machine, cpu) {
+wmsx.VDP = function(machine, cpu, vSyncConnection) {
 "use strict";
 
     var self = this;
@@ -617,10 +617,7 @@ wmsx.VDP = function(machine, cpu) {
         // Adjust pulldown cadence if necessary
         if (pulldown.steps > 1 && (frame % pulldown.steps) === 0) cycleLines += pulldown.firstStepCycleLinesAdjust;
 
-        for (var i = cycleLines; i > 0; --i) {
-
-            lineEvents();
-        }
+        for (var i = cycleLines; i > 0; --i) lineEvents();
     }
 
     // Total line clocks: VDP: 1368, CPU: 228, PSG 7.125
@@ -2218,6 +2215,8 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function beginFrame() {
+        vSyncConnection.vSyncPulse();
+
         // Adjust for pending VideoStandard/Pulldown changes
         if (framePulldown !== pulldown) {
             frameVideoStandard = videoStandard;

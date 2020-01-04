@@ -534,12 +534,12 @@ wmsx.Machine = function() {
 
     function mainComponentsCreate() {
         self.cpu = cpu = new wmsx.Z80();
-        self.vdp = vdp = new wmsx.VDP(self, cpu);
-        self.psg = psg = new wmsx.PSG(controllersSocket, ledsSocket, false);
-        self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel(), controllersSocket, ledsSocket);
         self.rtc = rtc = new wmsx.RTC(videoClockSocket);
         self.syf = syf = new wmsx.SystemFlags();
         self.trd = trd = new wmsx.TurboRDevices(cpu, ledsSocket);
+        self.vdp = vdp = new wmsx.VDP(self, cpu, trd);
+        self.psg = psg = new wmsx.PSG(controllersSocket, ledsSocket, false);
+        self.ppi = ppi = new wmsx.PPI(psg.getAudioChannel(), controllersSocket, ledsSocket);
         self.bus = bus = new wmsx.BUS(self, cpu);
         cpu.connectBus(bus);
         ppi.connectBus(bus);
