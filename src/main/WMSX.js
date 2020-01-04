@@ -1,4 +1,4 @@
-// WebMSX version 6.0.98
+// WebMSX version 6.0.97
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main Emulator parameters.
