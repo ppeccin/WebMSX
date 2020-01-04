@@ -5,7 +5,6 @@
 // TODO Possible to use hotkeys and bypass logo messages
 
 // TODO Review right icons spacing on mobile
-// TODO Text Input keyboard/focus/fullscreen problem on mobile
 
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
@@ -923,22 +922,30 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         var prevFSState = isFullscreen;
         var newAPIState = isFullScreenByAPI();
 
-        // Return to window interface mode if user asked or not in standalone mode
-        if (newAPIState || fullScreenAPIExitUserRequested || !isBrowserStandalone) setFullscreenState(newAPIState);
+        // Return to window interface mode only if user asked
+        if (newAPIState || fullScreenAPIExitUserRequested) setFullscreenState(newAPIState);
         else requestReadjust();
 
-        // If machine not paused and on mobile, set message to resume, or set event to return to full screen
-        if (prevFSState && !newAPIState && !fullScreenAPIExitUserRequested && isMobileDevice) {
-            if (isBrowserStandalone) {
-                setEnterFullscreenByAPIOnFirstTouch();
-            } else {
-                machine.systemPause(true);
-                showLogoMessage("<br>Emulation suspended", "RESUME", true, function () {
-                    self.setFullscreen(true);
-                    machine.systemPause(false);
-                });
-            }
-        }
+        // On mobile, set event to return to full screen on click whenever FS API is exited without user asking
+        if (isMobileDevice && prevFSState && !newAPIState && !fullScreenAPIExitUserRequested)
+            setEnterFullscreenByAPIOnFirstTouch();
+
+        // OLD behavior
+        // // Return to window interface mode if user asked or not in standalone mode
+        // if (newAPIState || fullScreenAPIExitUserRequested || !isBrowserStandalone) setFullscreenState(newAPIState);
+        // else requestReadjust();
+        // // If machine not paused and on mobile, set message to resume, or set event to return to full screen
+        // if (prevFSState && !newAPIState && !fullScreenAPIExitUserRequested && isMobileDevice) {
+        //     if (isBrowserStandalone) {
+        //     setEnterFullscreenByAPIOnFirstTouch();
+        //     } else {
+        //         machine.systemPause(true);
+        //         showLogoMessage("<br>Emulation suspended", "RESUME", true, function () {
+        //             self.setFullscreen(true);
+        //             machine.systemPause(false);
+        //         });
+        //     }
+        // }
 
         fullScreenAPIExitUserRequested = false;
     }
@@ -1793,6 +1800,12 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             var done = false;
             var enterFullScreenByAPIonFirstTouch = function() {
                 if (done) return;
+
+                // Ignore action on some elements that need clicks without returning to FS
+                // Important for mobile when you need o touch text input elements to bring the keyboard up
+                for (var ele = event.target; ele !== fsElement && ele !== document.body; ele = ele.parentElement)
+                    if (ele.wmsxIgnoreEnterFS) return;
+
                 done = true;
                 wmsx.Util.removeEventsListener(fsElement, "touchend mousedown", enterFullScreenByAPIonFirstTouch, true);
                 enterFullScreenByAPI();

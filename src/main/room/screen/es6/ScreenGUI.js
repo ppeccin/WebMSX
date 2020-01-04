@@ -893,11 +893,12 @@ html.wmsx-full-screen #wmsx-logo-image {
 #wmsx-text-entry-dialog {
     display: none;
     position: absolute;
-    top: 25px;
+    top: 50%;
     left: 0; right: 0;
     width: 96%;
     max-width: 540px;
-    height: 47%;
+    height: 60%;
+    min-height: 125px;
     max-height: 450px;
     margin: 0 auto;
     color: white;
@@ -911,6 +912,7 @@ html.wmsx-full-screen #wmsx-logo-image {
     box-shadow: 3px 3px 15px 2px rgba(0, 0, 0, .4);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    transform: translate(0, -65%);
     cursor: auto;
     z-index: 4;
 }

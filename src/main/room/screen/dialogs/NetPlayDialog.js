@@ -15,7 +15,7 @@ wmsx.NetPlayDialog = function(room, mainElement) {
         refreshPreferencesData();
         visible = true;
         dialog.classList.add("wmsx-show");
-        dialog.focus();
+        sessionName.focus();
 
         wmsx.Util.scaleToFitParentWidth(dialog, mainElement, 12);
     };
@@ -158,6 +158,7 @@ wmsx.NetPlayDialog = function(room, mainElement) {
         dialog = document.createElement("div");
         dialog.id = "wmsx-netplay";
         dialog.tabIndex = -1;
+        dialog.wmsxIgnoreEnterFS = true;
 
         statusBox = document.createElement("div");
         statusBox.id = "wmsx-netplay-status-box";

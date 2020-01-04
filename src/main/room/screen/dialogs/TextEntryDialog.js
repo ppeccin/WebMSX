@@ -33,6 +33,7 @@ wmsx.TextEntryDialog = function(mainElement, screen, machineControls) {
         dialog = document.createElement("div");
         dialog.id = "wmsx-text-entry-dialog";
         dialog.tabIndex = -1;
+        dialog.wmsxIgnoreEnterFS = true;
 
         input = document.createElement("textarea");
         input.id = "wmsx-text-entry-input";
