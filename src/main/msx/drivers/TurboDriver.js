@@ -12,8 +12,8 @@ wmsx.TurboDriver = function(bios) {
         machine = pMachine;
         ledsSocket = machine.getLedsSocket();
         var mt = machine.getMachineTypeSocket().getMachineType();
-        fakeTRTurbo = mt < M_TYPES.MSXTR && (WMSX.FAKE_TR_TURBO === 1 || (WMSX.FAKE_TR_TURBO === -1 && mt === M_TYPES.MSX2P));       // Auto ON for >= MSX2P, never for turbo R
-        panaTurbo =   mt < M_TYPES.MSXTR && (WMSX.PANA_TURBO === 1 || (WMSX.PANA_TURBO === -1 && mt === M_TYPES.MSX2P));             // Auto ON for >= MSX2P, never for turbo R
+        fakeTRTurbo = mt < M_TYPES.MSXTR && (WMSX.CPU_FAKE_TR_TURBO === 1 || (WMSX.CPU_FAKE_TR_TURBO === -1 && mt === M_TYPES.MSX2P));       // Auto ON for >= MSX2P, never for turbo R
+        panaTurbo =   mt < M_TYPES.MSXTR && (WMSX.CPU_PANA_TURBO === 1 || (WMSX.CPU_PANA_TURBO === -1 && mt === M_TYPES.MSX2P));             // Auto ON for >= MSX2P, never for turbo R
         updateSoftTurboDevices();
         this.turboModesUpdate();
     };

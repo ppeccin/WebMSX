@@ -191,9 +191,9 @@ wmsx.Configurator = {
         WMSX.VOL = Number(WMSX.VOL); if (isNaN(WMSX.VOL)) WMSX.VOL = 1;
         WMSX.HARDDISK_MIN_SIZE_KB |= 0;
         WMSX.MEGARAM_SIZE |= 0;
-        WMSX.PANA_TURBO |= 0;
-        WMSX.FAKE_TR_TURBO |= 0;
-        WMSX.R800_WAITS |= 0;
+        WMSX.CPU_PANA_TURBO |= 0;
+        WMSX.CPU_FAKE_TR_TURBO |= 0;
+        WMSX.R800_TIMING |= 0;
         WMSX.VDP_TYPE |= 0;
         WMSX.VDP_PALETTE |= 0;
 

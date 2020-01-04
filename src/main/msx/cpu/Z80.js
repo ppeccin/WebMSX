@@ -13,7 +13,7 @@ wmsx.Z80 = function() {
 
     var self = this;
 
-    var r800Waits = !!WMSX.R800_WAITS;
+    var r800Timing = WMSX.R800_TIMING;
 
     function init() {
         defineZ80InstructionSet();
@@ -460,7 +460,7 @@ wmsx.Z80 = function() {
     }
 
 
-    if (!r800Waits) {
+    if (r800Timing !== 1) {
         busRead_R800 = busRead;
         busWrite_R800 = busWrite;
         fetchN_R800 = fetchN;
@@ -470,6 +470,8 @@ wmsx.Z80 = function() {
         memWrite_R800 = memWrite;
         memWrite16_R800 = memWrite16;
         memWrite16Rev_R800 = memWrite16Rev;
+    }
+    if (r800Timing === 0) {
         busInput_R800 = busInput;
         busOutput_R800 = busOutput;
     }

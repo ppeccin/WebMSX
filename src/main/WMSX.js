@@ -90,14 +90,14 @@ WMSX = {
     MOUSE_MODE:                     -1,                         // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
     TOUCH_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
     R800_CLOCK_MODE:                0,                          // 0: auto (soft-turbo possible); (0..2]: R800 CPU clock multiplier;
-    R800_WAITS:                     1,                          // 0: off, 1: on. Precise R800/S1990 timings. Turn off for faster and lighter emulation
+    R800_TIMING:                    1,                          // 0: off, 1: on; 2: VDP waits only. Precise R800/S1990 timings. Turn off for faster and lighter emulation
     Z80_CLOCK_MODE:                 0,                          // 0: auto (soft-turbo possible); (0..8]: Z80 CPU clock multiplier;
     VDP_CLOCK_MODE:                 0,                          // 0: auto (soft-turbo possible); (0..8]: VDP Command Engine clock multiplier; 9: instantaneous
     Z80_SOFT_TURBO_MULTI:           1.5,                        // 1..8 Z80 CPU clock multiplier when in AUTO mode and activated by software or CPU_SOFT_TURBO_AUTO_ON
     VDP_SOFT_TURBO_MULTI:           1,                          // 1..9 VDP Command Engine clock multiplier when in AUTO mode and activated by software or CPU_SOFT_TURBO_AUTO_ON
-    CPU_SOFT_TURBO_AUTO_ON:         0,                          // o: off, 1: on. Automatically activates the CPU Soft Turbo when supported by machine
-    FAKE_TR_TURBO:                  -1,                         // -1: auto; 0: off; 1: on. Simulated Panasonic Turbo activation. Auto ON for 2+, never for tR
-    PANA_TURBO:                     -1,                         // -1: auto; 0: off; 1: on. Simulated tR CHGCPU Turbo activation. Auto ON for 2+, never for tR
+    CPU_SOFT_TURBO_AUTO_ON:         0,                          // 0: off, 1: on. Automatically activates the CPU Soft Turbo when supported by machine
+    CPU_FAKE_TR_TURBO:              -1,                         // -1: auto; 0: off; 1: on. Simulated tR CHGCPU Turbo activation. Auto ON for 2+, never for tR
+    CPU_PANA_TURBO:                 -1,                         // -1: auto; 0: off; 1: on. Simulated Panasonic Turbo activation. Auto ON for 2+, never for tR
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     DEBUG_MODE:                     0,                          // 0: off; 1..7: debug mode. Don't change! :-)
     SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
