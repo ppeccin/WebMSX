@@ -119,7 +119,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             canvasContext.globalAlpha = oldAlpha;
         }
 
-        //console.log("Internal: " + internal + ", " + sourceWidth + "x" + sourceHeight + " > " + targetWidth + "x" + targetHeight);
+        // console.log("Internal: " + internal + ", " + sourceWidth + "x" + sourceHeight + " > " + targetWidth + "x" + targetHeight);
     };
 
     this.videoSignalOff = function() {
@@ -968,7 +968,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         ledsStatePending = undefined;
 
-        // console.log("Display Update Leds");
+        // console.error("Display Update Leds");
     }
 
     function suppressContextMenu(element) {

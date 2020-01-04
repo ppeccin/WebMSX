@@ -92,6 +92,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
 
         // Send updated image to Monitor if needed
         if (refreshWidth) refresh();
+        if (slave) slave.cycleEventRefresh();
     };
 
     // VRAM Read
@@ -667,7 +668,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         // ~ Middle of Active Line
 
         if (currentScanline >= startingVisibleTopBorderScanline
-            && currentScanline < startingInvisibleScanline ) renderLine();                          // Only render if visible and displayed
+            && currentScanline < startingInvisibleScanline ) renderLine();                          // Only render if visible
 
         if (slave) slave.lineEventRenderLine();
 
@@ -959,7 +960,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     }
 
     function updateBlinking() {
-        blinkPerLine = (register[1] & 0x04) !== 0;               // Set tlinking speed per line instead of frame, based on undocumented CDR bit
+        blinkPerLine = (register[1] & 0x04) !== 0;               // Set Blinking speed per line instead of frame, based on undocumented CDR bit
         if ((register[13] >>> 4) === 0) {
             blinkEvenPage = false; blinkPageDuration = 0;        // Force page to be fixed on the Odd page
         } else if ((register[13] & 0x0f) === 0) {
@@ -2212,9 +2213,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         videoSignal.newFrame(frameCanvas, 0, 0, refreshWidth, refreshHeight);
         refreshWidth = refreshHeight = 0;
 
-        if (slave) slave.cycleEventRefresh();
-
-        //logInfo("REFRESH. currentScanline: " + currentScanline);
+        //logInfo("VDP REFRESH. currentScanline: " + currentScanline);
     }
 
     function beginFrame() {
@@ -2259,9 +2258,12 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         //debugFrameStartCPUCycle = cpuCycles;
 
         // Update frame image from backbuffer
-        refreshWidth = renderWidth;
-        refreshHeight = renderHeight;
-        frameContext.putImageData(frameImageData, 0, 0, 0, 0, refreshWidth, refreshHeight);
+        if (videoDisplayed) {
+            refreshWidth = renderWidth;
+            refreshHeight = renderHeight;
+            frameContext.putImageData(frameImageData, 0, 0, 0, 0, refreshWidth, refreshHeight);
+        }
+
         ++frame;
 
         beginFrame();

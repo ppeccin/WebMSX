@@ -625,7 +625,7 @@ wmsx.V9990 = function() {
     }
 
     this.cycleEventRefresh = function() {
-        refresh();
+        if (refreshWidth) refresh();
     };
 
     // Total line clocks: V9990: 1368, CPU: 228
@@ -1638,9 +1638,12 @@ wmsx.V9990 = function() {
         //debugFrameStartCPUCycle = cpuCycles;
 
         // Update frame image from backbuffer
-        refreshWidth = renderWidth;
-        refreshHeight = renderHeight;
-        frameContext.putImageData(frameImageData, 0, -1, 0, 1, refreshWidth, refreshHeight);     // from line 1 of backBuffer
+        if (videoDisplayed) {
+            refreshWidth = renderWidth;
+            refreshHeight = renderHeight;
+            frameContext.putImageData(frameImageData, 0, -1, 0, 1, refreshWidth, refreshHeight);     // from line 1 of backBuffer
+        }
+
         ++frame;
 
         //logInfo("Finish Frame");

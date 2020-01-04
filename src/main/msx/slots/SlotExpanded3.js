@@ -20,16 +20,20 @@ wmsx.SlotExpanded3 = function() {
 
     this.connect = function(pMachine) {
         machine = pMachine;
+        bus = machine.bus;
         for (var s = 0; s < 4; ++s) subSlots[s].connect(machine);
+        bus.setSlot3SecondaryConfig(secondarySlotConfig);
     };
 
     this.refreshConnect = function() {
         for (var s = 0; s < 4; ++s) subSlots[s].refreshConnect();
+        bus.setSlot3SecondaryConfig(secondarySlotConfig);
     };
 
     this.disconnect = function(pMachine) {
         for (var s = 0; s < 4; ++s) subSlots[s].disconnect(pMachine);
-        machine = null;
+        bus.setSlot3SecondaryConfig(0);
+        machine = bus = null;
     };
 
     this.powerOn = function() {
@@ -102,6 +106,7 @@ wmsx.SlotExpanded3 = function() {
         page1Slot = subSlots[(val >> 2) & 3];
         page2Slot = subSlots[(val >> 4) & 3];
         page3Slot = subSlots[(val >> 6) & 3];
+        bus.setSlot3SecondaryConfig(secondarySlotConfig);
     };
 
     this.getSecondarySlotConfig = function() {
@@ -126,7 +131,7 @@ wmsx.SlotExpanded3 = function() {
     }
 
 
-    var machine;
+    var machine, bus;
 
     var subSlots;
     var secondarySlotConfig = 0;

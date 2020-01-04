@@ -92,6 +92,10 @@ wmsx.BUS = function(machine, cpu) {
         dramWait = !dramMode | 0;
     };
 
+    this.setSlot3SecondaryConfig = function(conf) {
+        slot3SecondaryConfig = conf;
+    };
+
     // TODO Performance trade-off: For Expanded Slot 0 consider ALL subSlots the same as subSlot 0 (BIOS), so all have DRAM Mode
     this.getBreakWait = function(address, lastAddress) {
         var p = (address >> 14) << 1;
@@ -100,7 +104,7 @@ wmsx.BUS = function(machine, cpu) {
             if ((address ^ lastAddress) >> 8) {
                 return 1;
             } else {
-                s = (slot3.getSecondarySlotConfig() >> p) & 3;
+                s = (slot3SecondaryConfig >> p) & 3;
                 return s === 0 ? 0 : s === 1 ? dramWait : 1;
             }
         }
@@ -114,7 +118,7 @@ wmsx.BUS = function(machine, cpu) {
         var p = (address >> 14) << 1;
         var s = (primarySlotConfig >> p) & 3;
         if (s === 3) {
-            s = (slot3.getSecondarySlotConfig() >> p) & 3;
+            s = (slot3SecondaryConfig >> p) & 3;
             return s === 0 ? 0 : s === 1 ? dramWait : 1;
         }
         if (s === 0)
@@ -228,6 +232,7 @@ wmsx.BUS = function(machine, cpu) {
     var slot0, slot1, slot2, slot3;
     var slotModules;                        // Special Expanded Slot for Modules (Device-only Slots). Memory is inaccessible!
     var primarySlotConfig = 0;
+    var slot3SecondaryConfig = 0;
 
     var slotEmpty = wmsx.SlotEmpty.singleton;
     var deviceInputMissing = wmsx.DeviceMissing.inputPort;
