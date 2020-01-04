@@ -700,7 +700,6 @@ wmsx.Machine = function() {
             case controls.PAUSE_CPU:
                 var paused = !trd.isCPUPaused();
                 self.cpuPause(paused, altFunc);
-                self.showOSD(paused ? "CPU PAUSE" + (altFunc ? " with AUDIO ON" : "") : "CPU RESUME", true);
                 break;
             case controls.PAUSE:
                 self.userPause(!userPaused, altFunc);

@@ -275,7 +275,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 #wmsx-bar-settings-icons {
     float: right;
-    margin-right: 5px;
+    margin: 0 5px 0 9px;
 }
 #wmsx-bar-settings, #wmsx-bar-video, #wmsx-bar-full-screen, #wmsx-bar-scale-plus, #wmsx-bar-scale-minus {
     margin: 0;
@@ -315,9 +315,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 #wmsx-bar-turbo, #wmsx-bar-caps, #wmsx-bar-kana, #wmsx-bar-pause {
     position: absolute;
     left: 0; right: 0;
-    width: 20px;
     height: 29px;
-    margin: 0 auto;
     padding: 8px 0 0 0;
     color: hsl(0, 100%, 64%);
     font-weight: bold;
@@ -328,10 +326,10 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     box-sizing: border-box;
     cursor: auto;
 }
-#wmsx-bar-pause     { right: 140px; background: none; }
-#wmsx-bar-turbo     { left: 88px; padding-left: 25px; cursor: pointer; }
-#wmsx-bar-caps      { left: calc(144px + 10%); background: none; }
-#wmsx-bar-kana      { left: calc(145px + 25%); background: none; }
+#wmsx-bar-pause     { right: 88px; width: 20px; margin: 0 auto; }
+#wmsx-bar-turbo     { left: 88px;  width: 20px; margin: 0 auto; padding-left: 25px; cursor: pointer; }
+
+#wmsx-bar-caps, #wmsx-bar-kana    { position: relative; float: right; width: auto; margin-right: 12px; background: none; }
 
 #wmsx-bar.wmsx-narrow #wmsx-bar-turbo {
     position: static;

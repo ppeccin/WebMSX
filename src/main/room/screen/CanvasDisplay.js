@@ -634,6 +634,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     this.machineTypeStateUpdate = function() {
         if (machineSelectDialog) machineSelectDialog.machineTypeStateUpdate();
         if (quickOtionsDialog) quickOtionsDialog.machineTypeStateUpdate();
+        kanaLed.textContent =  machineTypeSocket.getCodeLedLabel();
         refreshSettingsMenuForMachineType();
     };
 
@@ -956,15 +957,15 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function updateLeds() {
         if (!ledsStatePending) return;
 
-        capsLed.textContent =  ledsStatePending[0] ? "CAPS" : "";
-        kanaLed.textContent =  ledsStatePending[1] ? machineTypeSocket.getCodeLedLabel() : "";
-        pauseLed.textContent = ledsStatePending[2] ? "" : "";
-
-        if (quickOtionsDialog) quickOtionsDialog.machineTurboModesStateUpdate();
+        capsLed.classList.toggle("wmsx-hidden", !ledsStatePending[0]);
+        kanaLed.classList.toggle("wmsx-hidden", !ledsStatePending[1]);
+        pauseLed.classList.toggle("wmsx-hidden", !ledsStatePending[2]);
 
         turboButton.classList.toggle("wmsx-hidden", !ledsStatePending[3] && !ledsStatePending[4]);
         turboButton.textContent = ledsStatePending[4] > 1 ? ledsInfoPending[4] : ledsInfoPending[3];
         turboButton.style.backgroundPositionY = "" + (ledsStatePending[4] === 3 ? -91 : ledsStatePending[4] === 2 ? -116 : ledsStatePending[4] === 1 ? -141 : -166) + "px";
+
+        if (quickOtionsDialog) quickOtionsDialog.machineTurboModesStateUpdate();
 
         ledsStatePending = undefined;
 
@@ -1102,7 +1103,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -26, false, "System Power", null, menu, "System");
         barMenuSystem = menu;
 
-        netplayButton  = addPeripheralControlButton("wmsx-bar-netplay", -33, -91, false, "NetPlay!", wmsx.PeripheralControls.SCREEN_OPEN_NETPLAY);
+        netplayButton  = addPeripheralControlButton("wmsx-bar-netplay", -91, -76, false, "NetPlay!", wmsx.PeripheralControls.SCREEN_OPEN_NETPLAY);
         netplayButton.classList.add("wmsx-hidden");
 
         mediaIconsContainer = document.createElement("div");
@@ -1188,9 +1189,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         buttonsBarInner.appendChild(settingsIconsContainer);
 
         if (!WMSX.SCREEN_RESIZE_DISABLED && !isMobileDevice) {
-            scaleDownButton = addPeripheralControlButton("wmsx-bar-scale-minus", -26, -1, false, "Decrease Screen", wmsx.PeripheralControls.SCREEN_SCALE_MINUS, null, "", settingsIconsContainer);
+            scaleDownButton = addPeripheralControlButton("wmsx-bar-scale-minus", -26, -3, false, "Decrease Screen", wmsx.PeripheralControls.SCREEN_SCALE_MINUS, null, "", settingsIconsContainer);
             scaleDownButton.classList.add("wmsx-full-screen-hidden");
-            scaleUpButton = addPeripheralControlButton("wmsx-bar-scale-plus", -48, -1, false, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS, null, "", settingsIconsContainer);
+            scaleUpButton = addPeripheralControlButton("wmsx-bar-scale-plus", -48, -2, false, "Increase Screen", wmsx.PeripheralControls.SCREEN_SCALE_PLUS, null, "", settingsIconsContainer);
             scaleUpButton.classList.add("wmsx-full-screen-hidden");
         }
 
@@ -1227,17 +1228,21 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (isTouchDevice) logoButton.classList.add("wmsx-full-screen-hidden");
         logoButton.classList.add("wmsx-narrow-hidden");
 
+        pauseLed  = addPeripheralControlButton("wmsx-bar-pause", -94, -101);
+        pauseLed.classList.add("wmsx-semi-narrow-hidden");
+        pauseLed.classList.add("wmsx-hidden");
+
         turboButton  = addPeripheralControlButton("wmsx-bar-turbo", -2, -91, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
         turboButton.classList.add("wmsx-hidden");
 
-        capsLed  = addPeripheralControlButton("wmsx-bar-caps", 0, 0);
-        capsLed.classList.add("wmsx-narrow-hidden");
-
         kanaLed  = addPeripheralControlButton("wmsx-bar-kana", 0, 0);
         kanaLed.classList.add("wmsx-semi-narrow-hidden");
+        kanaLed.classList.add("wmsx-hidden");
 
-        pauseLed  = addPeripheralControlButton("wmsx-bar-pause", 0, 0);
-        pauseLed.classList.add("wmsx-semi-narrow-hidden");
+        capsLed  = addPeripheralControlButton("wmsx-bar-caps", 0, 0);
+        capsLed.textContent =  "CAPS";
+        capsLed.classList.add("wmsx-narrow-hidden");
+        capsLed.classList.add("wmsx-hidden");
 
         // Events for BarButtons and also MenuItems
         wmsx.Util.onTapOrMouseDownWithBlockUIG(buttonsBar, barElementTapOrMouseDown);
