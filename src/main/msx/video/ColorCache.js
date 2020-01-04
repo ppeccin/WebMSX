@@ -2,6 +2,8 @@
 
 wmsx.ColorCache = new function() {
 
+    var colors4bit9918Values =  undefined;         // 32 bit ABGR values for 4 bit Palette colors
+
     var colors8bit9938Values =  undefined;         // 32 bit ABGR values for 8 bit GRB colors
     var colors9bit9938Values =  undefined;         // 32 bit ABGR values for 9 bit GRB colors
 
@@ -20,7 +22,7 @@ wmsx.ColorCache = new function() {
     var color5to8bits =     [ 0, 8, 16, 24, 32, 41, 49, 57, 65, 74, 82, 90, 98, 106, 115, 123, 131, 139, 148, 156, 164, 172, 180, 189, 197, 205, 213, 222, 230, 238, 246, 255 ];    // 8 bit R,G,B values for 5 bit R,G,B colors
 
 
-    this.initialPalettesValues = [
+    var v9918PalettesValues = [
         // 0: WebMSX original 9918
         new Uint32Array([ 0xff000000, 0xff000000, 0xff28ca07, 0xff65e23d, 0xfff04444, 0xfff46d70, 0xff1330d0, 0xfff0e840, 0xff4242f3, 0xff7878f4, 0xff30cad0, 0xff89dcdc, 0xff20a906, 0xffc540da, 0xffbcbcbc, 0xffffffff ]),
         // 1: 9918
@@ -39,7 +41,15 @@ wmsx.ColorCache = new function() {
         // 7: Green Toshiba VDP
         new Uint32Array([ 0xff000000, 0xff000000, 0xff3aaf3a, 0xff45d145, 0xff1a4f1a, 0xff2c842c, 0xff236b23, 0xff40c040, 0xff2a7f2a, 0xff319431, 0xff42c642, 0xff4de74d, 0xff309230, 0xff267226, 0xff44cc44, 0xff55ff55 ])
     ];
+    this.v9918PalettesValues = v9918PalettesValues;
 
+
+    this.getColors4bit9918Values = function() {
+        if (!colors4bit9918Values) {
+            colors4bit9918Values = v9918PalettesValues[WMSX.VDP_PALETTE >= 0 && WMSX.VDP_PALETTE <= 5 ? WMSX.VDP_PALETTE : 2 ];
+        }
+        return colors4bit9918Values;
+    };
 
     this.getColors8bit9938Values = function() {
         if (!colors8bit9938Values) {
@@ -104,5 +114,7 @@ wmsx.ColorCache = new function() {
 
     function signed(x) { return x > 31 ? x - 64 : x; }
     function trunc(x)  { return x <= 0 ? 0 : x >= 31 ? 31 : x; }
+
+    var SCREEN_COLOR = WMSX.SCREEN_COLOR >= 0 && WMSX.SCREEN_COLOR <= 2 ? WMSX.SCREEN_COLOR : 0;
 
 }();

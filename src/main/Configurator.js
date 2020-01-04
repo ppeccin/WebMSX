@@ -162,6 +162,7 @@ wmsx.Configurator = {
         WMSX.SCREEN_MSX1_COLOR_MODE |= 0;
         WMSX.SCREEN_FORCE_HOST_NATIVE_FPS |= 0;
         WMSX.SCREEN_VSYNC_MODE |= 0;
+        WMSX.SCREEN_COLOR |= 0;
         WMSX.AUDIO_MONITOR_BUFFER_BASE |= 0;
         WMSX.AUDIO_MONITOR_BUFFER_SIZE |= 0;
         WMSX.AUDIO_SIGNAL_BUFFER_RATIO = parseFloat(WMSX.AUDIO_SIGNAL_BUFFER_RATIO);
@@ -193,6 +194,8 @@ wmsx.Configurator = {
         WMSX.PANA_TURBO |= 0;
         WMSX.FAKE_TR_TURBO |= 0;
         WMSX.R800_WAITS |= 0;
+        WMSX.VDP_TYPE |= 0;
+        WMSX.VDP_PALETTE |= 0;
 
         // Boolean parameters (only single parameters known)
         WMSX.MEDIA_CHANGE_DISABLED = WMSX.MEDIA_CHANGE_DISABLED === true || WMSX.MEDIA_CHANGE_DISABLED === "true";

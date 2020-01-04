@@ -57,8 +57,9 @@ WMSX = {
     RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB when active
     RAMNORMAL_SIZE:                 64,                         // 16..64: Normal RAM size in KB when active
     EXTENSIONS:                     { },                        // Extensions active. See Extensions Configuration. Use Presets to activate/deactivate
-    VDP_TYPE:                       -1,                         // -1: auto; 1: V9918; 2: V9938; 3: V9958
     RTC_ACTIVE:                     -1,                         // -1: auto; 0: not present; 1: present
+    VDP_TYPE:                       -1,                         // -1: auto; 1: V9918; 2: V9938; 3: V9958
+    VDP_PALETTE:                    -1,                         // -1: auto (2); 0: WebMSX original; 1: V9918; 2: V9928; 3: V9938; 4: Toshiba; 5: Fujitsu FM-X
 
     // General options
     VOL:                            1.0,                        // Master Volume factor
@@ -77,6 +78,7 @@ WMSX = {
     SCREEN_CONTROL_BAR:             1,                          // 0: on hover; 1: always
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // -1: auto. Don't change! :-)
     SCREEN_VSYNC_MODE:              -2,                         // -2: user set (default auto); -1: disabled; 0: off; 1: auto (on when available)
+    SCREEN_COLOR:                   -1,                         // -1: auto (Color); 0: Color; 1: B&W; 2: Green Phosphor
     AUDIO_MONITOR_BUFFER_BASE:      -3,                         // -3: user set (default auto); -2: disable audio; -1: auto; 0: browser default; 1..6: base value. More buffer = more delay
     AUDIO_MONITOR_BUFFER_SIZE:      -1,                         // -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size.     More buffer = more delay. Don't change! :-)
     AUDIO_SIGNAL_BUFFER_RATIO:      2,                          // Internal Audio Signal buffer based on Monitor buffer

@@ -15,6 +15,7 @@ wmsx.VDP = function(machine, cpu) {
         cpuBusClockPulses = cpu.busClockPulses;
         cpuR800RefreshPause = cpu.r800MemoryRefreshPause;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
+        initColorCaches();
         initFrameResources(false);
         initDebugPatternTables();
         initSpritesConflictMap();
@@ -539,7 +540,7 @@ wmsx.VDP = function(machine, cpu) {
 
         paletteRegister[reg] = val;
 
-        var value = colors9bitValues[((val & 0x700) >>> 2) | ((val & 0x70) >>> 1) | (val & 0x07)];     // 9 bit GRB
+        var value = getColorValueForPaletteValue(val);
         colorPaletteReal[reg] = value;
 
         if (debugModeSpriteHighlight) value &= DEBUG_DIM_ALPHA_MASK;
@@ -552,6 +553,10 @@ wmsx.VDP = function(machine, cpu) {
 
         if (reg === backdropColor) updateBackdropValue();
         else if (modeData.tiled && reg <= 3) backdropCacheUpdatePending = true;
+    }
+
+    function getColorValueForPaletteValue(val) {
+        return colors9bitValues[((val & 0x700) >>> 2) | ((val & 0x70) >>> 1) | (val & 0x07)];     // 9 bit GRB
     }
 
     function setDebugMode(mode) {
@@ -2289,11 +2294,19 @@ wmsx.VDP = function(machine, cpu) {
         }
     }
 
+    function initColorCaches() {
+        colorsV9918Values = wmsx.ColorCache.getColors4bit9918Values();   // Init now, used by V9918 mode
+        colors8bitValues =  wmsx.ColorCache.getColors8bit9938Values();   // Init now, used by Backdrop
+        colors9bitValues =  wmsx.ColorCache.getColors9bit9938Values();   // Init now, used by normal Palette
+        colorsYJKValues =   undefined;                                   // Lazy, used only by mode YJK, YAE
+    }
+
     function initColorPalette() {
-        var colors = isV9918 ? colorPaletteInitialV9918 : colorPaletteInitialV9938;
         for (var c = 0; c < 16; ++c) {
             paletteRegister[c] = paletteRegisterInitialValuesV9938[c];
-            var value = colors[c];
+            var value = isV9918
+                ? colorsV9918Values[c]
+                : getColorValueForPaletteValue(paletteRegister[c]);
             colorPaletteReal[c] = value;
             if (debugModeSpriteHighlight) value &= DEBUG_DIM_ALPHA_MASK;
             colorPalette[c] = value;
@@ -2354,6 +2367,7 @@ wmsx.VDP = function(machine, cpu) {
 
     var STARTING_DEBUG_MODE = WMSX.DEBUG_MODE;
     var STARTING_SPRITES_DEBUG_MODE = WMSX.SPRITES_DEBUG_MODE;
+
 
     // Frame as off screen canvas
     var frameCanvas, frameContext, frameImageData, frameBackBuffer;
@@ -2453,9 +2467,10 @@ wmsx.VDP = function(machine, cpu) {
 
     var renderLine, renderLineActive;         // Update functions for current mode
 
-    var colors8bitValues = wmsx.ColorCache.getColors8bit9938Values();   // Init now, used by Backdrop
-    var colors9bitValues = wmsx.ColorCache.getColors9bit9938Values();   // Init now, used by normal Palette
-    var colorsYJKValues;                                                // Lazy, used only by mode YJK, YAE
+    var colorsV9918Values;
+    var colors8bitValues;
+    var colors9bitValues;
+    var colorsYJKValues;
 
     var color0Solid = false;
     var colorPalette =      new Uint32Array(16);        // 32 bit ABGR palette values ready to paint with transparency pre-computed in position 0, dimmed when in debug
@@ -2464,8 +2479,6 @@ wmsx.VDP = function(machine, cpu) {
 
     var spritePaletteG7 =   new Uint32Array([ 0xff000000, 0xff490000, 0xff00006d, 0xff49006d, 0xff006d00, 0xff496d00, 0xff006d6d, 0xff496d6d, 0xff4992ff, 0xffff0000, 0xff0000ff, 0xffff00ff, 0xff00ff00, 0xffffff00, 0xff00ffff, 0xffffffff ]);
 
-    var colorPaletteInitialV9918 = wmsx.ColorCache.initialPalettesValues[2];
-    var colorPaletteInitialV9938 = wmsx.ColorCache.initialPalettesValues[3];
     var paletteRegisterInitialValuesV9938 = [      0x000,      0x000,      0x611,      0x733,      0x117,      0x327,      0x151,      0x627,      0x121,      0x373,      0x661,      0x664,      0x411,      0x265,      0x365,      0x777 ];
 
 
