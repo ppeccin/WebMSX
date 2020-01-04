@@ -48,12 +48,14 @@ wmsx.Monitor = function(display) {
     };
 
     this.setOutputMode = function(mode, skipMes) {
-        outputMode = !extSignal ? -1 : mode < -1 ? -1 : mode > 4 ? 4 : mode;
+        outputMode = !extSignal || !display.isDualScreenAllowed() ? -1 : mode < -1 ? -1 : mode > 4 ? 4 : mode;
         updateOutputMode();
         if (!skipMes) showOutputModeOSD();
     };
 
     this.setOutputModeDual = function() {
+        if (!display.isDualScreenAllowed()) return;
+
         if (outputMode === 4) {
             outputDualPri ^= 1;     // toggle screens
             updateOutputMode();
@@ -236,7 +238,7 @@ wmsx.Monitor = function(display) {
             colorMode = 0; paletteMode = 2;
         }
         updateColorAndPaletteMode();
-        updateOutputMode();
+        this.setOutputMode(outputMode, true);
     };
 
 

@@ -166,7 +166,7 @@ wmsx.ControllersHub = function(room, machineControls) {
         touchControls.setupTouchControlsIfNeeded(mainElement)
     };
 
-    this.setKeyInputElement = function(element) {
+    this.addKeyInputElement = function(element) {
         element.addEventListener("keydown", this.keyDown);
         element.addEventListener("keyup", this.keyUp);
     };

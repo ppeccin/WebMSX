@@ -37,7 +37,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         machineControls = pMachineControls;
         peripheralControls = pPeripheralControls;
         controllersHub = pControllersHub;
-        controllersHub.setKeyInputElement(fsElement);
+        controllersHub.addKeyInputElement(fsElement);
         controllersHub.setMouseInputElement(canvas);
         diskDrive = pDiskDrive;
         stateMedia = pStateMedia;
@@ -75,6 +75,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             self.setFullscreen(true);
             startAction();
         }
+    };
+
+    this.isDualScreenAllowed = function() {
+        return !isMobileDevice;
     };
 
     this.refresh = function(image, sourceX, sourceY, sourceWidth, sourceHeight, internal) {
@@ -484,6 +488,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     this.displayToggleFullscreen = function(windowed) {                 // Only and Always user initiated
         if (FULLSCREEN_MODE === -2) return;
 
+        // Aux Window fullscreen request?
+        if (auxWindow && auxWindow.document.hasFocus())
+            return this.auxDisplayToggleFullscreen();
+
         // Save scale before Fullscreen
         if (!isFullscreen && !isMobileDevice) scaleYBeforeUserFullscreen = scaleY;
 
@@ -512,6 +520,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         //    else exitFullScreenByAPI();
         //} else
         //    setFullscreenState(mode)
+    };
+
+    this.auxDisplayToggleFullscreen = function () {
+        if (!auxIsFullScreenByAPI()) auxEnterFullScreenByAPI();
+        else auxExitFullScreenByAPI();
     };
 
     this.focus = function() {
@@ -725,6 +738,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         menu[0].label = autoModeDesc;
         menu[2].label = extDesc;
         menu[6].checkedOp = mode === 4 ? dualPri + 1 : 0;
+        menu[6].disabled = !this.isDualScreenAllowed();
         menu[8].disabled = autoInternal && mode === -1;
         if (barMenuActive === menu) refreshBarMenu(menu);
 
@@ -850,6 +864,26 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         } catch (e) {
             /* give up */
         }
+    }
+
+    function auxEnterFullScreenByAPI() {
+        if (fullscreenAPIEnterMethod) try {
+            fullscreenAPIEnterMethod.call(auxWindow.wmsxFsElementCenter);
+        } catch (e) {
+            /* give up */
+        }
+    }
+
+    function auxExitFullScreenByAPI() {
+        if (fullScreenAPIExitMethod) try {
+            fullScreenAPIExitMethod.call(auxWindow.document);
+        } catch (e) {
+            /* give up */
+        }
+    }
+
+    function auxIsFullScreenByAPI() {
+        return !!auxWindow.document[fullScreenAPIQueryProp];
     }
 
     function updateScale() {
@@ -1070,10 +1104,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function setupAndShowAuxWindow() {
         if (auxWindow) return;
 
-        var newWindow = window.open("", "WebMSX_AuxScreen", "width=" + 682 + ",height=" + (502 + 1)
-            + ",scrollbars=no,status=no,location=no,toolbar=no,menubar=no", false);
+        var newWindow = window.open("", "WebMSX 2nd Screen", "width=" + 682 + ",height=" + (502 + 1)
+            + ",scrollbars=no,status=no,location=no,toolbar=no,menubar=no");
 
-        // newWindow.addEventListener("DOMContentLoaded", function() {
+        setTimeout(function openAuxWindow() {
             auxWindow = newWindow;
 
             var document = auxWindow.document;
@@ -1086,8 +1120,15 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             auxWindow.wmsxLogo = document.getElementById("wmsx-logo");
             auxCanvas = document.getElementById("wmsx-screen-canvas");
 
+            suppressContextMenu(document.body);
+            preventDrag(auxWindow.wmsxLogo);
+
+            controllersHub.addKeyInputElement(auxWindow.wmsxFsElementCenter);
+
             auxUpdateCanvasContentSize();
             auxReadjustAll(true);
+
+            if (!signalIsOn) updateLogo();
 
             auxWindow.addEventListener("resize", function auxWindowResized() {
                 auxReadjustAll(true);
@@ -1095,9 +1136,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
             auxWindow.addEventListener("beforeunload", auxWindowUnload);
 
+            auxCanvas.focus();
+
             window.focus();
             self.focus();
-        // });
+        }, 60);
     }
 
     function auxWindowUnload() {
@@ -1110,6 +1153,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (!auxWindow) return;
 
         auxWindow.removeEventListener("beforeunload", auxWindowUnload);
+        auxCanvasContext = undefined;
         auxWindow.close();
         auxWindow = undefined;
     }
@@ -1972,6 +2016,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function auxReadjustScreeSizeChanged(force) {
+        if (!auxWindow) return false;
+
         var parW = auxWindow.document.body.clientWidth;
         var winW = auxWindow.wmsxFsElementCenter.clientWidth;
         var winH = auxWindow.wmsxFsElementCenter.clientHeight;

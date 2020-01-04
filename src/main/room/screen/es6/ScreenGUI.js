@@ -66,13 +66,13 @@ wmsx.ScreenGUI.html = function() {
 
 wmsx.ScreenGUI.auxHtml = function() {
     return `<head>
-                <title>WebMSX Secondary Screen</title>
+                <title>WebMSX 2nd Screen</title>
             </head>
             <body id="wmsx-aux-body">
-                <div id="wmsx-screen-fs">
-                    <div id="wmsx-screen-fs-center">
+                <div id="wmsx-screen-fs" tabindex="0">
+                    <div id="wmsx-screen-fs-center" tabindex="-1">
                         <div id="wmsx-screen-canvas-outer">
-                            <canvas id="wmsx-screen-canvas"></canvas>
+                            <canvas id="wmsx-screen-canvas" tabindex="-1"></canvas>
                                 <div id="wmsx-logo">
                                 <div id="wmsx-logo-center">
                                     <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
