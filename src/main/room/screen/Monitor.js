@@ -48,7 +48,7 @@ wmsx.Monitor = function(display) {
     };
 
     this.setOutputMode = function(mode, skipMes) {
-        outputMode = !extSignal || !display.isDualScreenAllowed() ? -1 : mode < -1 ? -1 : mode > 5 ? 5 : mode;
+        outputMode = !extSignal || mode < -1 ? -1 : mode < 4 ? mode : !display.isDualScreenAllowed() ? -1 : mode > 5 ? 5 : mode;
         updateOutputMode();
         if (!skipMes) showOutputModeOSD();
     };
