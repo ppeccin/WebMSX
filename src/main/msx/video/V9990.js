@@ -1352,7 +1352,7 @@ wmsx.V9990 = function() {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v1, v2, v3, v4, chroma;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd + scrollYOffsetFrame) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = (scrollXOffset & ~0x03) & scrollXMaxBytes;   // 4 pixel blocks
@@ -1377,7 +1377,7 @@ wmsx.V9990 = function() {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v1, v2, v3, v4, chroma;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd + scrollYOffsetFrame) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = (scrollXOffset & ~0x03) & scrollXMaxBytes;   // 4 pixel blocks
@@ -1406,7 +1406,7 @@ wmsx.V9990 = function() {
         var buffPos, realLine, quantBytes, scrollXMaxBytes;
         var byteYBase, byteXPos, v;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd + scrollYOffsetFrame) & scrollYMax;
         byteYBase = realLine * (imageWidth << 1);               // 0.5 ppb (16 bpp)
         scrollXMaxBytes = (imageWidth << 1) - 1;                // 0.5 ppb
         byteXPos = modeData.width > 256
@@ -1430,7 +1430,7 @@ wmsx.V9990 = function() {
 
         if (!colors8bitValues) colors8bitValues = wmsx.ColorCache.getColors8bit9990Values(ys16BitColorMask !== 0x7fff);
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd + scrollYOffsetFrame) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
@@ -1450,7 +1450,7 @@ wmsx.V9990 = function() {
         var buffPos, realLine, quantBytes, scrollXMaxBytes;
         var byteYBase, byteXPos, v;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd + scrollYOffsetFrame) & scrollYMax;
         byteYBase = realLine * imageWidth;                      // 1 ppb
         scrollXMaxBytes = imageWidth - 1;                       // 1 ppb
         byteXPos = scrollXOffset & scrollXMaxBytes;             // 1 ppb
@@ -1470,7 +1470,7 @@ wmsx.V9990 = function() {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd + scrollYOffsetFrame) & scrollYMax;
         byteYBase = realLine * (imageWidth >> 1);               // 2 ppb
         scrollXMaxBytes = (imageWidth >> 1) - 1;                // 2 ppb
         byteXPos = (scrollXOffset >> 1) & scrollXMaxBytes;      // 2 ppb
@@ -1496,7 +1496,7 @@ wmsx.V9990 = function() {
         var buffPos, realLine, quantBytes, scrollXMaxBytes, leftPixels;
         var byteYBase, byteXPos, v;
 
-        realLine = (((currentScanline - frameStartingActiveScanline + scrollYOffsetFrame) << vramEOLineShift) + vramEOLineAdd) & scrollYMax;
+        realLine = (((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd + scrollYOffsetFrame) & scrollYMax;
         byteYBase = realLine * (imageWidth >> 2);               // 4 ppb
         scrollXMaxBytes = (imageWidth >> 2) - 1;                // 4 ppb
         byteXPos = (scrollXOffset >> 2) & scrollXMaxBytes;      // 4 ppb
