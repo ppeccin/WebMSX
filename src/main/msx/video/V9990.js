@@ -1370,7 +1370,7 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = colorValues[((v4 & 0xf8) << 9) | chroma]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
+        renderCursorsLine(bufferPosition, ((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd, width);
     }
 
     function renderLineTypeBYxxP(colorValues, bufferPosition, width) {
@@ -1399,7 +1399,7 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = (v4 & 0x8) ? paletteValues[palOffsetBOdd  | (v4 >> 4)] : colorValues[((v4 & 0xf8) << 9) | chroma]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
+        renderCursorsLine(bufferPosition, ((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd, width);
     }
 
     function renderLineTypeBD16(bufferPosition, width) {
@@ -1421,7 +1421,7 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = colors16bitValues[v]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
+        renderCursorsLine(bufferPosition, ((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd, width);
     }
 
     function renderLineTypeBD8(bufferPosition, width) {
@@ -1443,7 +1443,7 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = colors8bitValues[v]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
+        renderCursorsLine(bufferPosition, ((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd, width);
     }
 
     function renderLineTypeBP6(bufferPosition, width) {
@@ -1463,7 +1463,7 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = paletteValues[v & 0x3f]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
+        renderCursorsLine(bufferPosition, ((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd, width);
     }
 
     function renderLineTypeBP4(bufferPosition, width) {
@@ -1489,7 +1489,7 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = paletteValues[palOffsetBOdd  | (v & 0x0f)]; ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
+        renderCursorsLine(bufferPosition, ((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd, width);
     }
 
     function renderLineTypeBP2(bufferPosition, width) {
@@ -1517,7 +1517,7 @@ wmsx.V9990 = function() {
             frameBackBuffer[buffPos] = paletteValues[palOffsetOdd  | (v & 0x03)];        ++buffPos;
         }
 
-        renderCursorsLine(bufferPosition, currentScanline - frameStartingActiveScanline, width);
+        renderCursorsLine(bufferPosition, ((currentScanline - frameStartingActiveScanline) << vramEOLineShift) + vramEOLineAdd, width);
     }
 
     // TODO Cursor will not wrap X in B7 mode (width = 1024). Is this right?
@@ -1529,7 +1529,7 @@ wmsx.V9990 = function() {
         var atrPos = 0x7fe00 + 8;
         for (var cursor = 1; cursor >= 0; --cursor, atrPos -= 8) {
             y = vram[atrPos] | ((vram[atrPos + 2] & 1) << 8);
-            cursorLine = (line - y - 1) & 511;
+            cursorLine = (line - y - (1 << vramEOLineShift)) & 511;
             if (cursorLine >= 32) continue;                                 // Not visible at line
 
             info = vram[atrPos + 6];
