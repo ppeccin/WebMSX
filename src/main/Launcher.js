@@ -114,7 +114,7 @@ if (window.applicationCache) {
     else window.applicationCache.addEventListener("updateready", onUpdateReady);
 }
 
-WMSX.VERSION = "6.0.97";
+WMSX.VERSION = "6.0.96";
 
 // Start pre-loading images right away
 WMSX.preLoadImagesAndStart();

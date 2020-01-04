@@ -90,8 +90,8 @@ wmsx.ScreenGUI.auxHtml = function() {
                         </div>
                     </div>
                     <script>
-                        // inner/outer dimensions are not reported consistently right after window has opened
-                        // So we do some async/event tricks to improve reliability  
+                        /* inner/outer dimensions are not reported consistently right after window has opened
+                           So we do some async/event tricks to improve reliability */  
                         function onFirstResize() {
                             window.onresize = undefined;
                             setTimeout(function() {
@@ -99,7 +99,7 @@ wmsx.ScreenGUI.auxHtml = function() {
                             }, 121);
                         }
                         window.onresize = onFirstResize;
-                        // Make sure we get control even if resize event does not fire
+                        /* Make sure we get control even if resize event does not fire */
                         setTimeout(onFirstResize, 300);
                     </script>
                 </body>
