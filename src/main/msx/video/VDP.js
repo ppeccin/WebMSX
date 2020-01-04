@@ -137,6 +137,8 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
                     FH = 0;                             // FH = 0, only if interrupts are enabled (IE1 = 1)
                     updateIRQ();
                 }
+
+                // logInfo("Status1 read: " + res.toString(16));
                 break;
             case 2:
                 commandProcessor.updateStatus();
@@ -514,7 +516,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
 
         spritesMaxComputed = 0;
 
-        //console.log("Status0 read: " + res.toString(16));
+        // logInfo("Status0 read: " + res.toString(16));
 
         return res;                                 // Everything is cleared at this point (like status[0] == 0)
     }
@@ -717,8 +719,8 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             cpu.setINTChannel(0, 1);
         }
 
-        //if (verticalIntReached && (register[1] & 0x20)) logInfo(">>>  VDP INT VERTICAL");
-        //if (FH && (register[0] & 0x10)) logInfo(">>>  VDP INT HORIZONTAL");
+        // logInfo(">>>  VDP INT VERTICAL: " + (F && (register[1] & 0x20)));
+        // logInfo(">>>  VDP INT HORIZONTAL: " + (FH && (register[0] & 0x10)));
     }
 
     function updateVRAMInterleaving() {
@@ -2547,7 +2549,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         } else {
             F = s.vi | 0; FH = status[1] & 1;                                                   // backward compatibility
             VR = (status[2] >> 6) & 1; HR = (status[2] >> 5) & 1; EO = (status[2] >> 1) & 1;
-            console.log(F, FH, VR, HR, EO);
+            status[0] &= ~0x80; status[1] &= ~0x01; status[2] &= ~0x62;
         }
         vramInterleaving = s.vrint;
         commandProcessor.loadState(s.cp);
