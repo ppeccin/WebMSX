@@ -477,26 +477,22 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 21) / 2) + 10 | 0) + `px;
 }
 
-.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked {
+.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked:not(.wmsx-bar-menu-item-disabled) {
     color: white;
 }
-.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op1::before,
-.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op3::before {
-    background: rgb(254, 32, 30);
-}
-.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op2::after,
-.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked.wmsx-op3::after {
+.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked:not(.wmsx-bar-menu-item-disabled).wmsx-op1::before,
+.wmsx-bar-menu-item-toggle.wmsx-bar-menu-item-toggle-checked:not(.wmsx-bar-menu-item-disabled).wmsx-op2::after {
     background: rgb(254, 32, 30);
 }
 .wmsx-bar-menu-item-toggle.wmsx-no-op2::before {
     top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 21) / 2) + 2 | 0) + `px;
     height: 16px;
 }
-.wmsx-bar-menu-item-toggle.wmsx-no-op2::after {
+.wmsx-bar-menu-item-toggle.wmsx-no-op2::after,
+.wmsx-bar-menu-item-toggle-radio::after {
     display: none;
 }
-.wmsx-bar-menu-item-toggle-radio::before,
-.wmsx-bar-menu-item-toggle-radio::after {
+.wmsx-bar-menu-item-toggle-radio::before {
     width: 12px  !important;
     height: 12px  !important;
     top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 12) / 2) | 0) + `px  !important;
