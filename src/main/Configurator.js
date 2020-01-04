@@ -361,7 +361,7 @@ wmsx.Configurator = {
         // Store loading state version
         this.loadingStateVersion = s.v || 0;
 
-        console.log("Loading State version: " + this.loadingStateVersion);
+        // console.log("Loading State version: " + this.loadingStateVersion);
 
         // Load config from state if present
         if (cfg) {
@@ -409,7 +409,7 @@ wmsx.Configurator = {
         for (var i in this.romSourcePre600Adapts)
             newSource = newSource.split(this.romSourcePre600Adapts[i][0]).join(this.romSourcePre600Adapts[i][1]);
 
-        console.log(this.loadingStateVersion, source, " ===> ", newSource);
+        // console.log(this.loadingStateVersion, source, " ===> ", newSource);
 
         return newSource;
     },

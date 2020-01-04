@@ -31,22 +31,34 @@ wmsx.V9990 = function() {
         cartridge = cart;
 
         machine.vdp.connectSlave(this);
-        machine.bus.connectInputDevice( 0x60, this.input60);
-        machine.bus.connectOutputDevice(0x60, this.output60);
-        machine.bus.connectInputDevice( 0x61, this.input61);
-        machine.bus.connectOutputDevice(0x61, this.output61);
-        machine.bus.connectInputDevice( 0x62, this.input62);
-        machine.bus.connectOutputDevice(0x62, this.output62);
-        machine.bus.connectInputDevice( 0x63, this.input63);
-        machine.bus.connectOutputDevice(0x63, this.output63);
+        machine.bus.connectOutputDevice(0x60, this.output60);                               // VRAM Data Write
+        machine.bus.connectInputDevice( 0x60, this.input60);                                // VRAM Data Read
+        machine.bus.connectOutputDevice(0x61, this.output61);                               // Palette Data Write
+        machine.bus.connectInputDevice( 0x61, this.input61);                                // Palette Data Read
+        machine.bus.connectOutputDevice(0x62, this.output62);                               // Command Data Write
+        machine.bus.connectInputDevice( 0x62, this.input62);                                // Command Data Read
+        machine.bus.connectOutputDevice(0x63, this.output63);                               // Register Data Write
+        machine.bus.connectInputDevice( 0x63, this.input63);                                // Register Data Read
+        machine.bus.connectOutputDevice(0x64, this.output64);                               // Register Select Write
         machine.bus.connectInputDevice( 0x64, wmsx.DeviceMissing.inputPortIgnored);
-        machine.bus.connectOutputDevice(0x64, this.output64);
-        machine.bus.connectInputDevice( 0x65, this.input65);
         machine.bus.connectOutputDevice(0x65, wmsx.DeviceMissing.outputPortIgnored);
-        machine.bus.connectInputDevice( 0x66, this.input66);
-        machine.bus.connectOutputDevice(0x66, this.output66);
+        machine.bus.connectInputDevice( 0x65, this.input65);                                // Status Read
+        machine.bus.connectOutputDevice(0x66, this.output66);                               // Interrupt Flags Write
+        machine.bus.connectInputDevice( 0x66, this.input66);                                // Interrupt Flags Read
+        machine.bus.connectOutputDevice(0x67, this.output67);                               // System Control Write
         machine.bus.connectInputDevice( 0x67, wmsx.DeviceMissing.inputPortIgnored);
-        machine.bus.connectOutputDevice(0x67, this.output67);
+
+        machine.bus.connectOutputDevice(0x68, this.output68);                               // Kanji JIS1 Address Write
+        machine.bus.connectInputDevice( 0x68, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.connectOutputDevice(0x69, this.output69);                               // Kanji JIS1 Address Write
+        machine.bus.connectInputDevice( 0x69, this.input69);                                // Kanji JIS1 Data Read
+        machine.bus.connectOutputDevice(0x6a, this.output6a);                               // Kanji JIS2 Address Write
+        machine.bus.connectInputDevice( 0x6a, wmsx.DeviceMissing.inputPortIgnored);
+        machine.bus.connectOutputDevice(0x6b, this.output6b);                               // Kanji JIS2 Address Write
+        machine.bus.connectInputDevice( 0x6b, this.input6b);                                // Kanji JIS2 Data Read
+
+
+
         // 0x68 - 0x6f not used
 
         updateIRQ();    // Needed to update here from loadState()
@@ -253,6 +265,41 @@ wmsx.V9990 = function() {
         }
     };
 
+    // Kanji JIS1
+    this.output68 = function (val) {
+        kanjiPort1Address = (kanjiPort1Address & 0x1f800) | ((val & 0x3f) << 5);
+    };
+
+    this.output69 = function (val) {
+        kanjiPort1Address = ((val & 0x3f) << 11) | (kanjiPort1Address & 0x007e0) ;
+    };
+
+    this.input69 = function () {
+        var res = self.readKanji(kanjiPort1Address);
+        kanjiPort1Address = (kanjiPort1Address & 0x1ffe0) | ((kanjiPort1Address + 1) & 0x1f);
+        return res;
+    };
+
+    // Kanji JIS2
+    this.output6a = function (val) {
+        kanjiPort2Address = (kanjiPort2Address & 0x3f800) | ((val & 0x3f) << 5);
+    };
+
+    this.output6b = function (val) {
+        kanjiPort2Address = 0x20000 | ((val & 0x3f) << 11) | (kanjiPort2Address & 0x007e0) ;
+    };
+
+    this.input6b = function () {
+        var res = self.readKanji(kanjiPort2Address);
+        kanjiPort2Address = (kanjiPort2Address & 0x3ffe0) | ((kanjiPort2Address + 1) & 0x1f);
+        return res;
+    };
+
+    this.readKanji = function(address) {
+        var kanjiFonts = wmsx.CartridgeKanjiFont.connectedInstance;     // Available only when the KanjiFonts device is connected!
+        return kanjiFonts ? kanjiFonts.readKanji(address) : 0xff;
+    };
+
     this.setTurboMulti = function(multi) {
         commandProcessor.setTurboMulti(multi);
     };
@@ -289,6 +336,8 @@ wmsx.V9990 = function() {
     this.reset = function() {
         systemControl = 0; status = 0; softResetON = false;
         registerSelect = 0; registerSelectReadInc = true; registerSelectWriteInc = true;
+        kanjiPort1Address = 0;
+        kanjiPort2Address = 0x20000;
 
         softReset();
 
@@ -1877,6 +1926,8 @@ wmsx.V9990 = function() {
     var paletteValues =      new Uint32Array(64);     // 32 bit ABGR palette values ready to paint, dimmed when in debug
     var paletteValuesReal =  new Uint32Array(64);     // 32 bit ABGR palette values ready to paint with real solid palette values, used for Sprites, NEVER dimmed for debug
 
+    var kanjiPort1Address = 0, kanjiPort2Address = 0;
+
 
    // Sprite and Debug Modes controls
 
@@ -1922,6 +1973,8 @@ wmsx.V9990 = function() {
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register),
             p: wmsx.Util.storeInt8BitArrayToStringBase64(paletteRAM),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_SIZE),
+            k1a: kanjiPort1Address,
+            k2a: kanjiPort2Address,
             cp: commandProcessor.saveState()
         };
         if (extended) {
@@ -1949,6 +2002,8 @@ wmsx.V9990 = function() {
         dispEnabled = s.de; spritesEnabled = s.se; dispAndSpritesUpdatePending = s.dsu;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         vramEOLineShift = s.eos; vramEOLineAdd = s.eoa;
+        kanjiPort1Address = s.k1a || 0;
+        kanjiPort2Address = s.k2a || 0x20000;
         commandProcessor.loadState(s.cp);
         commandProcessor.connectV9990(this, vram, register);
         frameVideoStandard = videoStandard; framePulldown = pulldown;

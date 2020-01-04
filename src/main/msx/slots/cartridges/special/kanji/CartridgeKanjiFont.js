@@ -6,11 +6,13 @@
 wmsx.CartridgeKanjiFont = function(rom) {
 "use strict";
 
+    var self = this;
+
     function init(self) {
         self.rom = rom;
         bytes = wmsx.Util.asNormalArray(rom.content);
         self.bytes = bytes;
-        jis2 = bytes.length === 262144;
+        jis2 = bytes.length === 0x40000;
     }
 
     this.connect = function(machine) {
@@ -24,6 +26,8 @@ wmsx.CartridgeKanjiFont = function(rom) {
         machine.bus.connectInputDevice( 0xdb, this.inputDB);
         machine.bus.connectOutputDevice(0xda, this.outputDA);
         machine.bus.connectOutputDevice(0xdb, this.outputDB);
+
+        wmsx.CartridgeKanjiFont.connectedInstance = this;
     };
 
     this.disconnect = function(machine) {
@@ -35,6 +39,8 @@ wmsx.CartridgeKanjiFont = function(rom) {
         machine.bus.disconnectInputDevice( 0xdb, this.inputDB);
         machine.bus.disconnectOutputDevice(0xda, this.outputDA);
         machine.bus.disconnectOutputDevice(0xdb, this.outputDB);
+
+        if (wmsx.CartridgeKanjiFont.connectedInstance === this) wmsx.CartridgeKanjiFont.connectedInstance = undefined;
     };
 
     this.powerOn = function() {
@@ -44,9 +50,13 @@ wmsx.CartridgeKanjiFont = function(rom) {
     this.powerOff = function() {
     };
 
+    this.readKanji = function(address) {
+        return jis2 || address < 0x20000 ? bytes[address] : 0xff;
+    };
+
     this.reset = function() {
-        charToRead1 = charToRead2 = 0;
-        readAddress1 = readAddress2 = 0;
+        readAddress1 = 0;
+        readAddress2 = 0x20000;
     };
 
     this.read = function(address) {
@@ -57,40 +67,35 @@ wmsx.CartridgeKanjiFont = function(rom) {
     };
 
     this.outputD8 = function (val) {
-        charToRead1 = (charToRead1 & 0xfc0) | (val & 0x3f);
-        readAddress1 = charToRead1 << 5;
+        readAddress1 = (readAddress1 & 0x1f800) | ((val & 0x3f) << 5);
     };
 
     this.outputD9 = function (val) {
-        charToRead1 = (charToRead1 & 0x03f) | ((val & 0x3f) << 6);
-        readAddress1 = charToRead1 << 5;
-
-        //console.log("Set 1: " + charToRead1);
+        readAddress1 = ((val & 0x3f) << 11) | (readAddress1 & 0x007e0) ;
     };
 
     this.inputD9 = function () {
-        return bytes[readAddress1++ & 0x1ffff];
+        var res = self.readKanji(readAddress1);
+        readAddress1 = (readAddress1 & 0x1ffe0) | ((readAddress1 + 1) & 0x1f);
+        return res;
     };
 
     this.outputDA = function (val) {
-        charToRead2 = (charToRead2 & 0xfc0) | (val & 0x3f);
-        readAddress2 = charToRead2 << 5;
+        readAddress2 = (readAddress2 & 0x3f800) | ((val & 0x3f) << 5);
     };
 
     this.outputDB = function (val) {
-        charToRead2 = (charToRead2 & 0x03f) | ((val & 0x3f) << 6);
-        readAddress2 = charToRead2 << 5;
-
-        //console.log("Set 2: " + charToRead2);
+        readAddress2 = 0x20000 | ((val & 0x3f) << 11) | (readAddress2 & 0x007e0) ;
     };
 
     this.inputDB = function () {
-        return jis2 ? bytes[0x20000 + (readAddress2++ & 0x1ffff)] : 0xff;
+        var res = self.readKanji(readAddress2);
+        readAddress2 = (readAddress2 & 0x3ffe0) | ((readAddress2 + 1) & 0x1f);
+        return res;
     };
 
 
-    var charToRead1, charToRead2;
-    var readAddress1, readAddress2;
+    var readAddress1 = 0, readAddress2 = 0;
     var jis2 = false;
 
     var bytes;
@@ -107,8 +112,8 @@ wmsx.CartridgeKanjiFont = function(rom) {
             f: this.format.name,
             r: this.rom.saveState(),
             b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
-            c1: charToRead1, r1: readAddress1,
-            c2: charToRead2, r2: readAddress2,
+            r1: readAddress1,
+            r2: readAddress2,
             j2: jis2
         };
     };
@@ -123,8 +128,8 @@ wmsx.CartridgeKanjiFont = function(rom) {
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
         }
         this.bytes = bytes;
-        charToRead1 = s.c1; readAddress1 = s.r1;
-        charToRead2 = s.c2; readAddress2 = s.r2;
+        readAddress1 = s.r1;
+        readAddress2 = s.r2 | 0x20000;          // Backward compatibility
         jis2 = s.j2;
     };
 
@@ -140,3 +145,5 @@ wmsx.CartridgeKanjiFont.recreateFromSaveState = function(state, previousSlot) {
     cart.loadState(state);
     return cart;
 };
+
+wmsx.CartridgeKanjiFont.connectedInstance = undefined;

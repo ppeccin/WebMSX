@@ -140,6 +140,10 @@ wmsx.V9990CommandProcessor = function() {
         register[35] = (val >> 16) & 0x07; register[34] = (val >> 8) & 0xff; register[32] = val & 0xff;
     }
 
+    function getKA() {
+        return ((register[35] & 0x03) << 16) | (register[34] << 8) | register[32];
+    }
+
     function getDX() {
         return (((register[37] & 0x07) << 8) | register[36]) & imageWidthMask;
     }
@@ -551,7 +555,7 @@ wmsx.V9990CommandProcessor = function() {
 
     function CMMK() {
         // Collect parameters
-        // No Source data since there is no Kanji ROM. All input bytes will be 0
+        var ka = getKA();
         var dx = getDX();
         var destOff = getDestPlaneBOffset();
         var dy = getDY();
@@ -561,17 +565,25 @@ wmsx.V9990CommandProcessor = function() {
         var diy = getDIY();
         var op = getLOP();
         var wm = getWM(destOff);
-        var bc = getBC(destOff);        // dont get FC since only BC will be used
+        var fbc = (getFC(destOff) << 16) | getBC(destOff);     // combined so we can get desired color by shifting instead of condition
 
-        // console.log("CMMK dx: " + dx + ", dy: " + dy + " + " + destOff + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
+        // console.log("CMMK ka: " + ka.toString(16) + ", dx: " + dx + ", dy: " + dy + " + " + destOff + ", nx: " + nx + ", ny: " + ny + ", dix: " + dix + ", diy: " + diy);
 
         // Perform operation
+        var pd = 0, cp = 0, p = 0;                 // cp counts pixels
         for (var cy = ny; cy > 0; --cy) {
             var edx = dx;
             for (var cx = 0; cx < nx; ++cx) {
-                // Never read bytes. Input byte is always 0
-                logicalPSETX(edx, dy | destOff, edx, bc, op, wm);     // Will always paint with BC
-                edx = (edx + dix) & imageWidthMask;
+                // Only read when new BYTE needed
+                if ((cp & 0x07) === 0) {
+                    pd = v9990.readKanji(ka);
+                    // Increment ka so bytes are read left to right, top to bottom (differently from normal Kanji ROM 8x8 quadrants)
+                    var kb = ((ka & 0x10) | ((ka & 0x08) >> 3) | ((ka & 0x07) << 1)) + 1;
+                    ka = (ka & 0x3ffe0) | (kb & 0x10) | ((kb & 0x01) << 3) | ((kb & 0x0e) >> 1);
+                }
+                p = (pd >> (7 - (cp & 0x07))) & 1;
+                logicalPSETX(edx, dy | destOff, edx, (fbc >> (p << 4)) & 0xffff, op, wm);
+                edx = (edx + dix) & imageWidthMask; ++cp;
             }
             dy = (dy + diy) & imageHeightMask;
         }
