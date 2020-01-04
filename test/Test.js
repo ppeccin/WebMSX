@@ -1,12 +1,10 @@
 
 function lumi(val) {
-
     var r = val & 255;
     var g = (val >> 8) & 255;
     var b = (val >> 16) & 255;
 
     return (r+g+b) / 3;
-
 }
 
 function bw(pal) {
@@ -35,7 +33,6 @@ function bwy(pal) {
 
         res += "0xff" + v + v + v + ", ";
     }
-
     return res;
 }
 
@@ -50,3 +47,11 @@ function green(pal) {
     return res;
 }
 
+
+/*
+
+poke &he000, &h3e : poke &he001, &h82 : poke &he002, &hcd : poke &he003, &h80 : poke &he004, &h01 : poke &he005, &hc9 : defusr 0 = &he000 : print usr(0)
+
+defusr 0 = 0: x = usr(0)
+
+ */
