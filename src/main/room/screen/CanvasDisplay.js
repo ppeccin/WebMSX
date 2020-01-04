@@ -4,8 +4,6 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 
-// TODO Review right icons spacing on mobile
-
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
 
@@ -922,8 +920,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         var prevFSState = isFullscreen;
         var newAPIState = isFullScreenByAPI();
 
-        // Return to window interface mode only if user asked
-        if (newAPIState || fullScreenAPIExitUserRequested) setFullscreenState(newAPIState);
+        // Return to window interface mode only if user asked or not on mobile (ESC pressed?)
+        if (newAPIState || fullScreenAPIExitUserRequested || !isMobileDevice) setFullscreenState(newAPIState);
         else requestReadjust();
 
         // On mobile, set event to return to full screen on click whenever FS API is exited without user asking
@@ -2434,7 +2432,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var VIRTUAL_KEYBOARD_WIDE_WIDTH = 518, VIRTUAL_KEYBOARD_NARROW_WIDTH = 419, VIRTUAL_KEYBOARD_HEIGHT = 161;
 
-    var NARROW_WIDTH = 500, SEMI_NARROW_WIDTH = 589;
+    var NARROW_WIDTH = 538, SEMI_NARROW_WIDTH = 650;
 
     var domKeys = wmsx.DOMKeys;
 
