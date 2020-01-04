@@ -1865,8 +1865,9 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
                 if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
-            x = vram[atrPos + 1];
             color = vram[atrPos + 3];
+            if (!isV9918 && (color & 0xf) === 0 && !color0Solid) continue;  // Nothing to paint. Consider TP for 9938/58
+            x = vram[atrPos + 1];
             if (color & 0x80) {
                 x -= 32;                                                    // Early Clock bit, X to be 32 to the left
                 if (x <= -size) continue;                                   // Not visible (out to the left)
