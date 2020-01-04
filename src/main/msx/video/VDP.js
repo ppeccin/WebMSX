@@ -571,7 +571,7 @@ wmsx.VDP = function(machine, cpu) {
         debugModePatternInfo = debugMode >= 5;
         debugModePatternInfoBlocks = debugMode === 6;
         debugModePatternInfoNames = debugMode === 7;
-        if (oldDebugModeSpriteHighlight !== debugModeSpriteHighlight || oldDebugModePatternInfo !== debugModePatternInfo) debugAdjustPalette();
+        if (oldDebugModeSpriteHighlight !== debugModeSpriteHighlight || oldDebugModePatternInfo !== debugModePatternInfo) updateAllPaletteValues();
         initFrameResources(debugModeSpriteHighlight);
         updateLineActiveType();
         updateSpritesConfig();
@@ -590,11 +590,9 @@ wmsx.VDP = function(machine, cpu) {
         if (slave) slave.setSpriteDebugMode(spriteDebugMode);
     }
 
-    function debugAdjustPalette() {
-        if (isV9918)
-            initColorPalette();
-        else
-            for (var reg = 0; reg < 16; reg++) paletteRegisterWrite(reg, paletteRegister[reg], true);
+    function updateAllPaletteValues() {
+        if (isV9918) initColorPalette();
+        else for (var reg = 0; reg < 16; reg++) paletteRegisterWrite(reg, paletteRegister[reg], true);
     }
 
     function updateSynchronization() {
@@ -2295,6 +2293,7 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function initColorCaches() {
+        wmsx.ColorCache.reset();
         colorsV9918Values = wmsx.ColorCache.getColors4bit9918Values();   // Init now, used by V9918 mode
         colors8bitValues =  wmsx.ColorCache.getColors8bit9938Values();   // Init now, used by Backdrop
         colors9bitValues =  wmsx.ColorCache.getColors9bit9938Values();   // Init now, used by normal Palette
@@ -2560,7 +2559,7 @@ wmsx.VDP = function(machine, cpu) {
         updateIRQ();
         updateMode(true);
         updateSpritesConfig();
-        debugAdjustPalette();
+        updateAllPaletteValues();
         updateBackdropColor();
         updateTransparency();
 

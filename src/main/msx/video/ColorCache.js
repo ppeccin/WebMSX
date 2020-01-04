@@ -2,6 +2,114 @@
 
 wmsx.ColorCache = new function() {
 
+    this.reset = function() {
+        PALETTE = WMSX.VDP_PALETTE >= 0 && WMSX.VDP_PALETTE <= 5 ? WMSX.VDP_PALETTE : -1;
+        SCREEN_COLORS = WMSX.SCREEN_COLORS >= 0 && WMSX.SCREEN_COLORS <= 3 ? WMSX.SCREEN_COLORS : 0;
+
+        colors4bit9918Values = colors8bit9938Values = colors9bit9938Values =
+        colors8bit9990Values = colors16bitValues = colorsYUVValues = colorsYJKValues = undefined;
+    };
+
+    this.getColors4bit9918Values = function() {
+        if (!colors4bit9918Values) {
+            colors4bit9918Values = new Uint32Array(16);
+            // V9928 palette default for Color Screen, Toshiba palette otherwise
+            var palette = v9918PalettesValues[PALETTE >= 0 ? PALETTE : SCREEN_COLORS === 0 ? 2 : 4];
+            for (var c = 0; c < 16; ++c) {
+                var v = palette[c];
+                colors4bit9918Values[c] = hexValue((v >> 16) & 255, (v >> 8) & 255, v & 255);
+            }
+        }
+        return colors4bit9918Values;
+    };
+
+    this.getColors8bit9938Values = function() {
+        if (!colors8bit9938Values) {
+            colors8bit9938Values = new Uint32Array(256);
+            for (var c = 0; c < 256; ++c)
+                colors8bit9938Values[c] = hexValue(color2to8bits9938[c & 0x3], color3to8bits9938[c >> 5], color3to8bits9938[(c >> 2) & 0x7]);
+        }
+        return colors8bit9938Values;
+    };
+
+    this.getColors9bit9938Values = function() {
+        if (!colors9bit9938Values) {
+            colors9bit9938Values = new Uint32Array(512);
+            for (var c = 0; c < 512; ++c)
+                colors9bit9938Values[c] = hexValue(color3to8bits9938[c & 0x7], color3to8bits9938[c >> 6], color3to8bits9938[(c >> 3) & 0x7]);
+        }
+        return colors9bit9938Values;
+    };
+
+    this.getColors8bit9990Values = function(ysEnabled) {
+        if (!colors8bit9990Values) {
+            colors8bit9990Values = new Uint32Array(256);
+            for (var c = 0; c < 256; ++c)
+                colors8bit9990Values[c] = hexValue(color2to8bits9990[c & 0x3], color3to8bits9990[c >> 5], color3to8bits9990[(c >> 2) & 0x7]);
+        }
+        colors8bit9990Values[0] = ysEnabled ? 0x00000000 : 0xff000000;
+        return colors8bit9990Values;
+    };
+
+    this.getColors16bitValues = function() {
+        if (!colors16bitValues) {
+            colors16bitValues = new Uint32Array(65536);
+            for (var c = 0; c < 65536; ++c)
+                colors16bitValues[c] = hexValue(color5to8bits[c & 0x1f], color5to8bits[(c >> 10) & 0x1f], color5to8bits[(c >> 5) & 0x1f], c < 32768 ? 1 : 0);
+        }
+        return colors16bitValues;
+    };
+
+    this.getColorsYUVValues = function() {
+        if (!colorsYUVValues) {
+            colorsYUVValues = new Uint32Array(131072);
+            for (var c = 0; c < 131072; ++c) {
+                var y = c >> 12, j = signed((c >> 6) & 0x3f), k = signed(c & 0x3f);
+                var r = trunc(y + j), g = trunc((y * 5 - (j << 1) - k) >> 2), b = trunc(y + k);
+                colorsYUVValues[c] = hexValue(color5to8bits[b], color5to8bits[g], color5to8bits[r]);
+            }
+        }
+        return colorsYUVValues;
+    };
+
+    this.getColorsYJKValues = function() {
+        if (!colorsYJKValues) {
+            colorsYJKValues = new Uint32Array(131072);
+            for (var c = 0; c < 131072; ++c) {
+                var y = c >> 12, j = signed((c >> 6) & 0x3f), k = signed(c & 0x3f);
+                var r = trunc(y + j), g = trunc(y + k), b = trunc((y * 5 - (j << 1) - k) >> 2);
+                colorsYJKValues[c] = hexValue(color5to8bits[b], color5to8bits[g], color5to8bits[r]);
+            }
+        }
+        return colorsYJKValues;
+    };
+
+
+    function hexValue(b, g, r, a) {
+        a = a !== 0 ? 0xff000000 : 0x00000000;
+        switch(SCREEN_COLORS) {
+            // Color
+            case 0:
+                return a | ((b & 255) << 16) | ((g & 255) << 8) | (r & 255);
+            // B&W
+            case 1:
+                var y = Math.min(255, Math.round(0.29 * r + 0.55 * g + 0.16 * b));      // sum = 1.00     (0.2126 * r + 0.7152 * g + 0.0722 * b), (0.2989 * r + 0.5870 * g + 0.1140 * b)
+                return a | (y << 16) | (y << 8) | y;
+            // Green
+            case 2:
+                y = Math.min(255, Math.round(0.31 * r + 0.58 * g + 0.18 * b));          // sum = 1.07
+                return a | ((y/3.1) << 16) | ((y/1) << 8) | (y/2.5);
+            // Amber
+            case 3:
+                y = Math.min(255, Math.round(0.32 * r + 0.60 * g + 0.18 * b));          // sum = 1.10
+                return a | ((y/9) << 16) | ((y/1.28) << 8) | (y/1);
+        }
+    }
+
+    function signed(x) { return x > 31 ? x - 64 : x; }
+    function trunc(x)  { return x <= 0 ? 0 : x >= 31 ? 31 : x; }
+
+
     var colors4bit9918Values =  undefined;         // 32 bit ABGR values for 4 bit Palette colors
 
     var colors8bit9938Values =  undefined;         // 32 bit ABGR values for 8 bit GRB colors
@@ -44,77 +152,7 @@ wmsx.ColorCache = new function() {
     this.v9918PalettesValues = v9918PalettesValues;
 
 
-    this.getColors4bit9918Values = function() {
-        if (!colors4bit9918Values) {
-            colors4bit9918Values = v9918PalettesValues[WMSX.VDP_PALETTE >= 0 && WMSX.VDP_PALETTE <= 5 ? WMSX.VDP_PALETTE : 2 ];
-        }
-        return colors4bit9918Values;
-    };
-
-    this.getColors8bit9938Values = function() {
-        if (!colors8bit9938Values) {
-            colors8bit9938Values = new Uint32Array(256);
-            for (var c = 0; c < 256; ++c)
-                colors8bit9938Values[c] = 0xff000000 | (color2to8bits9938[c & 0x3] << 16) | (color3to8bits9938[c >> 5] << 8) | color3to8bits9938[(c >> 2) & 0x7];
-        }
-        return colors8bit9938Values;
-    };
-
-    this.getColors9bit9938Values = function() {
-        if (!colors9bit9938Values) {
-            colors9bit9938Values = new Uint32Array(512);
-            for (var c = 0; c < 512; ++c)
-                colors9bit9938Values[c] = 0xff000000 | (color3to8bits9938[c & 0x7] << 16) | (color3to8bits9938[c >> 6] << 8) | color3to8bits9938[(c >>> 3) & 0x7];
-        }
-        return colors9bit9938Values;
-    };
-
-    this.getColors8bit9990Values = function(ysEnabled) {
-        if (!colors8bit9990Values) {
-            colors8bit9990Values = new Uint32Array(256);
-            for (var c = 0; c < 256; ++c)
-                colors8bit9990Values[c] = 0xff000000 | (color2to8bits9990[c & 0x3] << 16) | (color3to8bits9990[c >> 5] << 8) | color3to8bits9990[(c >> 2) & 0x7];
-        }
-        colors8bit9990Values[0] = ysEnabled ? 0x00000000 : 0xff000000;
-        return colors8bit9990Values;
-    };
-
-    this.getColors16bitValues = function() {
-        if (!colors16bitValues) {
-            colors16bitValues = new Uint32Array(65536);
-            for (var c = 0; c < 65536; ++c)
-                colors16bitValues[c] = (c < 32768 ? 0xff000000 : 0x00000000) | (color5to8bits[c & 0x1f] << 16) | (color5to8bits[(c >> 10) & 0x1f] << 8) | color5to8bits[(c >> 5) & 0x1f];
-        }
-        return colors16bitValues;
-    };
-
-    this.getColorsYUVValues = function() {
-        if (!colorsYUVValues) {
-            colorsYUVValues = new Uint32Array(131072);
-            for (var c = 0; c < 131072; ++c) {
-                var y = c >> 12, j = signed((c >> 6) & 0x3f), k = signed(c & 0x3f);
-                var r = trunc(y + j), g = trunc((y * 5 - (j << 1) - k) >> 2), b = trunc(y + k);
-                colorsYUVValues[c] = 0xff000000 | (color5to8bits[b] << 16) | (color5to8bits[g] << 8) | color5to8bits[r];
-            }
-        }
-        return colorsYUVValues;
-    };
-
-    this.getColorsYJKValues = function() {
-        if (!colorsYJKValues) {
-            colorsYJKValues = new Uint32Array(131072);
-            for (var c = 0; c < 131072; ++c) {
-                var y = c >> 12, j = signed((c >> 6) & 0x3f), k = signed(c & 0x3f);
-                var r = trunc(y + j), g = trunc(y + k), b = trunc((y * 5 - (j << 1) - k) >> 2);
-                colorsYJKValues[c] = 0xff000000 | (color5to8bits[b] << 16) | (color5to8bits[g] << 8) | color5to8bits[r];
-            }
-        }
-        return colorsYJKValues;
-    };
-
-    function signed(x) { return x > 31 ? x - 64 : x; }
-    function trunc(x)  { return x <= 0 ? 0 : x >= 31 ? 31 : x; }
-
-    var SCREEN_COLOR = WMSX.SCREEN_COLOR >= 0 && WMSX.SCREEN_COLOR <= 2 ? WMSX.SCREEN_COLOR : 0;
+    var PALETTE = 0;
+    var SCREEN_COLORS = 0;
 
 }();

@@ -13,6 +13,7 @@ wmsx.V9990 = function() {
 
     function init() {
         videoSignal = new wmsx.VideoSignal(self, "V9990 Video", "V9990");
+        initColorCaches();
         initFrameResources(false);
         initDebugPatternTables();
         modeData = modes.SBY;
@@ -1714,6 +1715,13 @@ wmsx.V9990 = function() {
         }
     }
 
+    function initColorCaches() {
+        colors16bitValues = wmsx.ColorCache.getColors16bitValues();     // Init now, used by normal Palette
+        colors8bitValues =  undefined;                                  // Lazy, used only by type BD8
+        colorsYUVValues =   undefined;                                  // Lazy, used only by type YUV
+        colorsYJKValues =   undefined;                                  // Lazy, used only by type YJK
+    }
+
     function initPalette() {
         wmsx.Util.arrayFill(paletteRAM, 0);
         for (var c = 0; c < 64; ++c)
@@ -1917,10 +1925,10 @@ wmsx.V9990 = function() {
     var standByValue =     solidBlackValue;
     var backdropValue =    solidBlackValue;
 
-    var colors16bitValues = wmsx.ColorCache.getColors16bitValues();     // Init now, used by normal Palette
-    var colors8bitValues;                                               // Lazy, used only by type BD8
-    var colorsYUVValues;                                                // Lazy, used only by type YUV
-    var colorsYJKValues;                                                // Lazy, used only by type YJK
+    var colors16bitValues;
+    var colors8bitValues;
+    var colorsYUVValues;
+    var colorsYJKValues;
 
     var paletteValues =      new Uint32Array(64);     // 32 bit ABGR palette values ready to paint, dimmed when in debug
     var paletteValuesReal =  new Uint32Array(64);     // 32 bit ABGR palette values ready to paint with real solid palette values, used for Sprites, NEVER dimmed for debug
