@@ -222,7 +222,7 @@ wmsx.Monitor = function(display) {
             colorMode = s.cm || 0; paletteMode = s.pm || 0;
         } else {
             outputMode = -1; outputAuto = 0;
-            colorMode = 0; paletteMode = 0;
+            colorMode = 0; paletteMode = 2;
         }
         updateColorAndPaletteMode();
         updateOutputMode();
@@ -232,7 +232,7 @@ wmsx.Monitor = function(display) {
     var outputMode = -1, outputAuto = 0, outputEffective = 0;
 
     var colorMode = 0;
-    var paletteMode = 0;
+    var paletteMode = 2;
 
     var intSignal, extSignal;
 
