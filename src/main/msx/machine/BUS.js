@@ -112,14 +112,14 @@ wmsx.BUS = function(machine, cpu) {
         var p = (address >> 14) << 1;
         var s = (primarySlotConfig >> p) & 3;
         if (s === 3) {
-            if ((address >> 8) !== (lastAddress >> 8)) {
+            if ((address ^ lastAddress) >> 8) {
                 return 1;
             } else {
                 var u = (slot3.getSecondarySlotConfig() >> p) & 3;
                 return u === 0 ? 0 : u === 1 ? dramWait : 1;
             }
         } else if (s === 0) {
-            if ((address >> 8) !== (lastAddress >> 8)) {
+            if ((address ^ lastAddress) >> 8) {
                 return 1;
             } else {
                 return dramWait;
