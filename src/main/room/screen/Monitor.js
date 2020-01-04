@@ -7,7 +7,7 @@ wmsx.Monitor = function(display) {
         intSignal = videoSignal;
         intSignal.connectMonitor(this);
         colorMode = WMSX.SCREEN_COLORS >= 0 && WMSX.SCREEN_COLORS <= 3 ? WMSX.SCREEN_COLORS : 0;
-        paletteMode = WMSX.VDP_PALETTE >= 0 && WMSX.VDP_PALETTE <= 5 ? WMSX.VDP_PALETTE : 0;
+        paletteMode = WMSX.VDP_PALETTE >= 0 && WMSX.VDP_PALETTE <= 5 ? WMSX.VDP_PALETTE : 2;        // default = 2 (V9928)
         updateColorAndPaletteMode();
         updateOutputMode();
     };
@@ -66,7 +66,7 @@ wmsx.Monitor = function(display) {
     }
 
     this.toggleColorMode = function(dec) {
-        if (dec) colorMode = colorMode <= 0 ? 3 : colorMode - 1;
+        if (dec) colorMode = colorMode <= 0 ? 3 : colorMode - 1;            // 0..3
         else     colorMode = colorMode >= 3 ? 0 : colorMode + 1;
         updateColorAndPaletteMode();
 
@@ -74,7 +74,7 @@ wmsx.Monitor = function(display) {
     };
 
     this.togglePaletteMode = function(dec) {
-        if (dec) paletteMode = paletteMode <= 0 ? 5 : paletteMode - 1;
+        if (dec) paletteMode = paletteMode <= 0 ? 5 : paletteMode - 1;      // 0..5
         else     paletteMode = paletteMode >= 5 ? 0 : paletteMode + 1;
         updateColorAndPaletteMode();
 
@@ -241,7 +241,7 @@ wmsx.Monitor = function(display) {
 
 
     var COLOR_MODE_DESC = [ "Color", "B&W", "Green Phosphor", "Amber Phosphor" ];
-    var PALETTE_MODE_DESC = [ "V9928", "V9918", "WebMSX original", "V9938", "Toshiba", "Fujitsu FM-X" ];
+    var PALETTE_MODE_DESC = [ "WebMSX Original", "V9918", "V9928", "V9938", "Toshiba", "Fujitsu FM-X" ];
 
 };
 

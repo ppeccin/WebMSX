@@ -96,7 +96,7 @@ wmsx.SettingsGUI.html = function() {
                                 W
                             </div>
                         </div>
-                        <div class="wmsx-desc">Colors / Palettes</div>
+                        <div class="wmsx-desc">Video Out (V9990)</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -225,20 +225,22 @@ wmsx.SettingsGUI.html = function() {
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                G
+                                U
+                            </div>&nbsp;/&nbsp;<div class="wmsx-key">
+                                I
                             </div>
                         </div>
-                        <div class="wmsx-desc">Capture Screen</div>
+                        <div class="wmsx-desc">Colors / Palettes</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                Z
+                                G
                             </div>
                         </div>
-                        <div class="wmsx-desc">Video Out (V9990)</div>
+                        <div class="wmsx-desc">Capture Screen</div>
                     </div>
                     <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">
@@ -942,16 +944,16 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-general {
     padding-top: 13px;
-    padding-left: 36px;
+    padding-left: 32px;
 }
 
 #wmsx-general .wmsx-left {
     float: left;
-    width: 248px;
+    width: 255px;
 }
 
 #wmsx-general .wmsx-left .wmsx-command {
-    width: 105px;
+    width: 104px;
 }
 
 #wmsx-general .wmsx-right {
@@ -959,7 +961,7 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-general .wmsx-right .wmsx-command {
-    width: 160px;
+    width: 161px;
 }
 
 #wmsx-media {

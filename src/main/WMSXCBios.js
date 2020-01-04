@@ -60,7 +60,7 @@ WMSX = {
     EXTENSIONS:                     { },                        // Extensions active. See Extensions Configuration. Use Presets to activate/deactivate
     RTC_ACTIVE:                     -1,                         // -1: auto; 0: not present; 1: present
     VDP_TYPE:                       -1,                         // -1: auto; 1: V9918; 2: V9938; 3: V9958
-    VDP_PALETTE:                    0,                          // 0: V9928; 1: V9918; 2: WebMSX original; 3: V9938; 4: Toshiba; 5: Fujitsu FM-X
+    VDP_PALETTE:                    2,                          // 0: WebMSX Original; 1: V9918; 2: V9928; 3: V9938; 4: Toshiba; 5: Fujitsu FM-X
 
     // General options
     VOL:                            1.0,                        // Master Volume factor

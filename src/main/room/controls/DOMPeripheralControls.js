@@ -380,14 +380,14 @@ wmsx.DOMPeripheralControls = function(room) {
         keyCodeMap[KEY_CRT_SCANLINES | k.ALT]   = pc.SCREEN_CRT_SCANLINES;
         //keyCodeMap[KEY_CRT_PHOSPHOR | k.ALT]  = pc.SCREEN_CRT_PHOSPHOR;
         //keyCodeMap[KEY_SETTINGS | k.ALT]    	= controls.SCREEN_OPEN_SETTINGS;
+        keyCodeMap[KEY_COLOR | k.ALT]           = pc.SCREEN_COLORS;
+        keyCodeMap[KEY_PALETTES | k.ALT]        = pc.SCREEN_PALETTES;
         keyCodeMap[KEY_QUICK_OPTIONS | k.ALT] 	= pc.SCREEN_OPEN_QUICK_OPTIONS;
 
-        keyCodeMap[KEY_FULLSCREEN | k.ALT]  = pc.SCREEN_FULLSCREEN;
+        keyCodeMap[KEY_FULLSCREEN | k.ALT]   = pc.SCREEN_FULLSCREEN;
 
-        keyCodeMap[KEY_VIDEO_OUT_TOGGLE | k.ALT]  = pc.SCREEN_OUTPUT_TOGGLE;
+        keyCodeMap[KEY_VIDEO_OUTPUT | k.ALT] = pc.SCREEN_OUTPUT_TOGGLE;
 
-        keyCodeMap[KEY_COLOR_TOGGLE | k.ALT]  = pc.SCREEN_COLORS;
-        keyCodeMap[KEY_COLOR_TOGGLE | k.CONTROL | k.ALT]  = pc.SCREEN_PALETTES;
 
         keyCodeMap[KEY_UP | k.CONTROL | k.ALT]     = pc.SCREEN_SCALE_MINUS;
         keyCodeMap[KEY_DOWN | k.CONTROL | k.ALT]   = pc.SCREEN_SCALE_PLUS;
@@ -504,17 +504,18 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_TOUCH_TOGGLE          = domKeys.VK_N.wc;
     var KEY_TURBO_FIRE_TOGGLE     = domKeys.VK_H.wc;
 
+    var KEY_VIDEO_OUTPUT  = domKeys.VK_W.wc;
+
     var KEY_CRT_FILTER     = domKeys.VK_E.wc;
     var KEY_CRT_SCANLINES  = domKeys.VK_R.wc;
     //var KEY_CRT_PHOSPHOR = domKeys.VK_R.wc;
     //var KEY_SETTINGS     = domKeys.VK_Y.wc;
-    var KEY_QUICK_OPTIONS  = domKeys.VK_I.wc;
+    var KEY_COLOR          = domKeys.VK_U.wc;
+    var KEY_PALETTES       = domKeys.VK_I.wc;
+
+    var KEY_QUICK_OPTIONS  = domKeys.VK_Z.wc;
 
     var KEY_FULLSCREEN  = domKeys.VK_ENTER.wc;
-
-    var KEY_VIDEO_OUT_TOGGLE  = domKeys.VK_Z.wc;
-
-    var KEY_COLOR_TOGGLE  = domKeys.VK_W.wc;
 
     var KEY_MACHINE_POWER  = domKeys.VK_F11.wc;
     var KEY_STATE_FILE     = domKeys.VK_F12.wc;
