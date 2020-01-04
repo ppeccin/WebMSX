@@ -55,7 +55,7 @@ wmsx.SettingsGUI.html = function() {
                                 F11
                             </div>
                         </div>
-                        <div class="wmsx-desc">Reset Machine</div>
+                        <div class="wmsx-desc">Reset Button</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -65,7 +65,7 @@ wmsx.SettingsGUI.html = function() {
                                 F11
                             </div>
                         </div>
-                        <div class="wmsx-desc">Pause Machine</div>
+                        <div class="wmsx-desc">Pause Button</div>
                     </div>
                     <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">

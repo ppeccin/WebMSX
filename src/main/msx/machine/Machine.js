@@ -65,7 +65,7 @@ wmsx.Machine = function() {
         this.powerIsOn = false;
         if (userPaused) this.userPause(false);
         else machineControlsSocket.firePowerAndUserPauseStateUpdate();
-        this.cpuPause(false);
+        this.cpuPause(false, false, true);
     };
 
     this.reset = function(fromState) {
@@ -240,9 +240,9 @@ wmsx.Machine = function() {
         return systemPaused;
     };
 
-    this.cpuPause = function(pause, keepAudio) {
+    this.cpuPause = function(pause, keepAudio, forceNow) {
         if (pause !== trd.isCPUPaused()) {
-            trd.setCPUPause(pause);
+            trd.setCPUPause(pause, forceNow);
             if (pause) {
                 if (!keepAudio) audioSocket.pauseAudio();
             } else if (!systemPaused) audioSocket.unpauseAudio();
@@ -703,7 +703,7 @@ wmsx.Machine = function() {
                 break;
             case controls.PAUSE:
                 self.userPause(!userPaused, altFunc);
-                self.showOSD(userPaused ? "PAUSE" + (altFunc ? " with AUDIO ON" : "") : "RESUME", true);
+                self.showOSD(userPaused ? "EMULATION PAUSED" + (altFunc ? " with AUDIO ON" : "") : "EMULATION RESUMED", true);
                 break;
             case controls.FRAME:
                 if (userPaused) userPauseMoreFrames = 1;

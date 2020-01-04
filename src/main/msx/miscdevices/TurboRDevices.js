@@ -136,8 +136,9 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         return cpuPause;
     };
 
-    this.setCPUPause = function(pause) {
+    this.setCPUPause = function(pause, forceNow) {
         cpuPause = pause;
+        if (forceNow) this.vSyncPulse();
     };
 
     this.vSyncPulse = function() {
