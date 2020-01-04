@@ -3,6 +3,7 @@
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
+// TODO iPadOS Safari fullscreen mode shows a close button right on top of Pause/FF button in landscape mode
 
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
