@@ -1,4 +1,4 @@
-// WebMSX version 5.4.3
+// WebMSX version 5.4.4
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main Emulator parameters.
@@ -119,6 +119,7 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
+    // MSX2++ WILL BE REMOVED in future releases
     MSX2PP:   { DESCX: "MSX2++ Auto Detect",    AUTO_TYPE: 4 },
     MSX2P:    { DESCX: "MSX2+ Auto Detect",     AUTO_TYPE: 3 },
     MSX2:     { DESCX: "MSX2 Auto Detect",      AUTO_TYPE: 2 },
@@ -240,7 +241,7 @@ WMSX.PRESETS_CONFIG = {
 
     BOOSTED:    { CPU_TURBO_MODE: 3, VDP_TURBO_MODE: 3, BOOT_DURATION_AUTO: 165, _INCLUDE: "HARDDISK" },
 
-    // MSX2++ Machine Presets. Do not use directly
+    // MSX2++ Machine Presets. Do not use directly. WILL BE REMOVED in future releases
 
     _MSX2PPA: {
         _INCLUDE:           "_MSX2PA, _MSX2PPBASE",
