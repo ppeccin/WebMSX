@@ -6,7 +6,7 @@
 wmsx.SlotRAMNormal = function(rom) {
 "use strict";
 
-    function init(self) {
+    function init(self, rom) {
         self.rom = rom;
         var size = WMSX.RAMNORMAL_SIZE;
         if (size < 1) size = 1; else if (size > 64) size = 64;          // Spec says minimum is 16K, but we will allow less
@@ -17,7 +17,7 @@ wmsx.SlotRAMNormal = function(rom) {
 
     this.refreshConnect = function() {
         // Updates size if necessary
-        if (WMSX.RAMNORMAL_SIZE * 1024 !== bytes.length) init(this);
+        if (WMSX.RAMNORMAL_SIZE * 1024 !== bytes.length) init(this, this.rom);
     };
 
     this.powerOff = function() {
@@ -66,7 +66,7 @@ wmsx.SlotRAMNormal = function(rom) {
     };
 
 
-    if (rom) init(this);
+    if (rom) init(this, rom);
 
 };
 

@@ -7,7 +7,7 @@
 wmsx.SlotRAMMapper = function(rom) {
 "use strict";
 
-    function init(self) {
+    function init(self ,rom) {
         self.rom = rom;
         var i = 0;
         while (VALID_SIZES[i] < WMSX.RAMMAPPER_SIZE && i < VALID_SIZES.length - 1) i++;
@@ -37,7 +37,7 @@ wmsx.SlotRAMMapper = function(rom) {
     this.refreshConnect = function() {
         // Updates size and recreate if necessary
         if (WMSX.RAMMAPPER_SIZE * 1024 !== bytes.length) {
-            init(this);
+            init(this, this.rom);
             if (trd) trd.connectRAM(this);      // Refresh RAM - BIOSes connections
         }
     };
@@ -160,7 +160,7 @@ wmsx.SlotRAMMapper = function(rom) {
     };
 
 
-    if (rom) init(this);
+    if (rom) init(this, rom);
 
     this.eval = function(str) {
         return eval(str);

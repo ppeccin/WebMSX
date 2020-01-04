@@ -33,7 +33,7 @@ wmsx.SlotExpanded = function() {
     };
 
     this.powerOn = function() {
-        this.setSecondarySlotConfig(0);
+        setSecondarySlotConfig(0);
         for (var s = 0; s < 4; s++) subSlots[s].powerOn();
     };
 
@@ -42,7 +42,7 @@ wmsx.SlotExpanded = function() {
     };
 
     this.reset = function() {
-        this.setSecondarySlotConfig(0);
+        setSecondarySlotConfig(0);
         for (var s = 0; s < 4; s++) subSlots[s].reset();
     };
 
@@ -58,7 +58,7 @@ wmsx.SlotExpanded = function() {
         subSlots[subSlotNumber] = subSlot;
         if (machine) subSlots[subSlotNumber].connect(machine);
 
-        this.setSecondarySlotConfig(secondarySlotConfig);
+        setSecondarySlotConfig(secondarySlotConfig);
     };
 
     this.getSubSlot = function(subSlotNumber) {
@@ -89,20 +89,21 @@ wmsx.SlotExpanded = function() {
         if      (s === 0)   page0Slot.write(address, val);
         else if (s === 3) {
             // Check for control register
-            if (address === 0xffff) this.setSecondarySlotConfig(val);
+            if (address === 0xffff) setSecondarySlotConfig(val);
             else            page3Slot.write(address, val);
         } else if (s === 1) page1Slot.write(address, val);
           else              page2Slot.write(address, val);
     };
 
-    this.setSecondarySlotConfig = function(val) {
+    function setSecondarySlotConfig(val) {
         // wmsx.Util.log("SecondarySlot Select: " + val.toString(16));
         secondarySlotConfig = val;
         page0Slot = subSlots[val & 3];
         page1Slot = subSlots[(val >> 2) & 3];
         page2Slot = subSlots[(val >> 4) & 3];
         page3Slot = subSlots[(val >> 6) & 3];
-    };
+    }
+    this.setSecondarySlotConfig = setSecondarySlotConfig;
 
     this.getSecondarySlotConfig = function() {
         // wmsx.Util.log("SecondarySlot Query: " + secondarySlotConfig.toString(16));
@@ -156,7 +157,7 @@ wmsx.SlotExpanded = function() {
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s1, subSlots[1]), 1);
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s2, subSlots[2]), 2);
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s3, subSlots[3]), 3);
-        this.setSecondarySlotConfig(s.s);
+        setSecondarySlotConfig(s.s);
     };
 
 

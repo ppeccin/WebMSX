@@ -22,22 +22,22 @@ wmsx.SlotExpanded3 = function() {
         machine = pMachine;
         bus = machine.bus;
         for (var s = 0; s < 4; ++s) subSlots[s].connect(machine);
-        bus.setSlot3SecondaryConfig(secondarySlotConfig);
+        setSecondarySlotConfig(secondarySlotConfig);
     };
 
     this.refreshConnect = function() {
         for (var s = 0; s < 4; ++s) subSlots[s].refreshConnect();
-        bus.setSlot3SecondaryConfig(secondarySlotConfig);
+        setSecondarySlotConfig(secondarySlotConfig);
     };
 
     this.disconnect = function(pMachine) {
         for (var s = 0; s < 4; ++s) subSlots[s].disconnect(pMachine);
-        bus.setSlot3SecondaryConfig(0);
+        setSecondarySlotConfig(0);
         machine = bus = null;
     };
 
     this.powerOn = function() {
-        this.setSecondarySlotConfig(0);
+        setSecondarySlotConfig(0);
         for (var s = 0; s < 4; s++) subSlots[s].powerOn();
     };
 
@@ -46,7 +46,7 @@ wmsx.SlotExpanded3 = function() {
     };
 
     this.reset = function() {
-        this.setSecondarySlotConfig(0);
+        setSecondarySlotConfig(0);
         for (var s = 0; s < 4; s++) subSlots[s].reset();
     };
 
@@ -62,7 +62,7 @@ wmsx.SlotExpanded3 = function() {
         subSlots[subSlotNumber] = subSlot;
         if (machine) subSlots[subSlotNumber].connect(machine);
 
-        this.setSecondarySlotConfig(secondarySlotConfig);
+        setSecondarySlotConfig(secondarySlotConfig);
     };
 
     this.getSubSlot = function(subSlotNumber) {
@@ -93,21 +93,22 @@ wmsx.SlotExpanded3 = function() {
         if      (s === 0)   page0Slot.write(address, val);
         else if (s === 3) {
             // Check for control register
-            if (address === 0xffff) this.setSecondarySlotConfig(val);
+            if (address === 0xffff) setSecondarySlotConfig(val);
             else            page3Slot.write(address, val);
         } else if (s === 1) page1Slot.write(address, val);
          else               page2Slot.write(address, val);
     };
 
-    this.setSecondarySlotConfig = function(val) {
+    function setSecondarySlotConfig(val) {
         // wmsx.Util.log("SecondarySlot Select: " + val.toString(16));
         secondarySlotConfig = val;
         page0Slot = subSlots[val & 3];
         page1Slot = subSlots[(val >> 2) & 3];
         page2Slot = subSlots[(val >> 4) & 3];
         page3Slot = subSlots[(val >> 6) & 3];
-        bus.setSlot3SecondaryConfig(secondarySlotConfig);
-    };
+        if (bus) bus.setSlot3SecondaryConfig(val);
+    }
+    this.setSecondarySlotConfig = setSecondarySlotConfig;
 
     this.getSecondarySlotConfig = function() {
         // wmsx.Util.log("SecondarySlot Query: " + secondarySlotConfig.toString(16));
@@ -163,7 +164,7 @@ wmsx.SlotExpanded3 = function() {
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s1, subSlots[1]), 1);
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s2, subSlots[2]), 2);
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s3, subSlots[3]), 3);
-        this.setSecondarySlotConfig(s.s);
+        setSecondarySlotConfig(s.s);
     };
 
 

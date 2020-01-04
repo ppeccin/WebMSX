@@ -73,10 +73,6 @@ wmsx.SlotExpandedM = function() {
         // Not needed
     };
 
-    this.setSecondarySlotConfig = function(val) {
-        // Not needed
-    };
-
     this.getSecondarySlotConfig = function() {
         // Not needed
     };
