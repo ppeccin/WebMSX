@@ -227,6 +227,7 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 
 | Preset | Description
 | --- | ---
+| `BOOSTED`                                               |  Boosted Machine with HardDisk and CPU/VDP 3x Turbo 
 | `ALTSLOTCONFIG`                                         |  Alternate Slot Configuration. RAM at Primary Slot 3
 | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`                   |  Hard Drive Extension
 | `DISK`, `DISKA`, `NODISK`                               |  Floppy Drives Extension

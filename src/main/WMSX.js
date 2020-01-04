@@ -236,6 +236,10 @@ WMSX.PRESETS_CONFIG = {
         "PRESETS_CONFIG.DISK":             { "EXTENSIONS.DISK": 1 }
     },
 
+    // Boosted Machine Preset
+
+    BOOSTED:    { CPU_TURBO_MODE: 3, VDP_TURBO_MODE: 3, BOOT_DURATION_AUTO: 165, _INCLUDE: "HARDDISK" },
+
     // MSX2++ Machine Presets. Do not use directly
 
     _MSX2PPA: {
@@ -340,11 +344,11 @@ WMSX.PRESETS_CONFIG = {
 
     _BASE: {
         CPU_TURBO_MODE:     0,
-        VDP_TURBO_MODE:     0,
-        VDP_TYPE:           -1,
-        RTC_ACTIVE:         -1
+        VDP_TURBO_MODE:     0
     }
 
 };
+
+WMSX.params = {};                   // Additional parameter overrides
 
 wmsx = window.wmsx || {};           // Namespace

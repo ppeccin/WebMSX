@@ -5,11 +5,11 @@ wmsx.Configurator = {
     applyConfig: function(then) {
         this.backupOriginalConfig();
 
-        // Read URL parameters
-        if (WMSX.ALLOW_URL_PARAMETERS) this.parseURLParams();
+        // Process parameter overrides (including URL parameters)
+        this.parseParams();
 
         // Process Config file if asked
-        if (this.parameters.CONFIG_URL) this.applyParam("CONFIG_URL", this.parameters.CONFIG_URL);
+        if (WMSX.params.CONFIG_URL) this.applyParam("CONFIG_URL", WMSX.params.CONFIG_URL);
         if (WMSX.CONFIG_URL) this.readThenApplyConfigFile(then);
         else this.applyConfigDetails(then);
     },
@@ -32,11 +32,11 @@ wmsx.Configurator = {
         this.applyPresetsConfigModifications();
 
         // Define Machine
-        if (this.parameters.MACHINE) this.applyParam("MACHINE", this.parameters.MACHINE);
+        if (WMSX.params.MACHINE) this.applyParam("MACHINE", WMSX.params.MACHINE);
         WMSX.MACHINE = WMSX.MACHINE.trim().toUpperCase();
         if (WMSX.MACHINE && !WMSX.MACHINES_CONFIG[WMSX.MACHINE]) return wmsx.Util.message("Invalid Machine: " + WMSX.MACHINE);
         if (!WMSX.MACHINES_CONFIG[WMSX.MACHINE] || WMSX.MACHINES_CONFIG[WMSX.MACHINE].AUTO_TYPE) WMSX.MACHINE = this.detectDefaultMachine();
-        delete this.parameters.MACHINE;
+        delete WMSX.params.MACHINE;
 
         // Apply all parameters from Machine, Presets and Single Parameters from URL
         this.applyFinalConfig();
@@ -58,8 +58,8 @@ wmsx.Configurator = {
         this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].PRESETS);
         // Apply additional Presets over Machine configuration
         this.applyPresets(WMSX.PRESETS);
-        // Apply additional Single Parameters from URL
-        for (var par in this.parameters) this.applyParam(par, this.parameters[par]);
+        // Apply additional Single Parameters overrides (including URL parameters)
+        for (var par in WMSX.params) this.applyParam(par, WMSX.params[par]);
         // Ensure the correct types of the parameters after all settings applied
         this.normalizeParameterTypes();
     },
@@ -97,11 +97,11 @@ wmsx.Configurator = {
     },
 
     applyPresetsConfigModifications: function() {
-        if (this.parameters.PRESETS) this.applyParam("PRESETS", this.parameters.PRESETS);
-        delete this.parameters.PRESETS;
+        if (WMSX.params.PRESETS) this.applyParam("PRESETS", WMSX.params.PRESETS);
+        delete WMSX.params.PRESETS;
 
         // Apply Presets modifications
-        for (var p in this.parameters) if (wmsx.Util.stringStartsWith(p, "PRESETS_CONFIG")) this.applyParam(p, this.parameters[p]);
+        for (var p in WMSX.params) if (wmsx.Util.stringStartsWith(p, "PRESETS_CONFIG")) this.applyParam(p, WMSX.params[p]);
 
         // Apply Alternate Slot Config Preset if asked (special case, also modifies other presets)
         if ((WMSX.PRESETS || "").toUpperCase().indexOf("ALTSLOTCONFIG") < 0) return;
@@ -121,14 +121,21 @@ wmsx.Configurator = {
         this.applyConfigDetails(then);
     },
 
-    parseURLParams: function() {
-        var search = (window.location.search || "").split('+').join(' ');
-        var reg = /[?&]?([^=]+)=([^&]*)/g;
-        var tokens;
-        while (tokens = reg.exec(search)) {
-            var parName = decodeURIComponent(tokens[1]).trim().toUpperCase();
-            parName = wmsx.Configurator.abbreviations[parName] || parName;
-            this.parameters[parName] = decodeURIComponent(tokens[2]).trim();
+    parseParams: function() {
+        if (WMSX.ALLOW_URL_PARAMETERS) {
+            var search = (window.location.search || "").split('+').join(' ');
+            var reg = /[?&]?([^=]+)=([^&]*)/g;
+            var tokens;
+            while (tokens = reg.exec(search))
+                WMSX.params[decodeURIComponent(tokens[1]).trim().toUpperCase()] = decodeURIComponent(tokens[2]).trim();
+        }
+        // Replace abbreviations
+        for (var parName in WMSX.params) {
+            var newName = wmsx.Configurator.abbreviations[parName];
+            if (newName) {
+                WMSX.params[newName] = WMSX.params[parName];
+                delete WMSX.params[parName];
+            }
         }
     },
 
@@ -384,8 +391,6 @@ wmsx.Configurator = {
     listeners: [],
 
     originalConfig: {},
-
-    parameters: {},
 
     abbreviations: {
         E: "ENVIRONMENT",
