@@ -161,8 +161,8 @@ wmsx.TurboDriver = function(bios) {
 
         var mt = machine && machine.getMachineTypeSocket().getMachineType();
         var softTurbo = mt === M_TYPES.MSX2P;                                   // Backward compatibility: On for MSX2+
-        fakeTRTurbo = s.tt !== undefined ? s.tt : softTurbo;
-        panaTurbo = s.pt !== undefined ? s.pt : softTurbo;
+        fakeTRTurbo = s && s.tt !== undefined ? s.tt : softTurbo;
+        panaTurbo = s && s.pt !== undefined ? s.pt : softTurbo;
 
         if (machine) updateSoftTurboDevices();                                  // Already connected?
     };
