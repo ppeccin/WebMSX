@@ -380,15 +380,15 @@ wmsx.SlotFormats = {
         desc: "Normal ROM, Mirroring Auto",     // Will choose either Mirrored or NotMirrored
         priority: 901,
         priorityForRom: function (rom) {
-            // Any 8K or 16K content starting with the Cartridge identifier "AB"
-            if ((rom.content.length === 8192 || rom.content.length === 16384)
+            // Any <= 16K content starting with the Cartridge identifier "AB"
+            if ((rom.content.length >= 128 && rom.content.length <= 16384)
                 && rom.content[0] === 65 && rom.content[1] === 66) return this.priority;
-            // Any 32K with the Cartridge identifier "AB" at 0x0000 or 0x4000
-            if (rom.content.length === 32768
+            // Any <= 32K with the Cartridge identifier "AB" at 0x0000 or 0x4000
+            if (rom.content.length <= 32768
                 && ((rom.content[0] === 65 && rom.content[1] === 66)
                 || (rom.content[0x4000] === 65 && rom.content[0x4001] === 66))) return this.priority;
-            // Any 64K or 48K content, with the Cartridge identifier "AB" at 0x4000 or 0x8000
-            if ((rom.content.length === 65536 || rom.content.length === 49152)
+            // Any > 32K and <= 64K content, with the Cartridge identifier "AB" at 0x4000 or 0x8000
+            if ((rom.content.length > 32768 && rom.content.length <= 65536)
                 && ((rom.content[0x4000] === 65 && rom.content[0x4001] === 66)
                 || (rom.content[0x8000] === 65 && rom.content[0x8001] === 66))) return this.priority;
             return null;
@@ -522,7 +522,7 @@ wmsx.SlotFormats = {
         desc: "ASCII 8K SRAM 2K Mapper Cartridge",
         priority: 1102,
         priorityForRom: function (rom) {
-            // Any >= 8K and <= 1024 content , multiple of 8K. Must be selected via info format hint
+            // Any >= 8K and <= 1024K content, multiple of 8K. Must be selected via info format hint
             return (rom.content.length >= 8192 && rom.content.length <= 1048576 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
         },
         createFromROM: function (rom) {

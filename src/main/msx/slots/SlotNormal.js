@@ -19,11 +19,11 @@ wmsx.SlotNormal = function(rom, format) {
         var startingPage = 0;
         mirrored = format === wmsx.SlotFormats.Mirrored ? true : format === wmsx.SlotFormats.NotMirrored ? false : null;       // Force mirroring?
 
-        // If 64K or 48K, force startingPage to 0
-        if (size === 0x10000 || size === 0xc000)
+        // If > 32K (64K, 48K), force startingPage to 0
+        if (size > 0x8000)
             startingPage = 0;
         else {
-            // 32K or less. Use position from info if present and mirror by default
+            // <= 32K. Use position from info if present and mirror by default
             var position = rom.info.s ? parseInt(rom.info.s) : -1;
             if (position >= 0)
                 startingPage = position >> 14;
@@ -45,8 +45,8 @@ wmsx.SlotNormal = function(rom, format) {
                 if (lowestHandlerPage === null)
                     startingPage = 1;
                 else {
-                    // If 32K, position at page 0, 1 or 2. Headers possible at 0x0000 or 0x4000
-                    if (size === 0x8000) {
+                    // If > 16K, position at page 0, 1 or 2. Headers possible at 0x0000 or 0x4000
+                    if (size > 0x4000) {
                         if (headerPosition === 0x0000) {
                             if (lowestHandlerPage === 3) startingPage = 2;
                             else startingPage = 1;
@@ -55,7 +55,7 @@ wmsx.SlotNormal = function(rom, format) {
                             else startingPage = 1;
                         }
                     } else {
-                        // If 16K or less, position at page 1 or 2. Headers only possible at 0x0000
+                        // If <= 16K, position at page 1 or 2. Headers only possible at 0x0000
                         startingPage = lowestHandlerPage === 2 ? 2 : 1;
                         // DO NOT Mirror by default if startingPage = 2 and basicPage = 2
                         if (mirrored === null && startingPage === 2 && lowestBasicPage === 2) mirrored = false;

@@ -2,7 +2,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main Emulator parameters.
-// May be overridden dynamically by external Config File or URL query parameters
+// May be overridden dynamically by JS code, external Config File or URL query parameters
 
 WMSX = {
 

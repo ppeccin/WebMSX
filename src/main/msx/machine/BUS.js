@@ -96,7 +96,7 @@ wmsx.BUS = function(machine, cpu) {
         slot3SecondaryConfig = conf;
     };
 
-    // TODO Performance trade-off: For Expanded Slot 0 consider ALL subSlots the same as subSlot 0 (BIOS), so all have DRAM Mode
+    // TODO Performance trade-off: For Expanded Slot 0 consider ALL subSlots the same as subSlot 0 (BIOS), so all follow DRAM Mode timing
     this.getBreakWait = function(address, lastAddress) {
         var p = (address >> 14) << 1;
         var s = (primarySlotConfig >> p) & 3;
@@ -113,7 +113,7 @@ wmsx.BUS = function(machine, cpu) {
         return 1;
     };
 
-    // TODO Performance trade-off: For Expanded Slot 0 consider ALL subSlots the same as subSlot 0 (BIOS), so all have DRAM Mode
+    // TODO Performance trade-off: For Expanded Slot 0 consider ALL subSlots the same as subSlot 0 (BIOS), so all follow DRAM Mode timing
     this.getAccessWait = function(address) {
         var p = (address >> 14) << 1;
         var s = (primarySlotConfig >> p) & 3;
