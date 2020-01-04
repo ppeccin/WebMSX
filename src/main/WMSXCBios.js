@@ -122,21 +122,21 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
-    MSX2P:    { DESCX: "MSX2+ Auto Detect",     AUTO_TYPE: 3 },
-    MSX2:     { DESCX: "MSX2 Auto Detect",      AUTO_TYPE: 2 },
-    MSX1:     { DESCX: "MSX Auto Detect",       AUTO_TYPE: 1 },
-    MSX2PA:   { DESC:  "MSX2+ America (NTSC)",  TYPE: 3, PRESETS: "_MSX2PA" },
-    MSX2PE:   { DESC:  "MSX2+ Europe (PAL)",    TYPE: 3, PRESETS: "_MSX2PE" },
-    MSX2PJ:   { DESC:  "MSX2+ Japan (NTSC)",    TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja" },
-    MSX2A:    { DESC:  "MSX2 America (NTSC)",   TYPE: 2, PRESETS: "_MSX2A" },
-    MSX2E:    { DESC:  "MSX2 Europe (PAL)",     TYPE: 2, PRESETS: "_MSX2E" },
-    MSX2J:    { DESC:  "MSX2 Japan (NTSC)",     TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja" },
-    MSX1A:    { DESC:  "MSX America (NTSC)",    TYPE: 1, PRESETS: "_MSX1A" },
-    MSX1E:    { DESC:  "MSX Europe (PAL)",      TYPE: 1, PRESETS: "_MSX1E" },
-    MSX1J:    { DESC:  "MSX Japan (NTSC)",      TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja" },
-    EMPTY2P:  { DESCX: "MSX2+ Empty (NTSC)",    TYPE: 3, PRESETS: "_EMPTY" },
-    EMPTY2:   { DESCX: "MSX2 Empty (NTSC)",     TYPE: 2, PRESETS: "_EMPTY" },
-    EMPTY1:   { DESCX: "MSX Empty (NTSC)",      TYPE: 1, PRESETS: "_EMPTY" }
+    MSX2P:   { DESCX: "MSX2+ Auto Detect",    AUTO_TYPE: 3 },
+    MSX2:    { DESCX: "MSX2 Auto Detect",     AUTO_TYPE: 2 },
+    MSX1:    { DESCX: "MSX Auto Detect",      AUTO_TYPE: 1 },
+    MSX2PA:  { DESC:  "MSX2+ America (NTSC)", TYPE: 3, PRESETS: "_MSX2PA" },
+    MSX2PE:  { DESC:  "MSX2+ Europe (PAL)",   TYPE: 3, PRESETS: "_MSX2PE" },
+    MSX2PJ:  { DESC:  "MSX2+ Japan (NTSC)",   TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja" },
+    MSX2A:   { DESC:  "MSX2 America (NTSC)",  TYPE: 2, PRESETS: "_MSX2A" },
+    MSX2E:   { DESC:  "MSX2 Europe (PAL)",    TYPE: 2, PRESETS: "_MSX2E" },
+    MSX2J:   { DESC:  "MSX2 Japan (NTSC)",    TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja" },
+    MSX1A:   { DESC:  "MSX America (NTSC)",   TYPE: 1, PRESETS: "_MSX1A" },
+    MSX1E:   { DESC:  "MSX Europe (PAL)",     TYPE: 1, PRESETS: "_MSX1E" },
+    MSX1J:   { DESC:  "MSX Japan (NTSC)",     TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja" },
+    EMPTY2P: { DESCX: "MSX2+ Empty (NTSC)",   TYPE: 3, PRESETS: "_EMPTY" },
+    EMPTY2:  { DESCX: "MSX2 Empty (NTSC)",    TYPE: 2, PRESETS: "_EMPTY" },
+    EMPTY1:  { DESCX: "MSX Empty (NTSC)",     TYPE: 1, PRESETS: "_EMPTY" }
 };
 
 WMSX.EXTENSIONS_CONFIG = {
@@ -213,20 +213,17 @@ WMSX.PRESETS_CONFIG = {
     ALLSTEREO:  { _INCLUDE: "PSGSTEREO,  SCCSTEREO,  OPLLSTEREO" },
     ALLSTEREO2: { _INCLUDE: "PSGSTEREO2, SCCSTEREO2, OPLLSTEREO" },
 
-    // Alternate Slot Configuration: try to keep RAM alone on primary Slot 3
+    // Boosted Machine Preset
+    BOOSTED: { Z80_CLOCK_MODE: 3, VDP_CLOCK_MODE: 3, BOOT_DURATION_AUTO: 165, _INCLUDE: "HARDDISK" },
 
+    // Alternate Slot Configuration: try to keep RAM alone on primary Slot 3
     ALTSLOTCONFIG: {
         EXPANSION1_SLOT:                       [2, 3],
         EXPANSION2_SLOT:                       [3, 3],
         "EXTENSIONS_CONFIG.MSXMUSIC.SLOT":     [2, 2]
     },
 
-    // Boosted Machine Preset
-
-    BOOSTED:    { Z80_CLOCK_MODE: 3, VDP_CLOCK_MODE: 3, BOOT_DURATION_AUTO: 165, _INCLUDE: "HARDDISK" },
-
     // MSX2+ Machine Presets. Do not use directly
-
     _MSX2PA: {
         _INCLUDE:           "_MSX2PBASE",
         SLOT0_URL:          "@cbios_main_msx2+.rom | @cbios_logo_msx2+.rom",
@@ -250,7 +247,6 @@ WMSX.PRESETS_CONFIG = {
     },
 
     // MSX2 Machine Presets. Do not use directly
-
     _MSX2A: {
         _INCLUDE:           "_MSX2BASE",
         SLOT0_URL:          "@cbios_main_msx2.rom | @cbios_logo_msx2.rom",
@@ -270,11 +266,10 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 360
     },
     _MSX2BASE: {
-        _INCLUDE:           "_BASE, RAMMAPPER, DISK, MSXMUSIC"
+        _INCLUDE:           "_BASE, RAMMAPPER, MSXMUSIC"
     },
 
     // MSX1 Machine Presets. Do not use directly
-
     _MSX1A: {
         _INCLUDE:           "_MSX1BASE",
         SLOT0_URL:          "@cbios_main_msx1.rom | @cbios_logo_msx1.rom",
@@ -291,12 +286,11 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 230
     },
     _MSX1BASE: {
-        _INCLUDE:           "_BASE, RAMNORMAL, DISK, NOHARDDISK, NOMSXMUSIC",
+        _INCLUDE:           "_BASE, RAMNORMAL, NOHARDDISK, NOMSXMUSIC",
         SLOT31_URL :        ""      // MSX1 has no BIOS Extension
     },
 
     // Base Machines Presets. Do not use directly
-
     _EMPTY: {
         _INCLUDE:           "_BASE",
         EXTENSIONS:         null,
@@ -304,9 +298,8 @@ WMSX.PRESETS_CONFIG = {
         SLOT1P_URL:         "",
         SLOT2P_URL:         "",
         SLOT3P_URL:         "",
-        SLOT4P_URL:         ""      // Special Device I/O only slot
+        SLOT4P_URL:         ""       // MSX1 has no BIOS Extension on slot 3-1, clear
     },
-
     _BASE: {}
 
 };

@@ -124,26 +124,26 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
-    MSXTR:    { DESCX: "MSX turbo R Auto Detect",     AUTO_TYPE: 4 },
-    MSX2P:    { DESCX: "MSX2+ Auto Detect",           AUTO_TYPE: 3 },
-    MSX2:     { DESCX: "MSX2 Auto Detect",            AUTO_TYPE: 2 },
-    MSX1:     { DESCX: "MSX Auto Detect",             AUTO_TYPE: 1 },
-    MSXTRA:   { DESC:  "MSX turbo R America (NTSC)",  TYPE: 4, PRESETS: "_MSXTRA" },
-    MSXTRE:   { DESC:  "MSX turbo R Europe (PAL)",    TYPE: 4, PRESETS: "_MSXTRE" },
-    MSXTRJ:   { DESC:  "MSX turbo R Japan (NTSC)",    TYPE: 4, PRESETS: "_MSXTRJ",  LANG: "ja" },
-    MSX2PA:   { DESC:  "MSX2+ America (NTSC)",        TYPE: 3, PRESETS: "_MSX2PA" },
-    MSX2PE:   { DESC:  "MSX2+ Europe (PAL)",          TYPE: 3, PRESETS: "_MSX2PE" },
-    MSX2PJ:   { DESC:  "MSX2+ Japan (NTSC)",          TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja" },
-    MSX2A:    { DESC:  "MSX2 America (NTSC)",         TYPE: 2, PRESETS: "_MSX2A" },
-    MSX2E:    { DESC:  "MSX2 Europe (PAL)",           TYPE: 2, PRESETS: "_MSX2E" },
-    MSX2J:    { DESC:  "MSX2 Japan (NTSC)",           TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja" },
-    MSX1A:    { DESC:  "MSX America (NTSC)",          TYPE: 1, PRESETS: "_MSX1A" },
-    MSX1E:    { DESC:  "MSX Europe (PAL)",            TYPE: 1, PRESETS: "_MSX1E" },
-    MSX1J:    { DESC:  "MSX Japan (NTSC)",            TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja" },
-    EMPTYTR:  { DESCX: "MSX2 turbo R Empty (NTSC)",   TYPE: 4, PRESETS: "_EMPTY" },
-    EMPTY2P:  { DESCX: "MSX2+ Empty (NTSC)",          TYPE: 3, PRESETS: "_EMPTY" },
-    EMPTY2:   { DESCX: "MSX2 Empty (NTSC)",           TYPE: 2, PRESETS: "_EMPTY" },
-    EMPTY1:   { DESCX: "MSX Empty (NTSC)",            TYPE: 1, PRESETS: "_EMPTY" }
+    MSXTR:   { DESCX: "MSX turbo R Auto Detect",    AUTO_TYPE: 4 },
+    MSX2P:   { DESCX: "MSX2+ Auto Detect",          AUTO_TYPE: 3 },
+    MSX2:    { DESCX: "MSX2 Auto Detect",           AUTO_TYPE: 2 },
+    MSX1:    { DESCX: "MSX Auto Detect",            AUTO_TYPE: 1 },
+    MSXTRA:  { DESC:  "MSX turbo R America (NTSC)", TYPE: 4, PRESETS: "_MSXTRA" },
+    MSXTRE:  { DESC:  "MSX turbo R Europe (PAL)",   TYPE: 4, PRESETS: "_MSXTRE" },
+    MSXTRJ:  { DESC:  "MSX turbo R Japan (NTSC)",   TYPE: 4, PRESETS: "_MSXTRJ",  LANG: "ja" },
+    MSX2PA:  { DESC:  "MSX2+ America (NTSC)",       TYPE: 3, PRESETS: "_MSX2PA" },
+    MSX2PE:  { DESC:  "MSX2+ Europe (PAL)",         TYPE: 3, PRESETS: "_MSX2PE" },
+    MSX2PJ:  { DESC:  "MSX2+ Japan (NTSC)",         TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja" },
+    MSX2A:   { DESC:  "MSX2 America (NTSC)",        TYPE: 2, PRESETS: "_MSX2A" },
+    MSX2E:   { DESC:  "MSX2 Europe (PAL)",          TYPE: 2, PRESETS: "_MSX2E" },
+    MSX2J:   { DESC:  "MSX2 Japan (NTSC)",          TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja" },
+    MSX1A:   { DESC:  "MSX America (NTSC)",         TYPE: 1, PRESETS: "_MSX1A" },
+    MSX1E:   { DESC:  "MSX Europe (PAL)",           TYPE: 1, PRESETS: "_MSX1E" },
+    MSX1J:   { DESC:  "MSX Japan (NTSC)",           TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja" },
+    EMPTYTR: { DESCX: "MSX2 turbo R Empty (NTSC)",  TYPE: 4, PRESETS: "_EMPTY" },
+    EMPTY2P: { DESCX: "MSX2+ Empty (NTSC)",         TYPE: 3, PRESETS: "_EMPTY" },
+    EMPTY2:  { DESCX: "MSX2 Empty (NTSC)",          TYPE: 2, PRESETS: "_EMPTY" },
+    EMPTY1:  { DESCX: "MSX Empty (NTSC)",           TYPE: 1, PRESETS: "_EMPTY" }
 };
 
 WMSX.EXTENSIONS_CONFIG = {
@@ -151,7 +151,7 @@ WMSX.EXTENSIONS_CONFIG = {
     DISK:      { DESC: "Floppy Drives", URL: "@[DiskPatch].rom",     SLOT: [2, 3], SLOT2: [3, 2], TOGGLE: "HARDDISK" },
     RAMMAPPER: { DESC: "RAM Mapper",    URL: "@[RAMMapper].rom",     SLOT: [3],                   MUTUAL: "RAMNORMAL" },
     RAMNORMAL: {                        URL: "@[RAMNormal].rom",     SLOT: [3],                   MUTUAL: "RAMMAPPER" },
-    KANJI:     { DESC: "MSX-JE Kanji",  URL: "@[Kanji1].rom",        SLOT: [4, 0],                BOUND:  [ "KANJIDRV", "MSXJE" ] },
+    KANJI:     { DESC: "Kanji Support", URL: "@[Kanji1].rom",        SLOT: [4, 0],                BOUND:  [ "KANJIDRV", "MSXJE" ] },
     KANJIDRV:  {                        URL: "@KanjiBasicOnly.bios", SLOT: [2, 1] },
     MSXJE:     {                        URL: "@[MSXJE].rom",         SLOT: [2, 2] },
     V9990:     { DESC: "V9990 Video",   URL: "@[V9990].rom",         SLOT: [4, 3] },
@@ -187,6 +187,7 @@ WMSX.PRESETS_CONFIG = {
     // Japanese character support
     KANJI:   { "EXTENSIONS.KANJI":  1 },
     NOKANJI: { "EXTENSIONS.KANJI":  0 },
+    NOMSXJE: { "EXTENSIONS_CONFIG.MSXJE.URL": "" },
 
     // V9990 Video
     V9990: { "EXTENSIONS.V9990":  1 },
@@ -238,6 +239,10 @@ WMSX.PRESETS_CONFIG = {
     ALLSTEREO:  { _INCLUDE: "PSGSTEREO,  SCCSTEREO,  OPLLSTEREO" },
     ALLSTEREO2: { _INCLUDE: "PSGSTEREO2, SCCSTEREO2, OPLLSTEREO" },
 
+    // Boosted Machine Preset
+    BOOSTED: { Z80_CLOCK_MODE: 3, VDP_CLOCK_MODE: 3, BOOT_DURATION_AUTO: 165, _INCLUDE: "HARDDISK" },
+
+    // Special Machine-defined modifications to Extensions
     DISKEXTN:    { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatch].rom" },
     DISKEXTTR:   { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatchDOS2TR].rom" },
     MSXMUSEXTN:  { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC].rom",   "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [3, 3], "EXTENSIONS_CONFIG.MSXMUSICX.SLOT": [0, 2] },
@@ -246,23 +251,17 @@ WMSX.PRESETS_CONFIG = {
     KANJIDRVP:   { "EXTENSIONS_CONFIG.KANJI.BOUND": [ "MSXJE" ], "EXTENSIONS.KANJIDRV": 0 },
 
     // Alternate Slot Configuration: try to keep RAM alone on primary Slot 3
-
     ALTSLOTCONFIG: {
-        EXPANSION1_SLOT:                    [3, 2],
-        EXPANSION2_SLOT:                    [3, 3],
-        "PRESETS_CONFIG.DISK":              { "EXTENSIONS.DISK": 1 },
-        "PRESETS_CONFIG.MSXMUSEXTN":        { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC].rom",   "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [2, 2], "EXTENSIONS_CONFIG.MSXMUSICX.SLOT": [0, 2] },
-        "PRESETS_CONFIG.MSXMUSEXTTR":       { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC]TR.rom", "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [0, 2], "EXTENSIONS_CONFIG.MSXMUSICX.SLOT": [2, 2] },
-        "EXTENSIONS_CONFIG.KANJIDRV.SLOT":  [2, 1],
-        "EXTENSIONS_CONFIG.MSXJE.SLOT":     [3, 3]
+        EXPANSION1_SLOT:                   [3, 2],
+        EXPANSION2_SLOT:                   [3, 3],
+        "PRESETS_CONFIG.DISK":             { "EXTENSIONS.DISK": 1 },
+        "PRESETS_CONFIG.MSXMUSEXTN":       { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC].rom",   "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [2, 2], "EXTENSIONS_CONFIG.MSXMUSICX.SLOT": [0, 2] },
+        "PRESETS_CONFIG.MSXMUSEXTTR":      { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC]TR.rom", "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [0, 2], "EXTENSIONS_CONFIG.MSXMUSICX.SLOT": [2, 2] },
+        "EXTENSIONS_CONFIG.KANJIDRV.SLOT": [2, 1],
+        "EXTENSIONS_CONFIG.MSXJE.SLOT":    [3, 3]
     },
 
-    // Boosted Machine Preset
-
-    BOOSTED:    { Z80_CLOCK_MODE: 3, VDP_CLOCK_MODE: 3, BOOT_DURATION_AUTO: 165, _INCLUDE: "HARDDISK" },
-
     // MSX2 tR Machine Presets. Do not use directly
-
     _MSXTRA: {
         _INCLUDE:           "_MSXTRBASE",
         SLOT00_URL:         "@MSXTR_NTSC.bios",
@@ -289,7 +288,6 @@ WMSX.PRESETS_CONFIG = {
     },
 
     // MSX2+ Machine Presets. Do not use directly
-
     _MSX2PA: {
         _INCLUDE:           "_MSX2PBASE",
         SLOT0P_URL:         "@MSX2P_NTSC.bios",
@@ -313,7 +311,6 @@ WMSX.PRESETS_CONFIG = {
     },
 
     // MSX2 Machine Presets. Do not use directly
-
     _MSX2A: {
         _INCLUDE:           "_MSX2BASE",
         SLOT0P_URL:         "@MSX2_NTSC.bios",
@@ -337,7 +334,6 @@ WMSX.PRESETS_CONFIG = {
     },
 
     // MSX1 Machine Presets. Do not use directly
-
     _MSX1A: {
         _INCLUDE:           "_MSX1BASE",
         SLOT0P_URL:         "@MSX1_NTSC.bios",
@@ -359,7 +355,6 @@ WMSX.PRESETS_CONFIG = {
     },
 
     // Base Machines Presets. Do not use directly
-
     _EMPTY: {
         _INCLUDE:           "_BASE",
         EXTENSIONS:         { },
@@ -369,7 +364,6 @@ WMSX.PRESETS_CONFIG = {
         SLOT3P_URL:         "",
         SLOT4P_URL:         ""      // Special Device I/O only slot
     },
-
     _BASE: {
         _INCLUDE:           "DISKEXTN, MSXMUSEXTN, KANJIDRVN"
     }
