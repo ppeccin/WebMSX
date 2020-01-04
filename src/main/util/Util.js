@@ -556,11 +556,11 @@ wmsx.Util = new function() {
             if (events[i]) element.removeEventListener(events[i], handler, capture);
     };
 
-    this.insertCSS = function(css) {
-        var style = document.createElement('style');
+    this.insertCSS = function(doc, css) {
+        var style = doc.createElement('style');
         style.type = 'text/css';
         style.innerHTML = css;
-        document.head.appendChild(style);
+        doc.head.appendChild(style);
     };
 
     this.scaleToFitParentHeight = function(element, parent, bottomOffset) {

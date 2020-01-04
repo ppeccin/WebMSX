@@ -109,7 +109,7 @@ wmsx.SettingsDialog = function(mainElement, controllersHub, peripheralControls, 
     };
 
     function create() {
-        wmsx.Util.insertCSS(wmsx.SettingsGUI.css());
+        wmsx.Util.insertCSS(document, wmsx.SettingsGUI.css());
         mainElement.insertAdjacentHTML("beforeend", wmsx.SettingsGUI.html());
 
         modal = document.getElementById("wmsx-modal");

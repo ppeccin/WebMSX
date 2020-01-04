@@ -64,6 +64,29 @@ wmsx.ScreenGUI.html = function() {
         </div>`;
 };
 
+wmsx.ScreenGUI.auxHtml = function() {
+    return `<head>
+                <title>WebMSX</title>
+            </head>
+            <body id="wmsx-aux-body">
+                <div id="wmsx-screen-fs">
+                    <div id="wmsx-screen-fs-center">
+                        <div id="wmsx-screen-canvas-outer">
+                            <canvas id="wmsx-screen-canvas"></canvas>
+                                <div id="wmsx-logo">
+                                <div id="wmsx-logo-center">
+                                    <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
+                                    <div id="wmsx-logo-message">
+                                        <div id="wmsx-logo-message-text"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </body>`;
+};
+
 wmsx.ScreenGUI.css = function() {
     return `html.wmsx-full-screen-scroll-hack body {
     position: absolute;
@@ -76,6 +99,12 @@ wmsx.ScreenGUI.css = function() {
     border: none;
     overflow-x: hidden;
     overflow-y: auto;
+}
+
+#wmsx-aux-body {
+    margin: 0;
+    padding: 0;
+    background: black;
 }
 
 #wmsx-screen-fs, #wmsx-screen-fs div, #wmsx-screen-fs canvas {

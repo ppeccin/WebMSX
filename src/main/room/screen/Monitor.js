@@ -48,9 +48,18 @@ wmsx.Monitor = function(display) {
     };
 
     this.setOutputMode = function(mode, skipMes) {
-        outputMode = !extSignal ? -1 : mode < -1 ? -1 : mode > 3 ? 3 : mode;
+        outputMode = !extSignal ? -1 : mode < -1 ? -1 : mode > 4 ? 4 : mode;
         updateOutputMode();
         if (!skipMes) showOutputModeOSD();
+    };
+
+    this.setOutputModeDual = function() {
+        if (outputMode === 4) {
+            outputDualPri ^= 1;     // toggle screens
+            updateOutputMode();
+            showOutputModeOSD();
+        } else
+            this.setOutputMode(4);
     };
 
     function updateOutputMode() {
@@ -62,7 +71,7 @@ wmsx.Monitor = function(display) {
         if (outputEffective >= 1) extSignal.refreshDisplayMetrics();    // External Signal takes precedence when displayed
         else intSignal.refreshDisplayMetrics();
 
-        display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc());
+        display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc(), outputDualPri);
     }
 
     this.toggleColorMode = function(dec) {
@@ -89,7 +98,7 @@ wmsx.Monitor = function(display) {
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {
         // Should we display this signal?
         if (isSignalActive(signal))
-            display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight, signal === intSignal);
+            display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight, (signal === intSignal) | 0);
     };
 
     this.signalOff = function(signal) {
@@ -187,6 +196,7 @@ wmsx.Monitor = function(display) {
             case 1:  return extSignal ? extSignal.getSignalDesc() : "External";
             case 2:  return "Superimposed";
             case 3:  return "Mixed";
+            case 4:  return "Dual (main: " + (outputDualPri ? "V9990)" : "Internal)");
             default: return "Auto (" + getOutputModeDesc(outputAuto) + ")";
         }
     }
@@ -197,6 +207,7 @@ wmsx.Monitor = function(display) {
             case 1:  return extSignal ? extSignal.getSignalShortDesc() : "External";
             case 2:  return "Superimp";
             case 3:  return "Mixed";
+            case 4:  return "Dual";
             default: return "Auto (" + getOutputModeShortDesc(outputAuto) + ")";
         }
     }
@@ -211,17 +222,17 @@ wmsx.Monitor = function(display) {
 
     this.saveState = function() {
         return {
-            m: outputMode, me: outputEffective, ma: outputAuto,
+            m: outputMode, me: outputEffective, ma: outputAuto, md: outputDualPri,
             cm: colorMode, pm: paletteMode
         };
     };
 
     this.loadState = function(s) {
         if (s) {
-            outputMode = s.m; outputAuto = s.ma;
+            outputMode = s.m; outputAuto = s.ma; outputDualPri = s.md !== undefined ? s.md : 1;
             colorMode = s.cm || 0; paletteMode = s.pm || 0;
         } else {
-            outputMode = -1; outputAuto = 0;
+            outputMode = -1; outputAuto = 0; outputDualPri = 1;
             colorMode = 0; paletteMode = 2;
         }
         updateColorAndPaletteMode();
@@ -229,7 +240,7 @@ wmsx.Monitor = function(display) {
     };
 
 
-    var outputMode = -1, outputAuto = 0, outputEffective = 0;
+    var outputMode = -1, outputAuto = 0, outputEffective = 0, outputDualPri = 1;
 
     var colorMode = 0;
     var paletteMode = 2;

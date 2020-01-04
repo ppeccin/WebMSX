@@ -281,7 +281,10 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.SCREEN_OUTPUT_EXTERNAL:
             case pc.SCREEN_OUTPUT_SUPERIMPOSED:
             case pc.SCREEN_OUTPUT_MIXED:
-                screen.getMonitor().setOutputMode(control - pc.SCREEN_OUTPUT_AUTO - 1);     // -1..3
+                screen.getMonitor().setOutputMode(control - pc.SCREEN_OUTPUT_AUTO - 1);     // -1..4
+                break;
+            case pc.SCREEN_OUTPUT_DUAL:
+                screen.getMonitor().setOutputModeDual();
                 break;
             case pc.SCREEN_OUTPUT_RESET_AUTO:
                 screen.getMonitor().resetOutputAutoMode(); break;
@@ -387,7 +390,7 @@ wmsx.DOMPeripheralControls = function(room) {
         keyCodeMap[KEY_FULLSCREEN | k.ALT]   = pc.SCREEN_FULLSCREEN;
 
         keyCodeMap[KEY_VIDEO_OUTPUT | k.ALT] = pc.SCREEN_OUTPUT_TOGGLE;
-
+        keyCodeMap[KEY_VIDEO_OUTPUT | k.CONTROL | k.ALT] = pc.SCREEN_OUTPUT_DUAL;
 
         keyCodeMap[KEY_UP | k.CONTROL | k.ALT]     = pc.SCREEN_SCALE_MINUS;
         keyCodeMap[KEY_DOWN | k.CONTROL | k.ALT]   = pc.SCREEN_SCALE_PLUS;
@@ -565,6 +568,7 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.SCREEN_OUTPUT_EXTERNAL,
         pc.SCREEN_OUTPUT_SUPERIMPOSED,
         pc.SCREEN_OUTPUT_MIXED,
+        pc.SCREEN_OUTPUT_DUAL,
         pc.SCREEN_OUTPUT_TOGGLE,
         pc.SCREEN_OUTPUT_RESET_AUTO,
 
