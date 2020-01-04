@@ -282,30 +282,25 @@ wmsx.V9990CommandProcessor = function() {
     function LMMCNextWrite(cd) {
         // console.log("LMMC Write CX: " + CX + ", CY: " + CY);
 
-        switch (typeBPP) {
-            case 16:
-                if (writeDataPending === null)
-                    writeDataPending = cd;
-                else {
-                    LMMCNextPixel((writeDataPending << 8) | cd);      // SC has H/L bytes swapped
-                    writeDataPending = null;
-                }
-                break;
-            case 8:
-                LMMCNextPixel((cd << 8) | cd);
-                break;
-            case 4:
-                cd |= cd << 8;
-                LMMCNextPixel(cd);
-                if (CE) LMMCNextPixel(cd);
-                break;
-            case 2:
-                cd |= cd << 8;
-                LMMCNextPixel(cd);
-                if (CE) LMMCNextPixel(cd);
-                if (CE) LMMCNextPixel(cd);
-                if (CE) LMMCNextPixel(cd);
-                break;
+        if (typeBPP === 4) {
+            cd |= cd << 8;
+            LMMCNextPixel(cd);
+            if (CE) LMMCNextPixel(cd);
+        } else if (typeBPP === 8) {
+            LMMCNextPixel((cd << 8) | cd);
+        } else if (typeBPP === 16) {
+            if (writeDataPending === null)
+                writeDataPending = cd;
+            else {
+                LMMCNextPixel((writeDataPending << 8) | cd);      // SC has H/L bytes swapped
+                writeDataPending = null;
+            }
+        } else {  //typeBPP === 2
+            cd |= cd << 8;
+            LMMCNextPixel(cd);
+            if (CE) LMMCNextPixel(cd);
+            if (CE) LMMCNextPixel(cd);
+            if (CE) LMMCNextPixel(cd);
         }
 
         // Set changed register state after finishing
@@ -380,29 +375,24 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function LMCMNextRead() {
-        switch (typeBPP) {
-            case 16:
-                if (readDataPending === null) {
-                    readDataPending = LMCMNextPixel(0);        // SC has H/L bytes swapped
-                    readData = readDataPending >> 8;
-                } else {
-                    readData = readDataPending & 0xff;
-                    readDataPending = null;
-                }
-                break;
-            case 8:
-                readData = LMCMNextPixel(1);
-                break;
-            case 4:
-                readData = (readData & 0x0f) | LMCMNextPixel(2);
-                if (CE) readData = (readData & 0xf0) | LMCMNextPixel(3);
-                break;
-            case 2:
-                readData = (readData & 0x3f) | LMCMNextPixel(4);
-                if (CE) readData = (readData & 0xcf) | LMCMNextPixel(5);
-                if (CE) readData = (readData & 0xf3) | LMCMNextPixel(6);
-                if (CE) readData = (readData & 0xfc) | LMCMNextPixel(7);
-                break;
+        if (typeBPP === 4) {
+            readData = (readData & 0x0f) | LMCMNextPixel(2);
+            if (CE) readData = (readData & 0xf0) | LMCMNextPixel(3);
+        } else if (typeBPP === 8) {
+            readData = LMCMNextPixel(1);
+        } else if (typeBPP === 16) {
+            if (readDataPending === null) {
+                readDataPending = LMCMNextPixel(0);        // SC has H/L bytes swapped
+                readData = readDataPending >> 8;
+            } else {
+                readData = readDataPending & 0xff;
+                readDataPending = null;
+            }
+        } else {  //typeBPP === 2
+            readData = (readData & 0x3f) | LMCMNextPixel(4);
+            if (CE) readData = (readData & 0xcf) | LMCMNextPixel(5);
+            if (CE) readData = (readData & 0xf3) | LMCMNextPixel(6);
+            if (CE) readData = (readData & 0xfc) | LMCMNextPixel(7);
         }
 
         // Set changed register state after finishing
@@ -832,26 +822,21 @@ wmsx.V9990CommandProcessor = function() {
     }
 
     function POINTNextRead() {
-        switch (typeBPP) {
-            case 16:
-                if (readDataPending === null) {
-                    readDataPending = normalPGETX(SX, SY, 0);        // SC has H/L bytes swapped
-                    readData = readDataPending >> 8;
-                    return;     // Don't finish yet!
-                } else {
-                    readData = readDataPending & 0xff;
-                    readDataPending = null;
-                }
-                break;
-            case 8:
-                readData = normalPGETX(SX, SY, 1);
-                break;
-            case 4:
-                readData = (readData & 0x0f) | normalPGETX(SX, SY, 2);
-                break;
-            case 2:
-                readData = (readData & 0x3f) | normalPGETX(SX, SY, 4);
-                break;
+        if (typeBPP === 4) {
+            readData = (readData & 0x0f) | normalPGETX(SX, SY, 2);
+        } else if (typeBPP === 8) {
+            readData = normalPGETX(SX, SY, 1);
+        } else if (typeBPP === 16) {
+            if (readDataPending === null) {
+                readDataPending = normalPGETX(SX, SY, 0);        // SC has H/L bytes swapped
+                readData = readDataPending >> 8;
+                return;     // Don't finish yet!
+            } else {
+                readData = readDataPending & 0xff;
+                readDataPending = null;
+            }
+        } else {  //typeBPP === 2
+            readData = (readData & 0x3f) | normalPGETX(SX, SY, 4);
         }
 
         v9990.setStatusTR(0);
@@ -908,25 +893,22 @@ wmsx.V9990CommandProcessor = function() {
 
     function normalPGETX(sx, sy, dx) {       // 16 bits based
         var sShift, dShift, mask;
-        switch (typeBPP) {
-            case 16:
-                sx <<= 1;
-                // Perform operation
-                var pos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
-                return (vram[pos] << 8) | vram[pos + 1];    // SC has H/L bytes swapped
-            case 8:
-                sShift = 0; dShift = (1 - (dx & 0x1)) << 3;
-                mask = 0xff;
-                break;
-            case 4:
-                sShift = (1 - (sx & 0x1)) << 2; dShift = (3 - (dx & 0x3)) << 2;
-                sx >>>= 1; mask = 0x0f;
-                break;
-            case 2:
-                sShift = (3 - (sx & 0x3)) << 1; dShift = (7 - (dx & 0x7)) << 1;
-                sx >>>= 2; mask = 0x03;
-                break;
+        if (typeBPP === 4) {
+            sShift = (1 - (sx & 0x1)) << 2; dShift = (3 - (dx & 0x3)) << 2;
+            sx >>>= 1; mask = 0x0f;
+        } else if (typeBPP === 8) {
+            sShift = 0; dShift = (1 - (dx & 0x1)) << 3;
+            mask = 0xff;
+        } else if (typeBPP === 16) {
+            sx <<= 1;
+            // Perform operation
+            var pos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
+            return (vram[pos] << 8) | vram[pos + 1];    // SC has H/L bytes swapped
+        } else {  //typeBPP === 2
+            sShift = (3 - (sx & 0x3)) << 1; dShift = (7 - (dx & 0x7)) << 1;
+            sx >>>= 2; mask = 0x03;
         }
+
         // Perform operation
         pos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
         return ((vram[pos] >> sShift) & mask) << dShift;
@@ -934,28 +916,24 @@ wmsx.V9990CommandProcessor = function() {
 
     function logicalPSETX(dx, dy, sx, sc, op, wm) {      // 16 bits based
         var sShift, dShift, mask;
-        switch (typeBPP) {
-            case 16:
-                dx <<= 1;
-                // Perform operation
-                var pos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
-                var dc = (vram[pos] << 8) | vram[pos + 1];      // SC and WM have H/L bytes swapped, so we also swap DC
-                var wc = op(dc, sc, wm);                        // Use WM directly as pos is always EVEN
-                vram[pos] = wc >> 8;                            // WC has H/L bytes swapped
-                vram[pos + 1] = wc & 0xff;
-                return;
-            case 8: default:
-                sShift = (1 - (sx & 0x1)) << 3; dShift = 0;
-                mask = 0xff;
-                break;
-            case 4:
-                sShift = (3 - (sx & 0x3)) << 2; dShift = (1 - (dx & 0x1)) << 2;
-                dx >>>= 1; mask = 0x0f;
-                break;
-            case 2:
-                sShift = (7 - (sx & 0x7)) << 1; dShift = (3 - (dx & 0x3)) << 1;
-                dx >>>= 2; mask = 0x03;
-                break;
+        if (typeBPP === 4) {
+            sShift = (3 - (sx & 0x3)) << 2; dShift = (1 - (dx & 0x1)) << 2;
+            dx >>>= 1; mask = 0x0f;
+        } else if (typeBPP === 8) {
+            sShift = (1 - (sx & 0x1)) << 3; dShift = 0;
+            mask = 0xff;
+        } else if (typeBPP === 16) {
+            dx <<= 1;
+            // Perform operation
+            var pos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
+            var dc = (vram[pos] << 8) | vram[pos + 1];      // SC and WM have H/L bytes swapped, so we also swap DC
+            var wc = op(dc, sc, wm);                        // Use WM directly as pos is always EVEN
+            vram[pos] = wc >> 8;                            // WC has H/L bytes swapped
+            vram[pos + 1] = wc & 0xff;
+            return;
+        } else {  //typeBPP === 2
+            sShift = (7 - (sx & 0x7)) << 1; dShift = (3 - (dx & 0x3)) << 1;
+            dx >>>= 2; mask = 0x03;
         }
 
         // Perform operation
@@ -966,30 +944,26 @@ wmsx.V9990CommandProcessor = function() {
 
     function logicalPCOPYXX(dx, dy, sx, sy, op, wm) {       // 8 bits based
         var sShift, dShift, mask;
-        switch (typeBPP) {
-            case 16:
-                sx <<= 1; dx <<= 1;
-                // Perform operation
-                var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
-                var dPos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
-                var sc = (vram[sPos] << 8) | vram[sPos + 1];    // WM has H/L bytes swapped, so we also swap SC and DC
-                var dc = (vram[dPos] << 8) | vram[dPos + 1];
-                var wc = op(dc, sc, wm);                        // Use WM directly as dPos is always EVEN
-                vram[dPos] = wc >> 8;                           // WC has H/L bytes swapped
-                vram[dPos + 1] = wc & 0xff;
-                return;
-            case 8:
-                sShift = dShift = 0;
-                mask = 0xff;
-                break;
-            case 4:
-                sShift = (1 - (sx & 0x1)) << 2; dShift = (1 - (dx & 0x1)) << 2;
-                sx >>>= 1; dx >>>= 1; mask = 0x0f;
-                break;
-            case 2:
-                sShift = (3 - (sx & 0x3)) << 1; dShift = (3 - (dx & 0x3)) << 1;
-                sx >>>= 2; dx >>>= 2; mask = 0x03;
-                break;
+        if (typeBPP === 4) {
+            sShift = (1 - (sx & 0x1)) << 2; dShift = (1 - (dx & 0x1)) << 2;
+            sx >>>= 1; dx >>>= 1; mask = 0x0f;
+        } else if (typeBPP === 8) {
+            sShift = dShift = 0;
+            mask = 0xff;
+        } else if (typeBPP === 16) {
+            sx <<= 1; dx <<= 1;
+            // Perform operation
+            var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
+            var dPos = (dy * imageWidthBytes + dx) & VRAM_LIMIT;
+            var sc = (vram[sPos] << 8) | vram[sPos + 1];    // WM has H/L bytes swapped, so we also swap SC and DC
+            var dc = (vram[dPos] << 8) | vram[dPos + 1];
+            var wc = op(dc, sc, wm);                        // Use WM directly as dPos is always EVEN
+            vram[dPos] = wc >> 8;                           // WC has H/L bytes swapped
+            vram[dPos + 1] = wc & 0xff;
+            return;
+        } else { // typeBPP === 2
+            sShift = (3 - (sx & 0x3)) << 1; dShift = (3 - (dx & 0x3)) << 1;
+            sx >>>= 2; dx >>>= 2; mask = 0x03;
         }
 
         // Perform operation
@@ -1001,29 +975,25 @@ wmsx.V9990CommandProcessor = function() {
 
     function logicalPCOPYLX(da, dx, sx, sy, op, wm) {       // 8 bits based
         var sShift, dShift, mask;
-        switch (typeBPP) {
-            case 16:
-                sx <<= 1;
-                // Perform operation
-                var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
-                var sc = (vram[sPos] << 8) | vram[sPos + 1];    // WM has H/L bytes swapped, so we also swap SC and DC
-                var dc = (vram[da] << 8) | vram[da + 1];
-                var wc = op(dc, sc, wm16ForAddr(wm, da));
-                vram[da] = wc >> 8;                             // WC has H/L bytes swapped
-                vram[da + 1] = wc & 0xff;
-                return;
-            case 8:
-                sShift = dShift = 0;
-                mask = 0xff;
-                break;
-            case 4:
-                sShift = (1 - (sx & 0x1)) << 2; dShift = (1 - (dx & 0x1)) << 2;
-                sx >>>= 1; mask = 0x0f;
-                break;
-            case 2:
-                sShift = (3 - (sx & 0x3)) << 1; dShift = (3 - (dx & 0x3)) << 1;
-                sx >>>= 2; mask = 0x03;
-                break;
+        if (typeBPP === 4) {
+            sShift = (1 - (sx & 0x1)) << 2; dShift = (1 - (dx & 0x1)) << 2;
+            sx >>>= 1; mask = 0x0f;
+        } else if (typeBPP === 8) {
+            sShift = dShift = 0;
+            mask = 0xff;
+        } else if (typeBPP === 16) {
+            sx <<= 1;
+            // Perform operation
+            var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
+            var sc = (vram[sPos] << 8) | vram[sPos + 1];    // WM has H/L bytes swapped, so we also swap SC and DC
+            var dc = (vram[da] << 8) | vram[da + 1];
+            var wc = op(dc, sc, wm16ForAddr(wm, da));
+            vram[da] = wc >> 8;                             // WC has H/L bytes swapped
+            vram[da + 1] = wc & 0xff;
+            return;
+        } else {  //typeBPP === 2
+            sShift = (3 - (sx & 0x3)) << 1; dShift = (3 - (dx & 0x3)) << 1;
+            sx >>>= 2; mask = 0x03;
         }
 
         // Perform operation
@@ -1034,31 +1004,27 @@ wmsx.V9990CommandProcessor = function() {
 
     function logicalPCOPYLXP1(da, dx, sx, sy, op, wm) {       // 8 bits based
         var sShift, dShift, mask;
-        switch (typeBPP) {
-            case 16:
-                sx <<= 1;
-                // Perform operation
-                var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
-                var sc = (vram[sPos] << 8) | vram[sPos + 1];        // WM has H/L bytes swapped, so we also swap SC and DC
-                var daP1H = (da >>> 1) | ((da & 1) << 18); da = (da + 1) & VRAM_LIMIT;
-                var daP1L = (da >>> 1) | ((da & 1) << 18);
-                var dc = (vram[daP1H] << 8) | vram[daP1L];
-                var wc = op(dc, sc, wm16ForAddr(wm, da));
-                vram[daP1H] = wc >> 8;                              // WC has H/L bytes swapped
-                vram[daP1L] = wc & 0xff;
-                return;
-            case 8:
-                sShift = dShift = 0;
-                mask = 0xff;
-                break;
-            case 4:
-                sShift = (1 - (sx & 0x1)) << 2; dShift = (1 - (dx & 0x1)) << 2;
-                sx >>>= 1; mask = 0x0f;
-                break;
-            case 2:
-                sShift = (3 - (sx & 0x3)) << 1; dShift = (3 - (dx & 0x3)) << 1;
-                sx >>>= 2; mask = 0x03;
-                break;
+        if (typeBPP === 4) {
+            sShift = (1 - (sx & 0x1)) << 2; dShift = (1 - (dx & 0x1)) << 2;
+            sx >>>= 1; mask = 0x0f;
+        } else if (typeBPP === 8) {
+            sShift = dShift = 0;
+            mask = 0xff;
+        } else if (typeBPP === 16) {
+            sx <<= 1;
+            // Perform operation
+            var sPos = (sy * imageWidthBytes + sx) & VRAM_LIMIT;
+            var sc = (vram[sPos] << 8) | vram[sPos + 1];        // WM has H/L bytes swapped, so we also swap SC and DC
+            var daP1H = (da >>> 1) | ((da & 1) << 18); da = (da + 1) & VRAM_LIMIT;
+            var daP1L = (da >>> 1) | ((da & 1) << 18);
+            var dc = (vram[daP1H] << 8) | vram[daP1L];
+            var wc = op(dc, sc, wm16ForAddr(wm, da));
+            vram[daP1H] = wc >> 8;                              // WC has H/L bytes swapped
+            vram[daP1L] = wc & 0xff;
+            return;
+        } else {  //typeBPP === 2
+            sShift = (3 - (sx & 0x3)) << 1; dShift = (3 - (dx & 0x3)) << 1;
+            sx >>>= 2; mask = 0x03;
         }
 
         // Perform operation
