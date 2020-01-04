@@ -12,7 +12,7 @@ wmsx.VDP = function(machine, cpu) {
 
     function init() {
         videoSignal = new wmsx.VideoSignal(self, "Internal", "Internal");
-        cpuClockPulses = cpu.clockPulses;
+        cpuBusClockPulses = cpu.busClockPulses;
         cpuR800RefreshPause = cpu.r800MemoryRefreshPause;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
         initFrameResources(false);
@@ -638,7 +638,7 @@ wmsx.VDP = function(machine, cpu) {
 
         cpuR800RefreshPause();
 
-        cpuClockPulses(33); audioClockPulse32();
+        cpuBusClockPulses(33); audioClockPulse32();
 
         // Left border: 56 clocks
 
@@ -649,7 +649,7 @@ wmsx.VDP = function(machine, cpu) {
         else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)              // VR = 1, F = 1 at the first Bottom Border line
             triggerVerticalInterrupt();
 
-        cpuClockPulses(10);
+        cpuBusClockPulses(10);
 
         // Active Display: 1024 clocks
 
@@ -657,9 +657,9 @@ wmsx.VDP = function(machine, cpu) {
 
         if (slave) slave.lineEventStartActiveDisplay();
 
-        cpuClockPulses(22); audioClockPulse32();
-        cpuClockPulses(33); audioClockPulse32();
-        cpuClockPulses(32); audioClockPulse32();
+        cpuBusClockPulses(22); audioClockPulse32();
+        cpuBusClockPulses(33); audioClockPulse32();
+        cpuBusClockPulses(32); audioClockPulse32();
 
         // ~ Middle of Active Line
 
@@ -670,9 +670,9 @@ wmsx.VDP = function(machine, cpu) {
 
         cpuR800RefreshPause();
 
-        cpuClockPulses(33); audioClockPulse32();
-        cpuClockPulses(32); audioClockPulse32();
-        cpuClockPulses(18);
+        cpuBusClockPulses(33); audioClockPulse32();
+        cpuBusClockPulses(32); audioClockPulse32();
+        cpuBusClockPulses(18);
 
         // End of Active Display
 
@@ -685,7 +685,7 @@ wmsx.VDP = function(machine, cpu) {
         // Right border: 59 clocks
         // Right erase: 27 clocks
 
-        cpuClockPulses(15); audioClockPulse32();
+        cpuBusClockPulses(15); audioClockPulse32();
         if ((currentScanline & 0x7) === 0) audioClockPulse32();                                     // One more audioClock32 each 8 lines
 
         // End of line
@@ -2487,7 +2487,7 @@ wmsx.VDP = function(machine, cpu) {
     // Connections
 
     var videoSignal, videoDisplayed = true;
-    var cpuClockPulses, cpuR800RefreshPause, audioClockPulse32;
+    var cpuBusClockPulses, cpuR800RefreshPause, audioClockPulse32;
     var commandProcessor;
 
     var slave;

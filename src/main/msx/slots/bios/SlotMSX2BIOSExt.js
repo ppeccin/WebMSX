@@ -42,7 +42,7 @@ wmsx.SlotMSX2BIOSExt = function(rom) {
 
     this.read = function(address) {
         if (address < topAddress)
-            return dramMode ? ramBytes[ramBase + address] : bytes[address];
+            return dramMode && address < 32768 ? ramBytes[ramBase + address] : bytes[address];
         else
             return 0xff;
     };

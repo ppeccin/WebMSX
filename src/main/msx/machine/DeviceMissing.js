@@ -48,10 +48,10 @@ wmsx.DeviceMissing = {
         0xcc, 0xcd, 0xce, 0xcf,
 
         // 0xd8, 0xd9, 0xda, 0xdb,          // Kanji 16x16 Font ROM (JIS 1/2)
-        0xdc, 0xdd                          // Kanji 12x12 Font ROM (not supported, but that's OK)
+        0xdc, 0xdd,                         // Kanji 12x12 Font ROM (not supported, but that's OK)
 
-        // 0xe8, 0xe9, 0xea, 0xeb,          // Internal MSX-MIDI
-        // 0xec, 0xed, 0xee, 0xef
+        0xe8, 0xe9, 0xea, 0xeb,             // Internal MSX-MIDI
+        0xec, 0xed, 0xee, 0xef
 
     ]),
 

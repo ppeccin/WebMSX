@@ -43,6 +43,21 @@ wmsx.EmbeddedSystemFiles = {
             0x2c63: [ 0x00 ]                                            // reg9 NTSC init
         }},
 
+        "MSXTR_NTSC.bios": { based: "@MSXTR_PAL.bios", diffs: {
+            0x2b: [ 0x11 ],                                             // NTSC flag
+            0x42d: [ 0x3e, 0x50, 0xd3, 0xaa ],                          // PAL init removed
+            0x58c: [ 0x14 ],                                            // key repeat timing
+            0xc97: [ 0x02 ],                                            // key scan freq
+            0xcf1: [ 0x01 ],                                            // key repeat timing
+            0xd4a: [ 0x14 ],                                            // key repeat timing
+            0x7754: [ 0x40, 0x00, 0x45, 0x14 ]                          // PLAY NTSC timing
+        }},
+
+        "MSXTREXT_NTSC.bios": { based: "@MSXTREXT_PAL.bios", diffs: {
+            0x581: [ 0x01 ],                                            // country
+            0x2c6c: [ 0x00 ]                                            // reg9 NTSC init
+        }},
+
         "KanjiBasic_PAL.bios": { based: "@KanjiBasic.bios", diffs: {
             0x3c9b: [ 0x02 ]                                            // reg9 PAL init
         }},

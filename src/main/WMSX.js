@@ -124,24 +124,26 @@ WMSX = {
 };
 
 WMSX.MACHINES_CONFIG = {
-    MSXTR:    { DESCX: "MSX tR Auto Detect",        AUTO_TYPE: 4 },
-    MSX2P:    { DESCX: "MSX2+ Auto Detect",         AUTO_TYPE: 3 },
-    MSX2:     { DESCX: "MSX2 Auto Detect",          AUTO_TYPE: 2 },
-    MSX1:     { DESCX: "MSX Auto Detect",           AUTO_TYPE: 1 },
-    MSXTRJ:   { DESC:  "MSX turbo R Japan (NTSC)",  TYPE: 4, PRESETS: "_MSXTRJ", LANG: "ja", CODE_LABEL: "KANA" },
-    MSX2PA:   { DESC:  "MSX2+ America (NTSC)",      TYPE: 3, PRESETS: "_MSX2PA" },
-    MSX2PE:   { DESC:  "MSX2+ Europe (PAL)",        TYPE: 3, PRESETS: "_MSX2PE" },
-    MSX2PJ:   { DESC:  "MSX2+ Japan (NTSC)",        TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja", CODE_LABEL: "KANA" },
-    MSX2A:    { DESC:  "MSX2 America (NTSC)",       TYPE: 2, PRESETS: "_MSX2A" },
-    MSX2E:    { DESC:  "MSX2 Europe (PAL)",         TYPE: 2, PRESETS: "_MSX2E" },
-    MSX2J:    { DESC:  "MSX2 Japan (NTSC)",         TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja", CODE_LABEL: "KANA" },
-    MSX1A:    { DESC:  "MSX America (NTSC)",        TYPE: 1, PRESETS: "_MSX1A" },
-    MSX1E:    { DESC:  "MSX Europe (PAL)",          TYPE: 1, PRESETS: "_MSX1E" },
-    MSX1J:    { DESC:  "MSX Japan (NTSC)",          TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja", CODE_LABEL: "KANA" },
-    EMPTYTR:  { DESCX: "MSX2 tR Empty (NTSC)",      TYPE: 4, PRESETS: "_EMPTY" },
-    EMPTY2P:  { DESCX: "MSX2+ Empty (NTSC)",        TYPE: 3, PRESETS: "_EMPTY" },
-    EMPTY2:   { DESCX: "MSX2 Empty (NTSC)",         TYPE: 2, PRESETS: "_EMPTY" },
-    EMPTY1:   { DESCX: "MSX Empty (NTSC)",          TYPE: 1, PRESETS: "_EMPTY" }
+    MSXTR:    { DESCX: "MSX tR Auto Detect",     AUTO_TYPE: 4 },
+    MSX2P:    { DESCX: "MSX2+ Auto Detect",      AUTO_TYPE: 3 },
+    MSX2:     { DESCX: "MSX2 Auto Detect",       AUTO_TYPE: 2 },
+    MSX1:     { DESCX: "MSX Auto Detect",        AUTO_TYPE: 1 },
+    MSXTRA:   { DESC:  "MSX tR America (NTSC)",  TYPE: 4, PRESETS: "_MSXTRA",              CODE_LABEL: "KANA" },
+    MSXTRE:   { DESC:  "MSX tR Europe (PAL)",    TYPE: 4, PRESETS: "_MSXTRE",              CODE_LABEL: "KANA" },
+    MSXTRJ:   { DESC:  "MSX tR Japan (NTSC)",    TYPE: 4, PRESETS: "_MSXTRJ",  LANG: "ja", CODE_LABEL: "KANA" },
+    MSX2PA:   { DESC:  "MSX2+ America (NTSC)",   TYPE: 3, PRESETS: "_MSX2PA" },
+    MSX2PE:   { DESC:  "MSX2+ Europe (PAL)",     TYPE: 3, PRESETS: "_MSX2PE" },
+    MSX2PJ:   { DESC:  "MSX2+ Japan (NTSC)",     TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja", CODE_LABEL: "KANA" },
+    MSX2A:    { DESC:  "MSX2 America (NTSC)",    TYPE: 2, PRESETS: "_MSX2A" },
+    MSX2E:    { DESC:  "MSX2 Europe (PAL)",      TYPE: 2, PRESETS: "_MSX2E" },
+    MSX2J:    { DESC:  "MSX2 Japan (NTSC)",      TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja", CODE_LABEL: "KANA" },
+    MSX1A:    { DESC:  "MSX America (NTSC)",     TYPE: 1, PRESETS: "_MSX1A" },
+    MSX1E:    { DESC:  "MSX Europe (PAL)",       TYPE: 1, PRESETS: "_MSX1E" },
+    MSX1J:    { DESC:  "MSX Japan (NTSC)",       TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja", CODE_LABEL: "KANA" },
+    EMPTYTR:  { DESCX: "MSX2 tR Empty (NTSC)",   TYPE: 4, PRESETS: "_EMPTY" },
+    EMPTY2P:  { DESCX: "MSX2+ Empty (NTSC)",     TYPE: 3, PRESETS: "_EMPTY" },
+    EMPTY2:   { DESCX: "MSX2 Empty (NTSC)",      TYPE: 2, PRESETS: "_EMPTY" },
+    EMPTY1:   { DESCX: "MSX Empty (NTSC)",       TYPE: 1, PRESETS: "_EMPTY" }
 };
 
 WMSX.EXTENSIONS_CONFIG = {
@@ -236,8 +238,8 @@ WMSX.PRESETS_CONFIG = {
 
     DISKEXTN:    { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatch].rom" },
     DISKEXTTR:   { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatchDOS2TR].rom" },
-    MSXMUSEXTN:  { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC].rom" },
-    MSXMUSEXTTR: { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC]TR.rom" },
+    MSXMUSEXTN:  { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC].rom", "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [3, 3]  },
+    MSXMUSEXTTR: { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC]TR.rom", "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [0, 2] },
 
     // Alternate Slot Configuration: try to keep RAM alone on primary Slot 3
 
@@ -254,11 +256,28 @@ WMSX.PRESETS_CONFIG = {
 
     // MSX2 tR Machine Presets. Do not use directly
 
+    _MSXTRA: {
+        _INCLUDE:           "_MSXTRBASE",
+        SLOT00_URL:         "@MSXTR_NTSC.bios",
+        SLOT03_URL:         "@MSXTROPEN.bios", SLOT03_FORMAT: "PlainROM", SLOT03_START: "0x4000",
+        SLOT31_URL:         "@MSXTREXT_NTSC.bios | @KanjiBasicTR.bios",
+        SLOT33_URL:         "@[Empty].rom",
+        BOOT_DURATION_AUTO: 380
+    },
+    _MSXTRE: {
+        _INCLUDE:           "_MSXTRBASE",
+        SLOT00_URL:         "@MSXTR_PAL.bios",
+        SLOT03_URL:         "@MSXTROPEN.bios", SLOT03_FORMAT: "PlainROM", SLOT03_START: "0x4000",
+        SLOT31_URL:         "@MSXTREXT_PAL.bios | @KanjiBasicTR.bios",
+        SLOT33_URL:         "@[Empty].rom",
+        BOOT_DURATION_AUTO: 380
+    },
     _MSXTRJ: {
         _INCLUDE:           "_MSXTRBASE",
         SLOT00_URL:         "@MSXTR_JAP.bios",
         SLOT03_URL:         "@MSXTROPEN.bios", SLOT03_FORMAT: "PlainROM", SLOT03_START: "0x4000",
         SLOT31_URL:         "@MSXTREXT_JAP.bios | @KanjiBasicTR.bios",
+        SLOT33_URL:         "@[Empty].rom",
         BOOT_DURATION_AUTO: 380
     },
     _MSXTRBASE: {

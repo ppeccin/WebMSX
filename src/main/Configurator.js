@@ -358,13 +358,14 @@ wmsx.Configurator = {
     },
 
     loadState: function(s, cfg) {
-        // Backward compatibility. For State versions < 530, cfg will be null, so restore original config
         if (cfg) {
             WMSX.MACHINES_CONFIG = cfg.mc;
             WMSX.EXTENSIONS_CONFIG = cfg.ec;
             WMSX.PRESETS_CONFIG = cfg.pc;
-        } else
+        } else {
+            // Backward compatibility. For State versions < 530, cfg will be null, so restore original config
             this.adaptForOldState(s);
+        }
         for (var i = 0; i < this.listeners.length; ++i) this.listeners[i].configurationStateUpdate();
     },
 

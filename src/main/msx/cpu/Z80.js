@@ -82,7 +82,7 @@ wmsx.Z80 = function() {
         }
     };
 
-    this.clockPulses = function(busPulses) {
+    this.busClockPulses = function(busPulses) {
         // if (self.HALT) return;
 
         var toCycle = cpuCycles + ((busPulses * clockMulti) | 0);
