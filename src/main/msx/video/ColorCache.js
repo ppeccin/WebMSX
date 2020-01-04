@@ -108,7 +108,7 @@ wmsx.ColorCache = new function() {
             // Amber
             case 3:
                 y = Math.min(255, Math.round(0.32 * r + 0.60 * g + 0.18 * b));          // sum = 1.10
-                return a | ((y/9) << 16) | ((y/1.28) << 8) | (y/1);
+                return a | ((y/9) << 16) | ((y/1.56) << 8) | (y/1);
         }
     }
 
