@@ -100,7 +100,7 @@ WMSX = {
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     DEBUG_MODE:                     0,                          // 0: off; 1..7: debug mode. Don't change! :-)
     SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
-    ROM_MAX_HASH_SIZE_KB:           4096,                       // Maximum ROM size for Hash calculation
+    ROM_MAX_HASH_SIZE_KB:           5120,                       // Maximum ROM size for Hash calculation
     HARDDISK_MIN_SIZE_KB:           720,                        // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
     DISK_ROM_START_PAGE:            0,                          // 0..1: Change starting page for ROMs > 16KB when format is DiskPatch
     LIGHT_STATES:                   true,
