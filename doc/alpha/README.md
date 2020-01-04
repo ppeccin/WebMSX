@@ -19,7 +19,7 @@ All trademarks are property of their respective owners.
 - V9990 video, Superimposed and Mixed modes, or Dual Screens
 - Improved CPU Turbo emulation and control, Z80/R800 speed settings
 - Improved Kanji support, with MSX-JE input editor and dictionary
-- 5 MSX1 Palettes. Color, B&W, Green and Amber CRTs with scanlines
+- 6 MSX1 Palettes. Color, B&W, Green and Amber CRTs with scanlines
 - Redesigned machine Leds. Simplified hotkeys. New AZERTY key map
 
 ### Features
@@ -47,13 +47,20 @@ All trademarks are property of their respective owners.
 - PSG/SCC/OPLL Stereo Sound simulation, configurable
 - Copy & Paste text, Screen Capture, Debug modes
 - CRT Scanlines, resizable Screen, Full Screen and Full Windowed modes
-- 5 MSX1 Palettes. Color, B&W, Green and Amber phosphor simulation
+- 6 MSX1 Palettes. Color, B&W, Green and Amber phosphor simulation
 - Javascript API for loading media and machine control
 
-## About the new MSX turbo R support
+## About the new MSX turbo R machines
 
 We still have some limitations on the tR and R800 emulation in this release.
-There is no PCM and MIDI support yet, and also R800 CPU timing may not be completely accurate.
+There is no PCM and MIDI support yet, and R800 CPU advanced timing may not be completely accurate. 
+Also, R800 emulation hits very hard on the emulator performance, so it may not run smoothly on all devices, specially smartphones.
+There are options to tweak the R800 timing and clock speed from 0.5x to 2.0x.
+
+## About the new V9990 Video chip
+
+The current V9990 implementation also has some limitations on the Command Termination and Horizontal INTs.
+But none of the available/tested software seemed to rely on the incomplete functions. 
 
 ## About the light C-BIOS version
 
