@@ -122,7 +122,7 @@ module.exports = function (grunt) {
         "src/main/room/screen/virtualkeyboard/VirtualKeyboard.js",
         "src/main/room/screen/Monitor.js",
         "src/main/room/screen/CanvasDisplay.js",
-        "src/main/room/screen/SettingsGUI.es5.js",
+        "src/main/room/screen/settings/SettingsGUI.es5.js",
         "src/main/room/screen/settings/ControlMappingPopup.js",
         "src/main/room/screen/settings/KeyboardConfigurator.js",
         "src/main/room/screen/settings/PortsConfigurator.js",
