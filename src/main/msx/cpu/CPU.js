@@ -25,7 +25,7 @@ wmsx.CPU = function() {
 
     this.setMachineType = function(machineType) {
         r800Present = machineType >= wmsx.Machine.MACHINE_TYPE.MSXTR;
-        if (r800Present) defineR800InstructionSet();
+        updateR800Present();
     };
 
     this.powerOn = function() {
@@ -71,6 +71,14 @@ wmsx.CPU = function() {
         z80BUSRQ = pause;
     };
 
+    function updateR800Present() {
+        if (r800Present) {
+            defineR800InstructionSet();
+            self.busClockPulses = self.busClockPulsesBoth;      // VDP has to update this reference as well
+        } else
+            self.busClockPulses = self.busClockPulsesZ80;
+    }
+
     function updateInstructionSet() {
         if (r800) {
             instructionsNoPrefix = instructionsNoPrefixR800;
@@ -95,15 +103,21 @@ wmsx.CPU = function() {
         clockMulti = r800 ? r800ClockMulti : z80ClockMulti;
     }
 
-    // Called once every 228 clocks. 28 / 228 = ~4us refresh time each ~31.8us (~12.3% of processing time)
-    this.r800MemoryRefresh = function() {
-        if (r800) {
-            ++R;
-            W += 28;
-        }
+    this.busClockPulsesZ80 = function(busPulses) {
+        if (z80BUSRQ) return;
+
+        var toCycle = cpuCycles + ((busPulses * clockMulti) | 0);
+        for (; cpuCycles < toCycle; ++cpuCycles) {
+           if (--T > 0) continue;
+           if (T < 0) {
+               if (ackINT) acknowledgeINT();
+               else fetchNextInstruction();
+           } else
+               instruction.operation();
+       }
     };
 
-    this.busClockPulses = function(busPulses) {
+    this.busClockPulsesBoth = function(busPulses) {
         if (z80BUSRQ && !r800) return;
 
         var toCycle = cpuCycles + ((busPulses * clockMulti) | 0);
@@ -121,18 +135,7 @@ wmsx.CPU = function() {
         }
     };
 
-    //this.busClockPulses = function(busPulses) {
-    //    var quant = (busPulses * clockMulti) | 0;
-    //    for (var i = quant; i > 0; --i) {
-    //        if (--T > 0) continue;
-    //        if (T < 0) {
-    //            if (ackINT) acknowledgeINT();
-    //            else fetchNextInstruction();
-    //        } else
-    //            instruction.operation();
-    //    }
-    //    cpuCycles += quant;
-    //};
+    this.busClockPulses = this.busClockPulsesZ80;
 
     // this.busClockPulsesOld = function(busPulses) {
     //     var toCycle = cpuCycles + ((busPulses * clockMulti) | 0);
@@ -150,6 +153,14 @@ wmsx.CPU = function() {
     //         }
     //     }
     // };
+
+    // Called once every 228 clocks. 28 / 228 = ~4us refresh time each ~31.8us (~12.3% of processing time)
+    this.r800MemoryRefresh = function() {
+        if (r800) {
+            ++R;
+            W += 28;
+        }
+    };
 
     this.setINTChannel = function(chan, state) {
         var val = state ? INT | (1 << chan) : INT & ~(1 << chan);
@@ -3189,7 +3200,7 @@ wmsx.CPU = function() {
         T = s.Tn !== undefined ? s.Tn : s.T - 1; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai;                       // Backward compatibility for T & W
         extCurrRunning = s.ecr; extExtraIter = s.eei;
         r800Present = !!s.r8p; r800 = !!s.r8;
-        if (r800Present) defineR800InstructionSet();
+        updateR800Present();
         instruction = s.in >= 0 ? instructionsAll[s.in] : instructionsAllOld[s.ii];         // Backward compatibility
         if (s.bs) modeBackState = s.bs;                                                     // Backward compatibility
         z80ClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;                    // Backward compatibility

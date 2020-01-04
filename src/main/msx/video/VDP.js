@@ -12,8 +12,6 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
 
     function init() {
         videoSignal = new wmsx.VideoSignal(self, "Internal", "Internal");
-        cpuBusClockPulses = cpu.busClockPulses;
-        cpuMemoryRefresh = cpu.r800MemoryRefresh;
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
         initColorCaches();
         initFrameResources(false);
@@ -35,6 +33,8 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         isV9918 = type <=  M_TYPES.MSX1;
         isV9938 = type === M_TYPES.MSX2;
         isV9958 = type >=  M_TYPES.MSX2P;
+        cpuBusClockPulses = cpu.busClockPulses;
+        cpuMemoryRefresh = cpu.r800MemoryRefresh;
     };
 
     this.connectBus = function(bus) {
@@ -2536,6 +2536,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
 
     this.loadState = function(s) {
         isV9918 = s.v1; isV9938 = s.v3; isV9958 = s.v5;
+        cpuBusClockPulses = cpu.busClockPulses;
         // this.refreshDisplayMetrics();
         register = wmsx.Util.restoreStringBase64ToInt8BitArray(s.r, register);
         status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
