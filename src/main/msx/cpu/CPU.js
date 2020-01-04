@@ -104,24 +104,39 @@ wmsx.CPU = function() {
     };
 
     this.busClockPulses = function(busPulses) {
-        // if (self.HALT) return;
+        if (z80BUSRQ && !r800) return;
 
         var toCycle = cpuCycles + ((busPulses * clockMulti) | 0);
         for (; cpuCycles < toCycle; ++cpuCycles) {
-            if (--T > 1) continue;
-            if (T === 1) instruction.operation();
-            else {
+            if (--T > 0) continue;
+            if (T < 0) {
                 if (W > 0) { --W; continue; }
-                if (z80BUSRQ && !r800) continue;
-                if (ackINT) {
-                    acknowledgeINT();
-                } else {
+                if (ackINT) acknowledgeINT();
+                else {
                     fetchNextInstruction();
-                    if (T === 1) instruction.operation();
+                    if (T === 0) instruction.operation();
                 }
-            }
+            } else
+                instruction.operation();
         }
     };
+
+    // this.busClockPulsesOld = function(busPulses) {
+    //     var toCycle = cpuCycles + ((busPulses * clockMulti) | 0);
+    //     for (; cpuCycles < toCycle; ++cpuCycles) {
+    //         if (--T > 1) continue;
+    //         if (T === 1) instruction.operation();
+    //         else {
+    //             if (W > 0) { --W; continue; }
+    //             if (z80BUSRQ && !r800) continue;
+    //             if (ackINT) acknowledgeINT();
+    //             else {
+    //                 fetchNextInstruction();
+    //                 if (T === 1) instruction.operation();
+    //             }
+    //         }
+    //     }
+    // };
 
     this.setINTChannel = function(chan, state) {
         var val = state ? INT | (1 << chan) : INT & ~(1 << chan);
@@ -3079,7 +3094,7 @@ wmsx.CPU = function() {
 
         opcode = 257;
         instr = NOP;
-        defineInstruction(null, null, opcode, 0, 0, instr, "< ADT CYCLES >", false);       // Dummy, only for backward compatibility in old Savestates
+        defineInstruction(null, null, opcode, 1, 1, instr, "< ADT CYCLES >", false);       // Dummy, only for backward compatibility in old Savestates
 
         opcode = 258;
         instr = r8 ? pINT_IM01_R800 : pINT_IM01;
@@ -3105,7 +3120,7 @@ wmsx.CPU = function() {
             instr.totalCyclesZ80 =  instr.remainCyclesZ80 + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);      // only informative: each prefix adds 4T + 1 extra M1 state for the first prefix
             instr.totalCyclesR800 = instr.remainCyclesR800 + (prefix1 ? 1 : 0) + (prefix2 ? 1 : 0);     // only informative: each prefix adds 1T
 
-            instr.remainCycles = w8 ? instr.remainCyclesR800 : instr.remainCyclesZ80;
+            instr.remainCycles = w8 ? instr.remainCyclesR800 - 1 : instr.remainCyclesZ80 - 1;
             instr.operation = operation;
             instr.mnemonic = mnemonic;
             instr.undocumented = undocumented;
@@ -3144,7 +3159,7 @@ wmsx.CPU = function() {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, R7: R7, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
             cc: cpuCycles, bc: busCycles, cbc: cpuToBusCycles,
-            T: T, W: W, o: opcode, p: prefix, ai: ackINT, in: instructionsAll.indexOf(instruction),
+            Tn: T, W: W, o: opcode, p: prefix, ai: ackINT, in: instructionsAll.indexOf(instruction),
             ecr: extCurrRunning, eei: extExtraIter,
             r8p: r800Present, r8: r800,
             bs: modeBackState,
@@ -3158,7 +3173,7 @@ wmsx.CPU = function() {
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; R7 = s.R7 || 0; IM = s.IM; IFF1 = s.IFF1;         // Backward compatibility for R7
         setINT(s.nINT ? s.INT : s.INT ? 0xff : 0xfe);                                                                           // Backward compatibility
         cpuCycles = s.cc || 0; busCycles = s.bc || s.c || 0; cpuToBusCycles = s.cbc || 0;                                       // Backward compatibility
-        T = s.T; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai;                                                       // Backward compatibility for W
+        T = s.Tn !== undefined ? s.Tn : s.T - 1; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai;                       // Backward compatibility for T & W
         extCurrRunning = s.ecr; extExtraIter = s.eei;
         r800Present = !!s.r8p; r800 = !!s.r8;
         if (r800Present) defineR800InstructionSet();
