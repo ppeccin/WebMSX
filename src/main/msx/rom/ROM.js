@@ -20,6 +20,7 @@ wmsx.ROM = function(source, content, info, formatHint, startAddress) {
     this.reloadEmbeddedContent = function() {
         if (this.content || !wmsx.EmbeddedFiles.isEmbeddedURL(this.source)) return;
 
+        this.source = wmsx.Configurator.adaptROMSourceForOldState(this.source);
         var emb = wmsx.EmbeddedFiles.get(this.source);
         if (!emb) throw new Error("Cannot reload embedded content: " + this.source);
 
