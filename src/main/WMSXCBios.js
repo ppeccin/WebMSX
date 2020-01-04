@@ -1,4 +1,4 @@
-// WebMSX C-BIOS version 6.0.93
+// WebMSX C-BIOS version 6.0.0
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // Main Emulator parameters for C-BIOS variation. No FloppyDrive, Kanji and Moonsound support. Experimental HardDrive support.

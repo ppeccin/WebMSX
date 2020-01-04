@@ -13,33 +13,21 @@ Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) f
 MSX and the MSX logo are shown here as a tribute.
 All trademarks are property of their respective owners.
 
-### New in Release 5.4
+### New in Release 6.0
 
-- CapsLock and Kana leds on screen
-- Configurable Code key label and led for custom machines
-- Option to sync time with host when loading States
-- Option to flip Touch Controls horizontally 
-
-#### New in Release 5.3
-
-- Additional 5.37MHz (1.5x) CPU Turbo speed
-- Light version with C-BIOS Machines
-- CRT Scanlines simulation 
-- MegaRAM Extension (256KB - 2MB)
-- Left-side Touch Control buttons
-- Full Windowed mode (Shift + Alt + Enter)
-- Screen Aspect (Pixel Aspect Ratio) changed to 1.14
-- Improved Settings with increase/decrease values
-- Hotkeys + Shift modifier: decrease values
-- New External Config File. Easier setup of custom Machines and Extensions
-- New Environment concept. Isolated savestates, configs, preferences
-- Mouse pointer auto-lock in Fullscreen modes
-- Bugfixes: SD Snatcher Melancholia and overscan games now work
+- 3 MSX turbo R machines (Japanese, European, American)
+- V9990 video, Superimposed and Mixed modes, or Dual Screens
+- Improved CPU Turbo emulation and control, Z80/R800 speed settings
+- Improved Kanji support, with MSX-JE input editor and dictionary
+- 6 MSX1 Palettes. Color, B&W, Green and Amber CRTs with scanlines
+- New AZERTY key mapping. Simplified hotkeys 
 
 ### Features
 
-- 9 Generic machines (MSX1, MSX2, MSX2+). NTSC 60Hz or PAL 50Hz
+- 12 Generic machines (MSX1, MSX2, MSX2+, MSX tR). NTSC 60Hz or PAL 50Hz
+- V9918, V9938, V9958 and V9990 video, Superimposing, Mixed, Dual Screen modes
 - PSG, SCC, SCC-I, FM-PAC, PCM, MSX-MUSIC and OPL4-Wave sound
+- Kanji support, with MSX-JE Japanese text input editor and dictionary
 - Cross platform HTML5/JS. Runs in any Browser, tested in Chrome/Firefox/Safari
 - Show MSX software running on any webpage, or with a link to the WebMSX page
 - Finally enjoy MSX games on your iPhone/iPad! Installs as a WebApp, runs offline
@@ -59,7 +47,20 @@ All trademarks are property of their respective owners.
 - PSG/SCC/OPLL Stereo Sound simulation, configurable
 - Copy & Paste text, Screen Capture, Debug modes
 - CRT Scanlines, resizable Screen, Full Screen and Full Windowed modes
+- 6 MSX1 Palettes. Color, B&W, Green and Amber phosphor simulation
 - Javascript API for loading media and machine control
+
+## About the MSX turbo R machines
+
+We still have some limitations on the tR and R800 emulation in this release.
+There is no PCM and MIDI support yet, and R800 CPU advanced timing may not be completely accurate. 
+Also, R800 emulation hits very hard on the emulator performance, so it may not run smoothly on all devices, specially smartphones.
+There are options to tweak the R800 timing and clock speed from 0.5x to 2.0x.
+
+## About the V9990 Video chip
+
+The current V9990 implementation also has some limitations on the Command Termination and Horizontal INTs.
+But none of the available/tested software seemed to rely on the incomplete functions. 
 
 ## About the light C-BIOS version
 
@@ -80,10 +81,10 @@ Another way of sharing your Session to users is sending them a link that will op
 In the NetPlay! dialog, once you are Hosting a Session, there will be a link button on the upper right, that will generate the link and copy it to your clipboard.
 
 **IMPORTANT:** NetPlay! performance is completely dependent on the network quality. The lower the network latency between users, the better. Higher bandwidths with higher latencies won't help much.
-It uses a specialized P2P protocol, and tries to use STUN to traverse NATs/routers so users don't have to worry about IPs and opening ports. Use at your own risk! :-)
+The Client may need some time to find and connect do the Server. It uses a specialized P2P protocol, and tries to use STUN to traverse NATs/routers so users don't have to worry about IPs and opening ports. Use at your own risk! :-)
 
 To make all this work seamlessly, WebMSX uses modern Web technologies including WebRTC, which are supported by all major browsers and platforms.
-Unfortunately, those technologies are still not available on Apple iOS, so NetPlay! will not work on iOS devices. Sorry but there is not much we can do about it, until Apple feels it should allow its customers to access those technologies.
+Unfortunately, those technologies may still not be available on Apple iOS, so NetPlay! may not work on those devices.
 
 ## About the Nextor Hard Disk Drive
 
@@ -147,23 +148,26 @@ The ROM Format is auto-detected. To force a format, set the `CARTRIDGE1_FORMAT` 
 You can also put the format specification in the ROM file name, between brackets. Example: `Game [KonamiSCC].rom`
 
 #### Valid Formats
-`Normal`, `Mirrored`, `NotMirrored`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `ASCII8SRAM2`, `ASCII8SRAM8`, `ASCII16SRAM2`, `ASCII16SRAM8`, `MegaRAM`, `GameMaster2`, `KoeiSRAM8`, `KoeiSRAM32`, `Wizardry`, `FMPAC`, `FMPAK`, `MSXDOS2`, `Majutsushi`, `Synthesizer`, `RType`, `CrossBlaim`, `Manbow2`, `HarryFox`, `AlQuran`, `AlQuranDecoded`, `Halnote`, `SuperSwangi`, `SuperLodeRunner`, `Dooly`, `Zemina80in1`, `Zemina90in1`, `Zemina126in1`, `MSXWrite`
+`Normal`, `Mirrored`, `NotMirrored`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `ASCII8SRAM2`, `ASCII8SRAM8`, `ASCII16SRAM2`, `ASCII16SRAM8`, `MegaRAM`, `GameMaster2`, `KoeiSRAM8`, `KoeiSRAM32`, `Wizardry`, `FMPAC`, `FMPAK`, `MSXDOS2`, `Majutsushi`, `Synthesizer`, `RType`, `CrossBlaim`, `Manbow2`, `HarryFox`, `AlQuran`, `AlQuranDecoded`, `Halnote`, `SuperSwangi`, `SuperLodeRunner`, `Dooly`, `Zemina80in1`, `Zemina90in1`, `Zemina126in1`, `MSXWrite`, `KonamiUltimateCollection`
 
 ## Choosing a Machine
 
-There are 9 different generic machines. The default machine is the MSX2+, and the emulator will try to auto-detect your region. You can ask for a specific machine by setting the `MACHINE` parameter (or `M` for short) with the respective Machine ID:
+There are 12 different generic machines. The default machine is the MSX2+, and the emulator will try to auto-detect your region. You can ask for a specific machine by setting the `MACHINE` parameter (or `M` for short) with the respective Machine ID:
 
 | Machine | Machine ID | Specific Machine | Machine ID 
 | --- | :---: | --- | :---: 
-| MSX2+ Auto-detection   | `MSX2P` | MSX2+ American (NTSC 60Hz)  |  `MSX2PA`                
-|                        |         | MSX2+ European (PAL 50Hz)   |  `MSX2PE`
-|                        |         | MSX2+ Japanese (NTSC 60Hz)  |  `MSX2PJ`
-| MSX2  Auto-detection   | `MSX2`  | MSX2  American (NTSC 60Hz)  |  `MSX2A`          
-|                        |         | MSX2  European (PAL 50Hz)   |  `MSX2E`
-|                        |         | MSX2  Japanese (NTSC 60Hz)  |  `MSX2J`
-| MSX1  Auto-detection   | `MSX1`  | MSX1  American (NTSC 60Hz)  |  `MSX1A`          
-|                        |         | MSX1  European (PAL 50Hz)   |  `MSX1E`
-|                        |         | MSX1  Japanese (NTSC 60Hz)  |  `MSX1J`
+| MSX tR Auto-detection  | `MSXTR` | MSX tR American (NTSC 60Hz)  |  `MSXTRA`                
+|                        |         | MSX tR European (PAL 50Hz)   |  `MSXTRE`
+|                        |         | MSX tR Japanese (NTSC 60Hz)  |  `MSXTRJ`
+| MSX2+ Auto-detection   | `MSX2P` | MSX2+ American (NTSC 60Hz)   |  `MSX2PA`                
+|                        |         | MSX2+ European (PAL 50Hz)    |  `MSX2PE`
+|                        |         | MSX2+ Japanese (NTSC 60Hz)   |  `MSX2PJ`
+| MSX2  Auto-detection   | `MSX2`  | MSX2  American (NTSC 60Hz)   |  `MSX2A`          
+|                        |         | MSX2  European (PAL 50Hz)    |  `MSX2E`
+|                        |         | MSX2  Japanese (NTSC 60Hz)   |  `MSX2J`
+| MSX1  Auto-detection   | `MSX1`  | MSX1  American (NTSC 60Hz)   |  `MSX1A`          
+|                        |         | MSX1  European (PAL 50Hz)    |  `MSX1E`
+|                        |         | MSX1  Japanese (NTSC 60Hz)   |  `MSX1J`
 
 It's possible to define additional Custom Machines, by loading an external Configuration File (`CONFIG_URL` parameter). Contact the author for details! 
 
@@ -173,17 +177,18 @@ The emulator supports several Extensions, or optional components that can be tur
 
 | Extension | Default in Machine | Presets
 | --- | :---: | ---
-| Hard Disk interface (Nextor)          | --                   | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`
-| Floppy Disk interface with 2 drives   | ALL                  | `DISK`, `NODISK`
-| Standard RAM Mapper, adjustable size  | MSX2, MSX2+          | `RAM128`..`RAM4096`, `RAMNORMAL`
-| Support for Kanji Characters          | Japanese MSX2, MSX2+ | `KANJI`, `NOKANJI`
-| MSX-MUSIC sound with BASIC extension  | MSX2, MSX2+          | `MSXMUSIC`, `NOMSXMUSIC`
-| OPL4 Wave sound                       | --                   | `OPL4`
-| Double PSG                            | --                   | `DOUBLEPSG`
-| SCC-I Sound Cartridge with 128K RAM   | --                   | `SCCI`, `SCCI2` (in Slot 1/2)
-| SCC Sound Cartridge                   | --                   | `SCC`, `SCC2` (in Slot 1/2)
-| PAC SRAM Cartridge                    | --                   | `PAC`, `PAC2` (in Slot 1/2)
-| MegaRAM Cartridge                     | --                   | `MEGARAM`, `MEGARAM2` (in Slot 1/2)
+| Hard Disk interface (Nextor)          | --                      | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`
+| Floppy Disk interface with 2 drives   | All                     | `DISK`, `NODISK`
+| Standard RAM Mapper, adjustable size  | MSX2 or higher          | `RAM128`..`RAM4096`, `RAMNORMAL`
+| Kanji Characters with MSX-JE          | Japanese MSX2 or higher | `KANJI`, `NOKANJI`
+| V9990 Video                           | --                      | `V9990`
+| MSX-MUSIC sound with BASIC extension  | MSX2 or higher          | `MSXMUSIC`, `NOMSXMUSIC`
+| OPL4 Wave sound                       | --                      | `OPL4`
+| Double PSG                            | --                      | `DOUBLEPSG`
+| SCC-I Sound Cartridge with 128K RAM   | --                      | `SCCI`, `SCCI2` (in Slot 1/2)
+| SCC Sound Cartridge                   | --                      | `SCC`, `SCC2` (in Slot 1/2)
+| PAC SRAM Cartridge                    | --                      | `PAC`, `PAC2` (in Slot 1/2)
+| MegaRAM Cartridge                     | --                      | `MEGARAM`, `MEGARAM2` (in Slot 1/2)
 
 ## Loading BASIC files and Typing commands after launch
 
@@ -227,11 +232,10 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 
 | Preset | Description
 | --- | ---
-| `BOOSTED`                                               |  Boosted Machine with HardDisk and CPU/VDP 3x Turbo 
-| `ALTSLOTCONFIG`                                         |  Alternate Slot Configuration. RAM at Primary Slot 3
 | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`                   |  Hard Drive Extension
 | `DISK`, `DISKA`, `NODISK`                               |  Floppy Drives Extension
 | `RAMMAPPER`, `RAM128` - `RAM4096`, `RAMNORMAL`          |  RAM Mapper Extension & sizes
+| `V9990`                                                 |  V9990 Video Extension
 | `KANJI`, `NOKANJI`                                      |  Kanji ROM Extension
 | `MSXMUSIC`, `NOMSXMUSIC`, `DOUBLEPSG`, `OPL4`           |  Sound Devices Extensions
 | `SCCI`, `SCCI2`, `SCC`, `SCC2`                          |  SCC+/SCC Cartridge (in Slot 1/2)
@@ -242,10 +246,12 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `PSGSTEREO`, `PSGSTEREO2`                               |  PSG Stereo simulation (default/variation)
 | `SCCSTEREO`, `SCCSTEREO2`                               |  SCC Stereo simulation (default/variation)
 | `OPLLSTEREO`, `OPLLSTEREO2`                             |  OPLL Stereo simulation (default/variation)
+| `ALTSLOTCONFIG`                                         |  Alternate Slot Configuration. RAM at Primary Slot 3
+| `BOOSTED`                                               |  Boosted Machine with HardDisk and CPU/VDP 3x Turbo 
 
 ## Parameters Reference
 
-| Parameter | Default | Description
+| Parameter (+ new) | Default | Description
 | --- | :---: | ---
 | `ENVIRONMENT`                   |  0                  |  Emulator Environment. Isolate Savestates & Preferences. 1..99
 | `CONFIG_URL`                    |  --                 |  Configuration file to merge. Processed before URL parameters
@@ -266,8 +272,6 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `AUTODETECT_URL`                |  --                 |  URL of file to load with media auto-detection
 | `SLOTXY_URL`                    |  --                 |  URL of ROM file to load in Slot X-Y (X,Y are numbers). Omit Y for primary slot
 | `SLOTXY_FORMAT`                 |  --                 |  ROM Format for Slot X-Y loaded above
-| `VDP_TYPE`                      |  --                 |  VDP Chip. -1: auto; 1: V9918; 2: V9938; 3: V9958
-| `RTC_ACTIVE`                    |  --                 |  RTC Chip. -1: auto; 0: not present; 1: present
 | `NETPLAY_JOIN`                  |  --                 |  Join NetPlay! Session automatically
 | `NETPLAY_NICK`                  |  --                 |  NetPlay! Nickname, optional
 | `BASIC_RUN`                     |  --                 |  Run the specified file name
@@ -280,6 +284,9 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `BOOT_KEYS_ONCE`                |  --                 |  Same as above, but only on first boot (do not use both)
 | `BOOT_KEYS_FRAMES`              |  -1                 |  Number of frames for Boot Keys. -1: auto; > 0: frames
 | `FAST_BOOT`                     |  0                  |  Number of frames for Fast Boot. 0: off; 1: auto (same as Boot Keys frames); > 1: number of frames
+| `VDP_TYPE`                      |  -1                 |  VDP Chip. -1: auto; 1: V9918; 2: V9938; 3: V9958
+| **+** `VDP_PALETTE`             |  2                  |  MSX1 Palette. 0: WebMSX Original; 1: V9918; 2: V9928; 3: V9938; 4: Toshiba; 5: Fujitsu FM-X
+| `RTC_ACTIVE`                    |  -1                 |  RTC Chip. -1: auto; 0: not present; 1: present
 | `RAMMAPPER_SIZE`                |  512                |  RAM Mapper size when active. 64, 128, 256, 512, 1024, 2048, 4096, in KB 
 | `RAMNORMAL_SIZE`                |  64                 |  Normal RAM size when active. 16..64, in KB
 | `VOL`                           |  1.0                |  Master Volume factor
@@ -299,22 +306,30 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `SCREEN_CONTROL_BAR`            |  1                  |  Screen Bottom Bar controls. 0: on hover; 1: always
 | `SCREEN_FORCE_HOST_NATIVE_FPS`  |  -1                 |  Force host native video frequency. -1: auto-detect. Don't change! :-)
 | `SCREEN_VSYNC_MODE`             |  -2                 |  VSync mode. -2: user set (default auto); -1: disabled; 0: off; 1: auto (on when available)
+| **+** `SCREEN_VIDEO_OUT`        |  -1                 |  Video output. -1: auto; 0: Internal VDP; 1: External V9990; 2: Superimposed; 3: Mixed; 4: Dual (main: Internal); 5: Dual (main: V9990)
+| **+** `SCREEN_COLORS`           |  0                  |  CRT color type. 0: Color; 1: B&W; 2: Green Phosphor; 3: Amber Phosphor
 | `AUDIO_MONITOR_BUFFER_BASE`     |  -3                 |  Audio buffer base size. -3: user set (default auto); -2: disable audio; -1: auto; 0: browser default; 1..6: base value. More buffer = more delay
 | `AUDIO_MONITOR_BUFFER_SIZE`     |  -1                 |  Audio buffer size. -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size. More buffer = more delay. Don't change! :-)
 | `AUDIO_SIGNAL_BUFFER_RATIO`     |  2                  |  Internal Audio Signal buffer based on Monitor buffer
 | `AUDIO_SIGNAL_ADD_FRAMES`       |  3                  |  Additional frames in internal Audio Signal buffer based on Monitor buffer
-| `Z80_CLOCK_MODE`                |  0                  |  Z80 CPU Clock. 0: auto (soft-turbo possible); (0..8]: CPU clock multiplier;
+| **+** `R800_CLOCK_MODE`         |  0                  |  R800 CPU Clock. 0: auto; (0..2]: R800 CPU clock multiplier
+| **+** `R800_TIMING`             |  1                  |  Precise R800/S1990 timings. 0: off, 1: on; 2: VDP waits only. Turn off for faster and lighter emulation
+| `Z80_CLOCK_MODE`                |  0                  |  Z80 CPU Clock. 0: auto (soft-turbo possible); (0..8]: CPU clock multiplier
 | `VDP_CLOCK_MODE`                |  0                  |  VDP Command Engine Clock. 0: auto (soft-turbo possible); (0..8]: Engine clock multiplier; 9: instantaneous
 | `Z80_SOFT_TURBO_MULTI`          |  1.5                |  Z80 CPU clock multiplier when in AUTO mode and activated by software. 1..8: multi
-| `VDP_SOFT_TURBO_MULTI`          |  4                  |  VDP Command Engine clock multiplier when in AUTO mode and activated by software. 1..9: multi
+| `VDP_SOFT_TURBO_MULTI`          |  1                  |  VDP Command Engine clock multiplier when in AUTO mode and activated by software. 1..9: multi
+| **+** `CPU_SOFT_TURBO_AUTO_ON`  |  0                  |  Automatically activate the CPU Soft Turbo when supported by machine. 0: off, 1: on 
+| **+** `CPU_FAKE_TR_TURBO`       |  -1                 |  Simulated tR CHGCPU Turbo activation. -1: auto; 0: off; 1: on. Auto ON for 2+, never for tR
+| **+** `CPU_PANA_TURBO`          |  -1                 |  Simulated Panasonic Turbo activation. -1: auto; 0: off; 1: on. Auto ON for 2+, never for tR
 | `JOYSTICKS_MODE`                |  0                  |  Joysticks (on Host) controls. -1: disabled; 0: auto; 1: auto (swapped)
 | `JOYKEYS_MODE`                  |  -1                 |  JoyKeys controls. -1: disabled; 0: enabled at port 1; 1: enabled at port 2; 2: enabled at both ports; 3: enabled at both ports (swapped)
 | `MOUSE_MODE`                    |  -1                 |  Mouse controls. -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
 | `TOUCH_MODE`                    |  0                  |  Touch controls. -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
+| **+** `MOBILE_MODE`             |  0                  |  Forced Mobile interface mode. -1: disabled; 0: auto; 1: enabled
 | `DEBUG_MODE`                    |  0                  |  Debug Modes. 0: off; 1..7: mode. Don't change! :-)
 | `SPRITES_DEBUG_MODE`            |  0                  |  Sprites Debug Modes. 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
 | `KEYBOARD_JAPAN_LAYOUT`         |  1                  |  Japanese keyboard layout. 0: ANSI, 1: JIS
-| `ROM_MAX_HASH_SIZE_KB`          |  3072               |  Maximum ROM size for Hash calculation
+| `ROM_MAX_HASH_SIZE_KB`          |  5120               |  Maximum ROM size for Hash calculation
 | `HARDDISK_MIN_SIZE_KB`          |  720                |  Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
 | `MEGARAM_SIZE`                  |  2048               |  MegaRAM size in KB
 | `DISK_ROM_START_PAGE`           |  0                  |  Change starting page for ROMs > 16KB when format is DiskPatch. 0..1

@@ -1,6 +1,6 @@
 module.exports = function (grunt) {
 
-    var releasePath = "alpha/6.0";
+    var releasePath = "stable/6.0";
 
     var baseScr = [
         "src/main/room/screen/FullScreenSetup.js",
