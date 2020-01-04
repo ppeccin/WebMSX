@@ -942,7 +942,11 @@ wmsx.V9990 = function() {
     }
 
     function updateDispAndSpritesEnabled() {
-        dispEnabled = (register[8] & 0x80) !== 0;
+        var newDispEnabled = (register[8] & 0x80) !== 0;
+        if (dispEnabled !== newDispEnabled) {
+            if (newDispEnabled) cartridge.v9990DisplayEnabled();
+            dispEnabled = newDispEnabled;
+        }
         spritesEnabled = (register[8] & 0x40) === 0;
         updateLineActiveType();
         commandProcessor.setV9990DisplayAndSpritesEnabled(dispEnabled, spritesEnabled);

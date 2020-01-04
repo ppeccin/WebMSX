@@ -48,6 +48,10 @@ wmsx.CartridgeV9990 = function(rom) {
         self.output6f(0x10);
     };
 
+    this.v9990DisplayEnabled = function() {
+        if (mode === 0) this.output6f(0);      // When in default mode (Internal) and V9990 is actifaved, set mode = 1 (V9990) automatically
+    };
+
     this.output6f = function(val) {
         //console.log("v7040 Control:", val.toString(16));
 
@@ -56,15 +60,14 @@ wmsx.CartridgeV9990 = function(rom) {
     };
 
     function updateAutoMode() {
-        var mode;
         switch (control & 0x1a) {
-            case 0x10: case 0x14:           // GEN = 1, TRAN = 0
+            case 0x10: case 0x12:           // GEN = 1, TRAN = 0, MIX = *
                 mode = 0; break;            // Internal
             case 0x18:                      // GEN = 1, TRAN = 1, MIX = 0
                 mode = 2; break;            // Superimposed
             case 0x1a:                      // GEN = 1, TRAN = 1, MIX = 1
                 mode = 3; break;            // Mixed
-            default:                        // GEN = 0
+            default:                        // GEN = 0, TRAN = *, MIX = *
                 mode = 1; break;            // V9990
         }
         v9990.getVideoSignal().setOutputAutoMode(mode);
@@ -79,6 +82,7 @@ wmsx.CartridgeV9990 = function(rom) {
     this.v9990 = v9990;
 
     var control = 0x10;
+    var mode = 0;
 
 
     // Savestate  -------------------------------------------
