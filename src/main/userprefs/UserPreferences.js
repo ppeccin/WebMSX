@@ -2,8 +2,8 @@
 
 WMSX.userPreferences = { };
 
-WMSX.userPreferences.currentVersion = 50;
-WMSX.userPreferences.compatibleVersions = new Set([ 50 ]);
+WMSX.userPreferences.currentVersion = 60;
+WMSX.userPreferences.compatibleVersions = new Set([ 60, 50 ]);
 
 WMSX.userPreferences.defaults = function() {
 "use strict";

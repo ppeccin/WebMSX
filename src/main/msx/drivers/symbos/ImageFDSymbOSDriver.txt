@@ -1,5 +1,3 @@
-// TODO Update SymboOS drivers and images
-
 // Used to generate the WebMSX SymbOS FD Driver (-FDWMSX.DRV)
 
 // Constants
