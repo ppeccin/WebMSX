@@ -202,7 +202,7 @@ wmsx.ExtensionsSocket = function(machine) {
     }
 
     this.propagateAllExtensions = function() {
-        for (var ext in WMSX.EXTENSIONS) {
+        for (var ext in config) {
             propageteUpdateExtensionOnConf(ext, (WMSX.EXTENSIONS[ext] & 1) !== 0, false);
             if (config[ext].SLOT2) propageteUpdateExtensionOnConf(ext, (WMSX.EXTENSIONS[ext] & 2) !== 0, true);
         }
