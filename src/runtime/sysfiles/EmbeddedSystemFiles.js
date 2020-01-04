@@ -40,13 +40,12 @@ wmsx.EmbeddedSystemFiles = {
 
         // MSX2+ NTSC Ext Bios, based on PAL version
         "MSX2PEXT_NTSC.bios": { based: "@MSX2PEXT_PAL.bios", diffs: {
-                                                                                                // TODO Country?
             0x2c63: [ 0x00 ]                                            // reg9 NTSC init
         }},
 
         // MSX2+ PAL Ext Bios, based on JAP version
         "MSX2PEXT_PAL.bios": { based: "@MSX2PEXT_JAP.bios", diffs: {
-            0x57e: [ 0x00, 0x05, 0x02, 0x0f, 0x04, 0x04 ],              // mode & colors        // TODO Country?
+            0x57e: [ 0x00, 0x05, 0x02, 0x0f, 0x04, 0x04 ],              // mode & colors
             0x2c63: [ 0x02 ]                                            // reg9 PAL init
         }},
 
@@ -80,12 +79,7 @@ wmsx.EmbeddedSystemFiles = {
         // MSX tR NTSC Bootlogo, based on PAL version
         "MSXTROPEN_NTSC.bios": { based: "@MSXTROPEN_PAL.bios", diffs: {
             0x3c3e: [ 0x00 ]                                            // reg9 NTSC init
-        }},
-
-
-        // Old versions files for Savestate backward compatibility
-
-        "[MoonSound].rom": { based: "@[OPL4].rom", diffs: {} }
+        }}
 
     }
 
