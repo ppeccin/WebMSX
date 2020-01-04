@@ -97,8 +97,8 @@ wmsx.TurboDriver = function(bios) {
             bytes[0x0192] = 0xc9;
         }
 
-        if (panaTurbo) machine.bus.connectSwitchedDevice(0x08, this);
-        else machine.bus.disconnectSwitchedDevice(0x08, this);
+        if (panaTurbo) machine.bus.connectSwitchedDevice(0x08, self);
+        else machine.bus.disconnectSwitchedDevice(0x08, self);
 
         // console.error("TurboDriver devices updated:", fakeTRTurbo, panaTurbo);
     }
