@@ -4,8 +4,6 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 
-// TODO Fix footer messages
-
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
 

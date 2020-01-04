@@ -76,6 +76,7 @@
             }
             @media only screen and (orientation: landscape) and (max-device-width: 767px) {
                 .container { max-width: 75%; }
+                .trade     { display: none }
             }
             #topbar {
                 height: 51px;
@@ -137,6 +138,9 @@
             @media only screen and (min-width: 500px) {
                 #info-wide { display: block; }
             }
+            @media only screen and (max-width: 620px) {
+                .trade     { display: none }
+            }
             #footer-space {
                 margin-top: 26px;
                 height: 76px;
@@ -166,7 +170,7 @@
                 color: #0050ba;
                 text-shadow: 0 0 2px hsl(197, 100%, 47%);
             }
-            .toright {
+            .trade {
                 float: right;
             }
             #donate {
