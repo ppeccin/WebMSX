@@ -42,7 +42,6 @@ wmsx.SlotExpanded0 = function() {
     };
 
     this.reset = function() {
-        this.setDRAMMode(false);
         this.setSecondarySlotConfig(0);
         for (var s = 0; s < 4; s++) subSlots[s].reset();
     };
@@ -102,24 +101,6 @@ wmsx.SlotExpanded0 = function() {
         }
     };
 
-    this.setDRAMMode = function(state) {
-        dramMode = state;
-        drramModeAccessWait = !dramMode | 0;
-    };
-
-    this.getBreakWaitSub = function(address, lastAddress) {
-        // Performance trade-off: consider ALL subSlots the same as Slot 0 (BIOS), so all have DRAM Mode
-        if (dramMode && (address >> 8) === (lastAddress >> 8))
-            return 0;                               // RAM without Page Break
-        else
-            return 1;                               // RAM with Page Break or ROM Forced Break
-    };
-
-    this.getAccessWaitSub = function(address) {
-        // Performance trade-off: consider ALL subSlots the same as Slot 0 (BIOS), so all have DRAM Mode
-        return drramModeAccessWait;                 // RAM: 0 extra wait, ROM: 1 extra wait
-    };
-
     this.setSecondarySlotConfig = function(val) {
         // wmsx.Util.log("SecondarySlot Select: " + val.toString(16));
         secondarySlotConfig = val;
@@ -155,7 +136,6 @@ wmsx.SlotExpanded0 = function() {
 
     var subSlots;
     var secondarySlotConfig = 0;
-    var dramMode = false, drramModeAccessWait = 1;
 
     var page0Slot, page1Slot, page2Slot, page3Slot;
 
@@ -175,8 +155,7 @@ wmsx.SlotExpanded0 = function() {
             s0: subSlots[0].saveState(),
             s1: subSlots[1].saveState(),
             s2: subSlots[2].saveState(),
-            s3: subSlots[3].saveState(),
-            d: dramMode
+            s3: subSlots[3].saveState()
         };
     };
 
@@ -186,13 +165,14 @@ wmsx.SlotExpanded0 = function() {
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s2, subSlots[2]), 2);
         this.insertSubSlot(wmsx.SlotCreator.recreateFromSaveState(s.s3, subSlots[3]), 3);
         this.setSecondarySlotConfig(s.s);
-        this.setDRAMMode(!!s.d);       // Backward Compatibility
     };
 
 
     init();
 
 };
+
+wmsx.SlotExpanded0.prototype = wmsx.Slot.base;
 
 wmsx.SlotExpanded0.recreateFromSaveState = function(state, previousSlot) {
     var expandedSlot = previousSlot || new wmsx.SlotExpanded0();

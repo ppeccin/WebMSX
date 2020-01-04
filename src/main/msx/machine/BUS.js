@@ -26,6 +26,7 @@ wmsx.BUS = function(machine, cpu) {
     this.reset = function() {
         vdpIOClock = 0;
         switchedDevices.reset();
+        this.setDRAMMode(false);
         this.setPrimarySlotConfig(0);
         for (var i = 0; i < 5; i++) slots[i].reset();
     };
@@ -102,22 +103,42 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     this.setDRAMMode = function(state) {
-        slot0.setDRAMMode(!!state);
-        slot3.setDRAMMode(!!state);
+        dramMode = !!state;
+        dramWait = !dramMode | 0;
     };
 
+    // TODO Performance trade-off: For Expanded Slot 0 consider ALL subSlots the same as subSlot 0 (BIOS), so all have DRAM Mode
     this.getBreakWait = function(address, lastAddress) {
-        var s = (primarySlotConfig >> ((address >> 14) << 1)) & 3;
-        if (s === 3) return slot3.getBreakWaitSub(address, lastAddress);     // Slot3 (ROM/RAM)
-        if (s === 0) return slot0.getBreakWaitSub(address, lastAddress);     // Slot0 (ROM/RAM)
-        return 1;                                                            // External: Forced Page Break
+        var p = (address >> 14) << 1;
+        var s = (primarySlotConfig >> p) & 3;
+        if (s === 3) {
+            if ((address >> 8) !== (lastAddress >> 8)) {
+                return 1;
+            } else {
+                var u = (slot3.getSecondarySlotConfig() >> p) & 3;
+                return u === 0 ? 0 : u === 1 ? dramWait : 1;
+            }
+        } else if (s === 0) {
+            if ((address >> 8) !== (lastAddress >> 8)) {
+                return 1;
+            } else {
+                return dramWait;
+            }
+        } else
+            return 1;
     };
 
+    // TODO Performance trade-off: For Expanded Slot 0 consider ALL subSlots the same as subSlot 0 (BIOS), so all have DRAM Mode
     this.getAccessWait = function(address) {
-        var s = (primarySlotConfig >> ((address >> 14) << 1)) & 3;
-        if (s === 3) return slot3.getAccessWaitSub(address);                 // Slot3 (ROM/RAM)
-        if (s === 0) return slot0.getAccessWaitSub(address);                 // Slot0 (ROM/RAM)
-        return 2;                                                            // External: 2 extra waits
+        var p = (address >> 14) << 1;
+        var s = (primarySlotConfig >> p) & 3;
+        if (s === 3) {
+            var u = (slot3.getSecondarySlotConfig() >> p) & 3;
+            return u === 0 ? 0 : u === 1 ? dramWait : 1;
+        } else if (s === 0) {
+            return dramWait;
+        } else
+            return 2;
     };
 
     this.input = function(port) {
@@ -237,6 +258,9 @@ wmsx.BUS = function(machine, cpu) {
     var writeMonitor;
     var switchedDevices;
     var vdpIOClock = 0;
+    var dramMode = false;
+    var dramWait = 0;
+
 
     var cpuExtensionHandlers = {};
 
@@ -251,6 +275,7 @@ wmsx.BUS = function(machine, cpu) {
             s2: slot2.saveState(),
             s3: slot3.saveState(),
             sM: slotModules.saveState(),
+            d: dramMode,
             vc: vdpIOClock
         };
     };
@@ -261,6 +286,7 @@ wmsx.BUS = function(machine, cpu) {
         this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s2, slot2), 2);
         this.insertSlot(wmsx.SlotCreator.recreateFromSaveState(s.s3, slot3), 3);
         this.insertSlot(s.sM ? wmsx.SlotCreator.recreateFromSaveState(s.sM, slotModules) : slotEmpty, 4);
+        this.setDRAMMode(!!s.d);            // Backward Compatibility
         this.setPrimarySlotConfig(s.p);
         vdpIOClock = s.vc || 0;             // Backward Compatibility
     };

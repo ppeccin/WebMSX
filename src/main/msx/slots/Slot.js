@@ -65,6 +65,10 @@ wmsx.Slot = function() {
         return false;
     };
 
+    this.getSecondarySlotConfig = function() {
+        return 0;
+    };
+
     this.reinsertROMContent = function() {
         if (this.rom.content) return;
         this.rom.content = this.bytes || [];
