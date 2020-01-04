@@ -3,7 +3,7 @@
 wmsx.ScreenGUI = wmsx.Util.isMobileDevice()
     ? {
         BAR_HEIGHT: 29,
-        BAR_MENU_WIDTH: 150,
+        BAR_MENU_WIDTH: 160,
         BAR_MENU_ITEM_HEIGHT: 33,
         BAR_MENU_ITEM_FONT_SIZE: 14,
         LOGO_SCREEN_WIDTH: 597,
@@ -14,7 +14,7 @@ wmsx.ScreenGUI = wmsx.Util.isMobileDevice()
     }
     : {
         BAR_HEIGHT: 29,
-        BAR_MENU_WIDTH: 140,
+        BAR_MENU_WIDTH: 150,
         BAR_MENU_ITEM_HEIGHT: 29,
         BAR_MENU_ITEM_FONT_SIZE: 13,
         LOGO_SCREEN_WIDTH: 597,
@@ -396,7 +396,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
 }
 .wmsx-bar-menu-item-toggle {
     text-align: left;
-    padding-left: 33px;
+    padding-left: 40px;
 }
 .wmsx-bar-menu-item-toggle::before,
 .wmsx-bar-menu-item-toggle::after {
@@ -405,7 +405,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     width: 6px;
     height: 9px;
     top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 21) / 2) | 0) + `px;
-    left: 12px;
+    left: 16px;
     background: rgb(82, 82, 82);
     box-shadow: black 1px 1px 1px;
 }
@@ -436,7 +436,7 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     width: 12px  !important;
     height: 12px  !important;
     top: ` + (((this.BAR_MENU_ITEM_HEIGHT - 12) / 2) | 0) + `px  !important;
-    left: 11px;
+    left: 14px;
     border-radius: 100%;
     box-shadow: black 1px 1px 1px 1px;
 }
