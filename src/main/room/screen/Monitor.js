@@ -12,7 +12,9 @@ wmsx.Monitor = function(display) {
     this.connectExternalVideoSignal = function(videoSignal) {
         extSignal = videoSignal;
         extSignal.connectMonitor(this);
-        updateOutputMode();
+
+        if (WMSX.SCREEN_VIDEO_OUT >= 0) this.setOutputMode(WMSX.SCREEN_VIDEO_OUT, true);
+        else updateOutputMode();
     };
 
     this.disconnectExternalVideoSignal = function(videoSignal) {
@@ -42,10 +44,10 @@ wmsx.Monitor = function(display) {
         if (oldEffective !== outputEffective) showOutputModeOSD();
     };
 
-    this.setOutputMode = function(mode) {
+    this.setOutputMode = function(mode, skipMes) {
         outputMode = !extSignal ? -1 : mode < -1 ? -1 : mode > 3 ? 3 : mode;
         updateOutputMode();
-        showOutputModeOSD();
+        if (!skipMes) showOutputModeOSD();
     };
 
     function updateOutputMode() {
@@ -54,7 +56,7 @@ wmsx.Monitor = function(display) {
         intSignal.videoSignalDisplayStateUpdate(outputEffective !== 1, outputEffective === 2);
         if (extSignal) extSignal.videoSignalDisplayStateUpdate(outputEffective !== 0, outputEffective === 2);
 
-        if (outputEffective >= 1) extSignal.refreshDisplayMetrics();    // External Sigal takes precedence when displayed
+        if (outputEffective >= 1) extSignal.refreshDisplayMetrics();    // External Signal takes precedence when displayed
         else intSignal.refreshDisplayMetrics();
 
         display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc());

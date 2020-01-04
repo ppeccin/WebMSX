@@ -1397,6 +1397,9 @@ wmsx.V9990CommandProcessor = function() {
         return eval(str);
     };
 
+    // TODO Global
+    window.V9CMD = this;
+
 };
 
 

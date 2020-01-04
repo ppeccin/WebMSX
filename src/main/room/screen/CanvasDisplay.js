@@ -384,7 +384,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.setDebugMode = function(boo) {
         debugMode = !!boo;
-        if (debugMode && videoOutputMode > 1) monitor.setOutputMode(Math.min(1, videoOutputMode));        // Return to Internal or External output mode. Superimposed and Mixed not supported in Debug
+        if (debugMode && videoOutputMode > 1) monitor.setOutputMode(Math.min(1, videoOutputMode), true);        // Return to Internal or External output mode. Superimposed and Mixed not supported in Debug
         canvasContext = null;
     };
 
