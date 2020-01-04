@@ -42,12 +42,18 @@ wmsx.EmbeddedSystemFiles = {
             0x7754: [ 0x40, 0x00, 0x45, 0x14 ]                          // PLAY NTSC timing
         }},
 
+        // MSX2+ PAL Ext Bios, BUFIX on generated, informative (already in binary)
+        "MSX2PEXT_PAL.bios": { based: "@MSX2PEXT_PAL.bios", diffs: {
+            0x92d: [ 0x00 ]                                             // CLS Screen 2 & 4 bugfix. LD BC, 1800H instead of LD BC, J1800, which is 1803H in this binary
+        }},
+
         // MSX2+ NTSC Ext Bios, based on PAL version
         "MSX2PEXT_NTSC.bios": { based: "@MSX2PEXT_PAL.bios", diffs: {
             0x587: [ 0x01 ],                                            // country
             0x2c6c: [ 0x00 ]                                            // reg9 NTSC init
         }},
 
+        // MSX2+ PAL KanjiBasic + Logo, based on NTSC version
         "KanjiBasic2PLogo_PAL.bios": { based: "@KanjiBasic2PLogo_NTSC.bios", diffs: {
             0x3c9b: [ 0x02 ]                                            // reg9 PAL init
         }},

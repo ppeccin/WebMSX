@@ -109,6 +109,10 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         //if ((vramPointer >= spriteAttrTableAddress + 512) /* && (vramPointer <= spriteAttrTableAddress + 512 + 32 * 4) */)
         //    logInfo("VRAM Write: " + val.toString(16) + " at: " + vramPointer.toString(16));
 
+        // if (vramPointer >= 0x3800 && vramPointer <= 0x3807)
+        //     console.error("Write:", vramPointer.toString(16), val.toString(16), "PC:", cpu.eval("PC").toString(16),
+        //         ", Pri:", machine.bus.getPrimarySlotConfig().toString(16), ", Sec:", machine.bus.slots[3].getSecondarySlotConfig().toString(16));
+
         dataFirstWrite = null;
         vram[vramPointer] = dataPreRead = val;
         ++vramPointer;
