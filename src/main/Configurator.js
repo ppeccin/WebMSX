@@ -491,7 +491,8 @@ wmsx.Configurator = {
         [ "@MSX2PEXT_NTSC.bios",    "@MSX2PEXT_NTSC_54.bios" ],
         [ "@KanjiBasic.bios",       "@KanjiBasic2PLogo_NTSC.bios" ],
         [ "@KanjiBasic_PAL.bios",   "@KanjiBasic2PLogo_PAL.bios" ],
-        [ "@[KanjiBasic].bios",     "@KanjiBasic2PLogo_NTSC.bios" ]         // older
+        [ "@[KanjiBasic].bios",     "@KanjiBasic2PLogo_NTSC.bios" ],
+        [ "@[MoonSound].rom",       "@[OPL4].rom" ]
     ]
 
 };

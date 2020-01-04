@@ -1,10 +1,10 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// MoonSound OPL4 Music Cartridge with 2M ROM + 2M SRAM
+// OPL4 Music Cartridge with 2M ROM + 2M SRAM
 // Controls a YMF278B sound chip
 // ROM and RAM here will be accessed by the OPL4 directly, not mapped to MSX memory space
 
-wmsx.CartridgeMoonSound = function(rom) {
+wmsx.CartridgeOPL4 = function(rom) {
 "use strict";
 
     function init(self) {
@@ -50,9 +50,9 @@ wmsx.CartridgeMoonSound = function(rom) {
     this.bytes = null;
 
     this.rom = null;
-    this.format = wmsx.SlotFormats.MoonSound;
+    this.format = wmsx.SlotFormats.OPL4;
 
-    var opl4 = new wmsx.OPL4Audio("MoonSound", this);
+    var opl4 = new wmsx.OPL4Audio("OPL4", this);
     this.opl4 = opl4;
 
 
@@ -82,7 +82,7 @@ wmsx.CartridgeMoonSound = function(rom) {
         this.bytes = bytes;
         opl4.loadState(s.opl4);
 
-        //console.log("MoonSound LoadState length:", JSON.stringify(s).length);
+        //console.log("OPL4 LoadState length:", JSON.stringify(s).length);
     };
 
 
@@ -90,10 +90,10 @@ wmsx.CartridgeMoonSound = function(rom) {
 
 };
 
-wmsx.CartridgeMoonSound.prototype = wmsx.Slot.base;
+wmsx.CartridgeOPL4.prototype = wmsx.Slot.base;
 
-wmsx.CartridgeMoonSound.recreateFromSaveState = function(state, previousSlot) {
-    var cart = previousSlot || new wmsx.CartridgeMoonSound();
+wmsx.CartridgeOPL4.recreateFromSaveState = function(state, previousSlot) {
+    var cart = previousSlot || new wmsx.CartridgeOPL4();
     cart.loadState(state);
     return cart;
 };

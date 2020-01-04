@@ -94,7 +94,9 @@ wmsx.EmbeddedSystemFiles = {
 
         "MSX2PEXT_NTSC_54.bios": { based: "@MSX2PEXT_PAL_54.bios", diffs: {
             0x2c63: [ 0x00 ]                                            // reg9 NTSC init
-        }}
+        }},
+
+        "[MoonSound].rom": { based: "@[OPL4].rom", diffs: {} }
 
     }
 

@@ -81,7 +81,7 @@ module.exports = function (grunt) {
         "src/main/msx/slots/cartridges/special/sram/CartridgePAC.js",
         "src/main/msx/slots/cartridges/special/msx-music/CartridgeMSXMUSIC.js",
         "src/main/msx/slots/cartridges/special/msx-music/CartridgeFMPAC.js",
-        "src/main/msx/slots/cartridges/special/moonsound/CartridgeMoonSound.js",
+        "src/main/msx/slots/cartridges/special/moonsound/CartridgeOPL4.js",
         "src/main/msx/slots/cartridges/special/psg/CartridgeExtraPSG.js",
         "src/main/msx/slots/cartridges/special/v9990/CartridgeV9990.js",
         "src/main/msx/slots/cartridges/special/sram/CartridgeGameMaster2.js",

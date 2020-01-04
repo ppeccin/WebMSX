@@ -43,7 +43,7 @@ wmsx.CompressedSystemFilesList = [
     "DOS1Boot.zip",
     "DOS2Boot.zip",
     "NextorBoot.zip",
-    "[MoonSound].rom",
+    "[OPL4].rom",
     "[ExtraPSG].rom"
 
 ];

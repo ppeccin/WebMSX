@@ -301,21 +301,21 @@ wmsx.SlotFormats = {
         }
     },
 
-    "MoonSound": {
-        name: "MoonSound",
-        desc: "MoonSound OPL4 Sound Cartridge",
+    "OPL4": {
+        name: "OPL4",
+        desc: "OPL4 Sound Cartridge",
         priority: 1507,
         internal: true,
-        embeddedURL: "@[MoonSound].rom",
+        embeddedURL: "@[OPL4].rom",
         priorityForRom: function (rom) {
             // Only 2048K content. Must be selected via info format hint
             return (rom.content.length === 2048 * 1024) ? this.priority : null;
         },
         createFromROM: function (rom) {
-            return new wmsx.CartridgeMoonSound(rom);
+            return new wmsx.CartridgeOPL4(rom);
         },
         recreateFromSaveState: function (state, previousSlot) {
-            return wmsx.CartridgeMoonSound.recreateFromSaveState(state, previousSlot);
+            return wmsx.CartridgeOPL4.recreateFromSaveState(state, previousSlot);
         }
     },
 
@@ -954,7 +954,8 @@ wmsx.SlotFormats = {
 
 // Backward Compatibility equivalences
 
-wmsx.SlotFormats.Expanded = wmsx.SlotFormats.Expanded3;
+wmsx.SlotFormats.Expanded =  wmsx.SlotFormats.Expanded3;
+wmsx.SlotFormats.MoonSound = wmsx.SlotFormats.OPL4;
 
 // Temporary approximations for formats not yet supported/verified
 

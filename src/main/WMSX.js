@@ -160,7 +160,7 @@ WMSX.EXTENSIONS_CONFIG = {
     V9990:     { DESC: "V9990 Video",   URL: "@[V9990].rom",         SLOT: [4, 3] },
     MSXMUSIC:  { DESC: "MSX-MUSIC",     URL: "@[MSXMUSIC].rom",      SLOT: [3, 3],                BOUND:  [ "MSXMUSICX" ] },
     MSXMUSICX: {                        URL: "",                     SLOT: [0, 2] },
-    OPL4:      { DESC: "OPL4 Wave",     URL: "@[MoonSound].rom",     SLOT: [4, 1] },
+    OPL4:      { DESC: "OPL4 Wave",     URL: "@[OPL4].rom",          SLOT: [4, 1] },
     DOUBLEPSG: { DESC: "Double PSG",    URL: "@[ExtraPSG].rom",      SLOT: [4, 2] },
     SCCI:      { DESC: "Konami SCC+",   URL: "@[SCCIExpansion].rom", SLOT: [1],    SLOT2: [2], CHANGE: { SCC:  0, PAC: 0, MEGARAM: 0 } },
     SCC:       {                        URL: "@[SCCExpansion].rom",  SLOT: [1],    SLOT2: [2], CHANGE: { SCCI: 0, PAC: 0, MEGARAM: 0 } },
