@@ -81,10 +81,10 @@ Another way of sharing your Session to users is sending them a link that will op
 In the NetPlay! dialog, once you are Hosting a Session, there will be a link button on the upper right, that will generate the link and copy it to your clipboard.
 
 **IMPORTANT:** NetPlay! performance is completely dependent on the network quality. The lower the network latency between users, the better. Higher bandwidths with higher latencies won't help much.
-It uses a specialized P2P protocol, and tries to use STUN to traverse NATs/routers so users don't have to worry about IPs and opening ports. Use at your own risk! :-)
+The Client may need some time to find and connect do the Server. It uses a specialized P2P protocol, and tries to use STUN to traverse NATs/routers so users don't have to worry about IPs and opening ports. Use at your own risk! :-)
 
 To make all this work seamlessly, WebMSX uses modern Web technologies including WebRTC, which are supported by all major browsers and platforms.
-Unfortunately, those technologies are still not available on Apple iOS, so NetPlay! will not work on iOS devices. Sorry but there is not much we can do about it, until Apple feels it should allow its customers to access those technologies.
+Unfortunately, those technologies may still not be available on Apple iOS, so NetPlay! may not work on those devices.
 
 ## About the Nextor Hard Disk Drive
 
@@ -177,18 +177,18 @@ The emulator supports several Extensions, or optional components that can be tur
 
 | Extension | Default in Machine | Presets
 | --- | :---: | ---
-| Hard Disk interface (Nextor)          | --                    | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`
-| Floppy Disk interface with 2 drives   | ALL                   | `DISK`, `NODISK`
-| Standard RAM Mapper, adjustable size  | MSX2, MSX2+           | `RAM128`..`RAM4096`, `RAMNORMAL`
-| Kanji Characters with MSX-JE          | Japanese MSX2, 2+, tR | `KANJI`, `NOKANJI`
-| V9990 Video                           | --                    | `V9990`
-| MSX-MUSIC sound with BASIC extension  | MSX2, MSX2+           | `MSXMUSIC`, `NOMSXMUSIC`
-| OPL4 Wave sound                       | --                    | `OPL4`
-| Double PSG                            | --                    | `DOUBLEPSG`
-| SCC-I Sound Cartridge with 128K RAM   | --                    | `SCCI`, `SCCI2` (in Slot 1/2)
-| SCC Sound Cartridge                   | --                    | `SCC`, `SCC2` (in Slot 1/2)
-| PAC SRAM Cartridge                    | --                    | `PAC`, `PAC2` (in Slot 1/2)
-| MegaRAM Cartridge                     | --                    | `MEGARAM`, `MEGARAM2` (in Slot 1/2)
+| Hard Disk interface (Nextor)          | --                      | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`
+| Floppy Disk interface with 2 drives   | All                     | `DISK`, `NODISK`
+| Standard RAM Mapper, adjustable size  | MSX2 or higher          | `RAM128`..`RAM4096`, `RAMNORMAL`
+| Kanji Characters with MSX-JE          | Japanese MSX2 or higher | `KANJI`, `NOKANJI`
+| V9990 Video                           | --                      | `V9990`
+| MSX-MUSIC sound with BASIC extension  | MSX2 or higher          | `MSXMUSIC`, `NOMSXMUSIC`
+| OPL4 Wave sound                       | --                      | `OPL4`
+| Double PSG                            | --                      | `DOUBLEPSG`
+| SCC-I Sound Cartridge with 128K RAM   | --                      | `SCCI`, `SCCI2` (in Slot 1/2)
+| SCC Sound Cartridge                   | --                      | `SCC`, `SCC2` (in Slot 1/2)
+| PAC SRAM Cartridge                    | --                      | `PAC`, `PAC2` (in Slot 1/2)
+| MegaRAM Cartridge                     | --                      | `MEGARAM`, `MEGARAM2` (in Slot 1/2)
 
 ## Loading BASIC files and Typing commands after launch
 
@@ -325,7 +325,7 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `JOYKEYS_MODE`                  |  -1                 |  JoyKeys controls. -1: disabled; 0: enabled at port 1; 1: enabled at port 2; 2: enabled at both ports; 3: enabled at both ports (swapped)
 | `MOUSE_MODE`                    |  -1                 |  Mouse controls. -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
 | `TOUCH_MODE`                    |  0                  |  Touch controls. -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
-| **+** `MOBILE_MODE`             |  0                  |  Forced Mobile interface. -1: disabled; 0: auto; 1: enabled
+| **+** `MOBILE_MODE`             |  0                  |  Forced Mobile interface mode. -1: disabled; 0: auto; 1: enabled
 | `DEBUG_MODE`                    |  0                  |  Debug Modes. 0: off; 1..7: mode. Don't change! :-)
 | `SPRITES_DEBUG_MODE`            |  0                  |  Sprites Debug Modes. 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
 | `KEYBOARD_JAPAN_LAYOUT`         |  1                  |  Japanese keyboard layout. 0: ANSI, 1: JIS
