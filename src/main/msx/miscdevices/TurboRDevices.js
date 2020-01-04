@@ -105,7 +105,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
             cpu.setR800Mode((register6 & 0x20) === 0);
             setDRAMMode((register6 & 0x40) === 0);
 
-            // Update R800 DRAM Led status only if R800 Mode is on R800 Led is off
+            // Update R800 DRAM Led status only if R800 Mode is on or R800 Led is off
             if (!(register6 & 0x20) || !(leds & 0x80)) r800DramLed = (register6 & 0x40) ? 0 : 1;
 
             // Update Leds if R800 Led is on or if DRAM Mode changed
@@ -145,6 +145,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
 
         z80Paused = cpuPause;
         updateZ80Pause();
+        updateLeds();
     };
 
     function updateZ80Pause() {
@@ -162,9 +163,9 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         return ((cpu.getBUSCycles() - counterBase) / 14) & 0xffff;
     }
 
-    // TODO Implement CPU Pause led
     function updateLeds() {
-        ledsSocket.ledStateChanged(3, (leds & 0x80) ? 2 + r800DramLed : (register6 & 0x40) ? 0 : 1);
+        ledsSocket.ledStateChanged(2, (leds & 0x01) || cpuPause ? 1 : 0);
+        ledsSocket.ledStateChanged(4, (leds & 0x80) ? 2 + r800DramLed : (register6 & 0x40) ? 0 : 1);
     }
 
     this.patchPCMBIOS = function(bytes) {

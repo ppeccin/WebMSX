@@ -312,10 +312,11 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     width: 52px;
     margin: 0 auto;
 }
-#wmsx-bar-turbo, #wmsx-bar-caps, #wmsx-bar-kana {
+#wmsx-bar-turbo, #wmsx-bar-caps, #wmsx-bar-kana, #wmsx-bar-pause {
     position: absolute;
     left: 0; right: 0;
     width: 20px;
+    height: 29px;
     margin: 0 auto;
     padding: 8px 0 0 0;
     color: hsl(0, 100%, 64%);
@@ -327,9 +328,10 @@ html.wmsx-bar-auto-hide #wmsx-bar.wmsx-hidden {
     box-sizing: border-box;
     cursor: auto;
 }
+#wmsx-bar-pause     { right: 140px; background: none; }
 #wmsx-bar-turbo     { left: 88px; padding-left: 25px; cursor: pointer; }
-#wmsx-bar-caps      { left: calc(144px + 10%); height: 29px; background: none; }
-#wmsx-bar-kana      { left: calc(145px + 25%); height: 29px; background: none; }
+#wmsx-bar-caps      { left: calc(144px + 10%); background: none; }
+#wmsx-bar-kana      { left: calc(145px + 25%); background: none; }
 
 #wmsx-bar.wmsx-narrow #wmsx-bar-turbo {
     position: static;

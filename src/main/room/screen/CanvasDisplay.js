@@ -1,5 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
+// TODO Keyboard focus make Dialogs close on some Android devices
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
@@ -955,14 +956,15 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function updateLeds() {
         if (!ledsStatePending) return;
 
-        capsLed.textContent = ledsStatePending[0] ? "CAPS" : "";
-        kanaLed.textContent = ledsStatePending[1] ? machineTypeSocket.getCodeLedLabel() : "";
+        capsLed.textContent =  ledsStatePending[0] ? "CAPS" : "";
+        kanaLed.textContent =  ledsStatePending[1] ? machineTypeSocket.getCodeLedLabel() : "";
+        pauseLed.textContent = ledsStatePending[2] ? "" : "";
 
         if (quickOtionsDialog) quickOtionsDialog.machineTurboModesStateUpdate();
 
-        turboButton.classList.toggle("wmsx-hidden", !ledsStatePending[2] && !ledsStatePending[3]);
-        turboButton.textContent = ledsStatePending[3] > 1 ? ledsInfoPending[3] : ledsInfoPending[2];
-        turboButton.style.backgroundPositionY = "" + (ledsStatePending[3] === 3 ? -91 : ledsStatePending[3] === 2 ? -116 : ledsStatePending[3] === 1 ? -141 : -166) + "px";
+        turboButton.classList.toggle("wmsx-hidden", !ledsStatePending[3] && !ledsStatePending[4]);
+        turboButton.textContent = ledsStatePending[4] > 1 ? ledsInfoPending[4] : ledsInfoPending[3];
+        turboButton.style.backgroundPositionY = "" + (ledsStatePending[4] === 3 ? -91 : ledsStatePending[4] === 2 ? -116 : ledsStatePending[4] === 1 ? -141 : -166) + "px";
 
         ledsStatePending = undefined;
 
@@ -1233,6 +1235,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         kanaLed  = addPeripheralControlButton("wmsx-bar-kana", 0, 0);
         kanaLed.classList.add("wmsx-semi-narrow-hidden");
+
+        pauseLed  = addPeripheralControlButton("wmsx-bar-pause", 0, 0);
+        pauseLed.classList.add("wmsx-semi-narrow-hidden");
 
         // Events for BarButtons and also MenuItems
         wmsx.Util.onTapOrMouseDownWithBlockUIG(buttonsBar, barElementTapOrMouseDown);
@@ -2080,6 +2085,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var turboButton;
     var capsLed;
     var kanaLed;
+    var pauseLed;
     var netplayButton;
     var scaleDownButton;
     var scaleUpButton;

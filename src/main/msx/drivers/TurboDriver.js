@@ -51,9 +51,9 @@ wmsx.TurboDriver = function(bios) {
         machine.vdp.setVDPTurboMulti(vdpMode === 0 && softTurbo && softTurboON ? WMSX.VDP_SOFT_TURBO_MULTI : vdpMode > 0 ? vdpMode : 1);
 
         var r800Multi = machine.cpu.getR800ClockMulti();
-        ledsSocket.ledStateChanged(2, z80Multi !== 1 ? 1 : 0);
-        ledsSocket.ledInfoChanged(2, z80Multi !== 1 ? "" + z80Multi + "x" : "");
-        ledsSocket.ledInfoChanged(3, r800Multi !== 1 ? "" + r800Multi + "x" : "");
+        ledsSocket.ledStateChanged(3, z80Multi !== 1 ? 1 : 0);
+        ledsSocket.ledInfoChanged(3, z80Multi !== 1 ? "" + z80Multi + "x" : "");
+        ledsSocket.ledInfoChanged(4, r800Multi !== 1 ? "" + r800Multi + "x" : "");
 
         // console.error("TurboDriver modes update. z80Multi:", z80Multi);
     };

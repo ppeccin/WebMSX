@@ -1905,7 +1905,6 @@ wmsx.Z80 = function() {
 
     // Extension Point pseudo instructions
 
-    // TODO Extensions are not reentrant, but INTs can make them reenter!
     function newpEXT(num) {
         return function pEXT() {
             // Check for extraIterations of last extension instruction. No new instruction until iterations end
