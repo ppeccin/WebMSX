@@ -210,6 +210,24 @@ wmsx.DOMKeys.addKeyToIdentification = function(k) {
     k.VK_IT_GRAVE_U =       { wc: 229, d: "Backslash",     c: 220, n: "ù", a: "IT" };
     k.VK_IT_LESSER =        { wc: 230, d: "IntlBackslash", c: 226, n: "<", a: "IT" };
     k.VK_IT_MINUS =         { wc: 233, d: "Slash",         c: 191, n: "-", a: "IT" };
+    // French
+    k.VK_FR_2u =            { wc: 221, d: "Backquote",     c: 192, n: "²", a: "FR" };
+    k.VK_FR_CLOSE_PARENS =  { wc: 222, d: "Minus",         c: 189, n: ")", a: "FR" };
+    k.VK_FR_EQUAL =         { wc: 223, d: "Equal",         c: 187, n: "=", a: "FR" };
+    k.VK_FR_A =             { wc: 101, d: "KeyQ",          c: 81,  n: "A", a: "FR" };
+    k.VK_FR_Z =             { wc: 102, d: "KeyW",          c: 87,  n: "Z", a: "FR" };
+    k.VK_FR_CIRCUMFLEX =    { wc: 225, d: "BracketLeft",   c: 219, n: "^", a: "FR" };
+    k.VK_FR_DOLLAR =        { wc: 226, d: "BracketRight",  c: 221, n: "$", a: "FR" };
+    k.VK_FR_Q =             { wc: 111, d: "KeyA",          c: 65,  n: "Q", a: "FR" };
+    k.VK_FR_M =             { wc: 227, d: "Semicolon",     c: 186, n: "M", a: "FR" };
+    k.VK_FR_U_GRAVE =       { wc: 228, d: "Quote",         c: 222, n: "ù", a: "FR" };
+    k.VK_FR_STAR =          { wc: 229, d: "Backslash",     c: 220, n: "*", a: "FR" };
+    k.VK_FR_LESSER =        { wc: 230, d: "IntlBackslash", c: 226, n: "<", a: "FR" };
+    k.VK_FR_W =             { wc: 120, d: "KeyZ",          c: 90,  n: "W", a: "FR" };
+    k.VK_FR_COMMA =         { wc: 126, d: "KeyM",          c: 77,  n: ",", a: "FR" };
+    k.VK_FR_SEMICOLON =     { wc: 231, d: "Comma",         c: 188, n: ";", a: "FR" };
+    k.VK_FR_COLON =         { wc: 232, d: "Period",        c: 190, n: ":", a: "FR" };
+    k.VK_FR_EXCLAMATION =   { wc: 233, d: "Slash",         c: 191, n: "!", a: "FR" };
 
     // Define additional collections for key identification. Additional international keys not included
     for (var key in k) k.addKeyToIdentification(k[key]);

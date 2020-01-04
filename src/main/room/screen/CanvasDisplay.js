@@ -4,6 +4,8 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 
+// TODO Review Amber colors
+
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
 
