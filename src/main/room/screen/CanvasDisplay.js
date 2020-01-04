@@ -921,8 +921,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         var prevFSState = isFullscreen;
         var newAPIState = isFullScreenByAPI();
 
-        // Return to window interface mode only if user asked or not on mobile (ESC pressed?)
-        if (newAPIState || fullScreenAPIExitUserRequested || !isMobileDevice) setFullscreenState(newAPIState);
+        // Return to window interface mode only if user asked or not on mobile or not in official home
+        if (newAPIState || fullScreenAPIExitUserRequested || !isMobileDevice || !isOfficialHome) setFullscreenState(newAPIState);
         else requestReadjust();
 
         // On mobile, set event to return to full screen on click whenever FS API is exited without user asking
@@ -2324,6 +2324,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var isMobileDevice = wmsx.Util.isMobileDevice();
     var isAndroidDevice = wmsx.Util.isAndroidDevice();
     var isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
+    var isOfficialHome = wmsx.Util.isOfficialHomepage();
     var browserName = wmsx.Util.browserInfo().name;
 
     var fileLoaderDropArea, fileLoaderDragActive = false, fileLoaderDropAreaMessage;
