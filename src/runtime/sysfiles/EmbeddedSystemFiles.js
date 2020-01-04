@@ -35,22 +35,19 @@ wmsx.EmbeddedSystemFiles = {
         // MSX2+ NTSC Main Bios+Basic, based on PAL version
         "MSX2P_NTSC.bios": { based: "@MSX2P_PAL.bios", diffs: {
             0x2b: [ 0x11 ],                                             // NTSC flag
-            0x58c: [ 0x14 ],                                            // key repeat timing
-            0xc97: [ 0x02 ],                                            // key scan freq
-            0xcf1: [ 0x01 ],                                            // key repeat timing
-            0xd4a: [ 0x14 ],                                            // key repeat timing
             0x7754: [ 0x40, 0x00, 0x45, 0x14 ]                          // PLAY NTSC timing
-        }},
-
-        // MSX2+ PAL Ext Bios, BUFIX on generated, informative (already in binary)
-        "MSX2PEXT_PAL.bios": { based: "@MSX2PEXT_PAL.bios", diffs: {
-            0x92d: [ 0x00 ]                                             // CLS Screen 2 & 4 bugfix. LD BC, 1800H instead of LD BC, J1800, which is 1803H in this binary
         }},
 
         // MSX2+ NTSC Ext Bios, based on PAL version
         "MSX2PEXT_NTSC.bios": { based: "@MSX2PEXT_PAL.bios", diffs: {
-            0x587: [ 0x01 ],                                            // country
-            0x2c6c: [ 0x00 ]                                            // reg9 NTSC init
+                                                                                                // TODO Country?
+            0x2c63: [ 0x00 ]                                            // reg9 NTSC init
+        }},
+
+        // MSX2+ PAL Ext Bios, based on JAP version
+        "MSX2PEXT_PAL.bios": { based: "@MSX2PEXT_JAP.bios", diffs: {
+            0x57e: [ 0x00, 0x05, 0x02, 0x0f, 0x04, 0x04 ],              // mode & colors        // TODO Country?
+            0x2c63: [ 0x02 ]                                            // reg9 PAL init
         }},
 
         // MSX2+ PAL KanjiBasic + Logo, based on NTSC version
@@ -87,20 +84,6 @@ wmsx.EmbeddedSystemFiles = {
 
 
         // Old versions files for Savestate backward compatibility
-
-        "MSX2P_NTSC_54.bios": { based: "@MSX2P_PAL_54.bios", diffs: {
-            0x2b: [ 0x11 ],                                             // NTSC flag
-            0x7754: [ 0x40, 0x00, 0x45, 0x14 ]                          // PLAY NTSC timing
-        }},
-
-        "MSX2PEXT_PAL_54.bios": { based: "@MSX2PEXT_JAP.bios", diffs: {
-            0x57e: [ 0x00, 0x05, 0x02, 0x0f, 0x04, 0x04 ],              // mode & colors
-            0x2c63: [ 0x02 ]                                            // reg9 PAL init
-        }},
-
-        "MSX2PEXT_NTSC_54.bios": { based: "@MSX2PEXT_PAL_54.bios", diffs: {
-            0x2c63: [ 0x00 ]                                            // reg9 NTSC init
-        }},
 
         "[MoonSound].rom": { based: "@[OPL4].rom", diffs: {} }
 
