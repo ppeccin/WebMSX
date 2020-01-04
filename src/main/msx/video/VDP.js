@@ -687,9 +687,12 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         // End of line
 
         ++currentScanline;
-        if (currentScanline >= finishingScanline) finishFrame();
-
         if (slave) slave.lineEventEnd();
+
+        if (currentScanline >= finishingScanline) {
+            finishFrame();
+            if (slave) slave.frameEventFinishFrame();
+        }
     }
 
     function triggerVerticalInterrupt() {
@@ -2208,6 +2211,8 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     }
 
     function beginFrame() {
+        // wmsx.Util.error("Begin Frame. CurrentScanline: " + currentScanline);
+
         vSyncConnection.vSyncPulse();
 
         // Adjust for pending VideoStandard/Pulldown changes
@@ -2242,11 +2247,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     }
 
     function finishFrame() {
-        // console.error("Finish Frame");
-
-        //var cpuCycles = cpu.getCycles();
-        //wmsx.Util.log("Frame FINISHED. CurrentScanline: " + currentScanline + ", CPU cycles: " + (cpuCycles - debugFrameStartCPUCycle));
-        //debugFrameStartCPUCycle = cpuCycles;
+        // wmsx.Util.error("Frame FINISHED. CurrentScanline: " + currentScanline);
 
         // Update frame image from backbuffer
         if (videoDisplayed) {

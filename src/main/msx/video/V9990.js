@@ -340,6 +340,7 @@ wmsx.V9990 = function() {
         kanjiPort2Address = 0x20000;
 
         softReset();
+        updateSignalMetrics(true);
 
         frame = cycles = lastBUSCyclesComputed = 0;
         frameVideoStandard = videoStandard; framePulldown = pulldown;
@@ -349,6 +350,8 @@ wmsx.V9990 = function() {
     };
 
     function softReset () {
+        // wmsx.Util.error("V9990 Soft Reset. CurrentScanline: " + currentScanline);
+
         interruptFlags = 0;
         vramPointerRead = 0; vramPointerWrite = 0; vramPointerReadInc = true; vramPointerWriteInc = true; vramReadData = 0;
         palettePointer = 0; palettePointerReadInc = true;
@@ -366,7 +369,6 @@ wmsx.V9990 = function() {
         commandProcessor.reset();
 
         initRegisters();
-        updateSignalMetrics(true);
         updateIRQ();
         updateMode(true);
         updateBackdropColor();
@@ -629,7 +631,7 @@ wmsx.V9990 = function() {
     };
 
     // Total line clocks: V9990: 1368, CPU: 228
-    // Timing for HR/VR should be different for Normal and Oversan modes. Ignoring for now
+    // Timing for HR/VR should be different for Normal and Overscan/Highscan modes. Ignoring for now
 
     this.lineEventStartActiveDisplay = function() {
         status &= ~0x20;                                                                        // HR = 0
@@ -647,6 +649,12 @@ wmsx.V9990 = function() {
     };
 
     this.lineEventEndActiveDisplay = function() {
+        // Render extra line for Double-scan modes (High-scan modes B5, B6)
+        if (frameDoubleScan) {
+            ++currentScanline;
+            this.lineEventRenderLine();
+        }
+
         status |= 0x20;                                                                         // HR = 1
 
         if (currentScanline - frameStartingActiveScanline === signalActiveHeight - 1)
@@ -655,7 +663,7 @@ wmsx.V9990 = function() {
 
     this.lineEventEnd = function() {
         ++currentScanline;
-        if (currentScanline >= finishingScanline) finishFrame();
+        // Frame finishing controlled by VDP Genlock
     };
 
     // TODO Command Completion INT is not triggered at the correct time for internal commands, only by checking status or finishing with the last CPU write/read
@@ -871,11 +879,14 @@ wmsx.V9990 = function() {
         startingActiveScanline = startingVisibleTopBorderScanline + border + vertAdjust;
         var startingVisibleBottomBorderScanline = startingActiveScanline + signalActiveHeight;
         startingInvisibleScanline = startingVisibleBottomBorderScanline + border - vertAdjust;      // Remaining left invisible: Bottom border, Bottom Erase, Sync and Top Erase
-        finishingScanline = frameVideoStandard.totalHeight;
+        // finishingScanline = frameVideoStandard.totalHeight;                                      // Controlled by VDP Genlock
 
-        if (force) frameStartingActiveScanline = startingActiveScanline;
+        if (force) {
+            frameStartingActiveScanline = startingActiveScanline;
+            frameDoubleScan = modeData.doublesScan;
+        }
 
-         //logInfo("Update Signal Metrics: " + force + ", activeHeight: " + signalActiveHeight);
+        // logInfo("Update Signal Metrics: " + force + ", activeHeight: " + signalActiveHeight);
     }
 
     function updateRenderMetrics(force) {
@@ -890,7 +901,7 @@ wmsx.V9990 = function() {
 
         if (newRenderWidth === renderWidth && newRenderHeight === renderHeight) return;
 
-        // console.error("V9990 Update Render Metrics. currentScanline: " + currentScanline + ", force: " + force + " Asked: " + newRenderWidth + "x" + newRenderHeight + ", set: " + renderWidth + "x" + renderHeight);
+        // console.error("V9990 Update Render Metrics. currentScanline: " + currentScanline + ", force: " + force + " Asked: " + newRenderWidth + "x" + newRenderHeight + ", current: " + renderWidth + "x" + renderHeight);
 
         // Only change width if forced (loadState and beginFrame)
         if (newRenderWidth !== renderWidth) {
@@ -911,6 +922,8 @@ wmsx.V9990 = function() {
             } else
                 renderMetricsUpdatePending = true;
         }
+
+        // console.error("V9990 Update Render Metrics Set: " + renderWidth + "x" + renderHeight);
 
         if (clean) cleanFrameBuffer();
         if (changed) self.refreshDisplayMetrics();
@@ -1595,6 +1608,9 @@ wmsx.V9990 = function() {
     }
 
     function beginFrame() {
+        // wmsx.Util.error("V9990 Begin Frame. CurrentScanline: " + currentScanline
+        //     + ",  VDP CurrentScanline: " + vdp.eval("currentScanline"));
+
         // Adjust for pending VideoStandard/Pulldown changes
         if (framePulldown !== pulldown) {
             frameVideoStandard = videoStandard;
@@ -1628,14 +1644,13 @@ wmsx.V9990 = function() {
 
         currentScanline = 0;
         frameStartingActiveScanline = startingActiveScanline;
+        frameDoubleScan = modeData.doublesScan;
 
         if (currentScanline >= frameStartingActiveScanline) enterActiveDisplay();   // Overscan modes with vertical adjust can make frameStartingActiveScanline < 0
     }
 
-    function finishFrame() {
-        //var cpuCycles = cpu.getCycles();
-        //wmsx.Util.log("Frame FINISHED. CurrentScanline: " + currentScanline + ", CPU cycles: " + (cpuCycles - debugFrameStartCPUCycle));
-        //debugFrameStartCPUCycle = cpuCycles;
+    this.frameEventFinishFrame = function () {
+        // wmsx.Util.error("V9990 Frame FINISHED. CurrentScanline: " + currentScanline);
 
         // Update frame image from backbuffer
         if (videoDisplayed) {
@@ -1649,7 +1664,7 @@ wmsx.V9990 = function() {
         //logInfo("Finish Frame");
 
         beginFrame();
-    }
+    };
 
     // TODO P2 mode uses a strange RAM interleaving not completely implemented
     function updateVRAMInterleaving() {
@@ -1854,10 +1869,11 @@ wmsx.V9990 = function() {
     var cycles = 0, lastBUSCyclesComputed = 0;
 
     var signalActiveHeight = 0;
-    var finishingScanline = 0;
+    // var finishingScanline = 0;
     var startingActiveScanline = 0, frameStartingActiveScanline = 0;
     var startingVisibleTopBorderScanline = 0;
     var startingInvisibleScanline = 0;
+    var frameDoubleScan = false;
 
     var frameVideoStandard = videoStandard, framePulldown;                  // Delays VideoStandard change until next frame
 
@@ -1901,17 +1917,17 @@ wmsx.V9990 = function() {
     var vramEOLineShift = 0, vramEOLineAdd = 0;
 
     var modes = {
-        SBY: { name: "SBY", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, cmdTiming: 0, renderLine: renderLineModeSBY },
-        P1 : { name: "P1",  width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, cmdTiming: 2, renderLine: renderLineModeP1  },
-        P2 : { name: "P2",  width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL: false, cmdTiming: 3, renderLine: renderLineModeP2  },
-        B0 : { name: "B0",  width:  192, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine: renderLineModeB0  },       // B1 Overscan? Undocumented
-        B1 : { name: "B1",  width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine: renderLineModeB1  },
-        B2 : { name: "B2",  width:  384, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine: renderLineModeB2  },       // B1 Overscan
-        B3 : { name: "B3",  width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine: renderLineModeB3  },
-        B4 : { name: "B4",  width:  768, height: 240, pixelWidthDiv: 2, hasBorders: 0, allowIL:  true, cmdTiming: 1, renderLine: renderLineModeB4  },       // B3 Overscan
-        B5 : { name: "B5",  width:  640, height: 400, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, cmdTiming: 0, renderLine: renderLineModeB5  },
-        B6 : { name: "B6",  width:  640, height: 480, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, cmdTiming: 0, renderLine: renderLineModeB6  },
-        B7 : { name: "B7",  width: 1024, height: 212, pixelWidthDiv: 4, hasBorders: 1, allowIL:  true, cmdTiming: 0, renderLine: renderLineModeB7  }        // Weird! Undocumented
+        SBY: { name: "SBY", width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, cmdTiming: 0, doublesScan: false, renderLine: renderLineModeSBY },
+        P1 : { name: "P1",  width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL: false, cmdTiming: 2, doublesScan: false, renderLine: renderLineModeP1  },
+        P2 : { name: "P2",  width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL: false, cmdTiming: 3, doublesScan: false, renderLine: renderLineModeP2  },
+        B0 : { name: "B0",  width:  192, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, cmdTiming: 1, doublesScan: false, renderLine: renderLineModeB0  },       // B1 Overscan? Undocumented
+        B1 : { name: "B1",  width:  256, height: 212, pixelWidthDiv: 1, hasBorders: 1, allowIL:  true, cmdTiming: 0, doublesScan: false, renderLine: renderLineModeB1  },
+        B2 : { name: "B2",  width:  384, height: 240, pixelWidthDiv: 1, hasBorders: 0, allowIL:  true, cmdTiming: 1, doublesScan: false, renderLine: renderLineModeB2  },       // B1 Overscan
+        B3 : { name: "B3",  width:  512, height: 212, pixelWidthDiv: 2, hasBorders: 1, allowIL:  true, cmdTiming: 0, doublesScan: false, renderLine: renderLineModeB3  },
+        B4 : { name: "B4",  width:  768, height: 240, pixelWidthDiv: 2, hasBorders: 0, allowIL:  true, cmdTiming: 1, doublesScan: false, renderLine: renderLineModeB4  },       // B3 Overscan
+        B5 : { name: "B5",  width:  640, height: 400, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, cmdTiming: 0, doublesScan:  true, renderLine: renderLineModeB5  },
+        B6 : { name: "B6",  width:  640, height: 480, pixelWidthDiv: 2, hasBorders: 0, allowIL: false, cmdTiming: 0, doublesScan:  true, renderLine: renderLineModeB6  },
+        B7 : { name: "B7",  width: 1024, height: 212, pixelWidthDiv: 4, hasBorders: 1, allowIL:  true, cmdTiming: 0, doublesScan: false, renderLine: renderLineModeB7  }        // Weird! Undocumented
     };
 
     var types = {
@@ -1980,7 +1996,7 @@ wmsx.V9990 = function() {
             pp: palettePointer, pri: palettePointerReadInc,
             poa: paletteOffsetA, pob: paletteOffsetB, po: paletteOffset, poc: paletteOffsetCursor,
             l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
-            fs: frameStartingActiveScanline,
+            fs: frameStartingActiveScanline, fd: frameDoubleScan,
             f: frame, c: cycles, cc: lastBUSCyclesComputed,
             sx: scrollXOffset, sy: scrollYOffset, syf: scrollYOffsetFrame, sxb: scrollXBOffset, syb: scrollYBOffset, sybf: scrollYBOffsetFrame, sym: scrollYMax,
             syu: scrollYHiUpdatePending, sybu: scrollYBHiUpdatePending,
@@ -2028,6 +2044,7 @@ wmsx.V9990 = function() {
         frameVideoStandard = videoStandard; framePulldown = pulldown;
         updateSignalMetrics(true);
         if (s.fs !== undefined) frameStartingActiveScanline = s.fs;       // backward compatibility
+        if (s.fd !== undefined) frameDoubleScan = s.fd;                   // backward compatibility
         if (cpu) updateIRQ();
         updateMode(true);
         updateYSEnabled(true);
@@ -2075,4 +2092,4 @@ wmsx.V9990.SIGNAL_START_HEIGHT = 212 + 8 * 2;        // P1 mode + borders, pixel
 wmsx.V9990.SIGNAL_MAX_WIDTH =  1024 + 8 * 4 * 2;     // B7 mode + borders, pixel width  = 0.5 (* 4)
 wmsx.V9990.SIGNAL_MAX_HEIGHT = 480;                  // B6 mode no border, pixel height = 1
 
-wmsx.V9990.BASE_CLOCK = wmsx.VDP.BASE_CLOCK;      // 21504960 Hz
+wmsx.V9990.BASE_CLOCK = wmsx.VDP.BASE_CLOCK;         // 21504960 Hz
