@@ -361,6 +361,8 @@ wmsx.Configurator = {
         // Store loading state version
         this.loadingStateVersion = s.v || 0;
 
+        console.log("Loading State version: " + this.loadingStateVersion);
+
         // Load config from state if present
         if (cfg) {
             WMSX.MACHINES_CONFIG = cfg.mc;
@@ -478,9 +480,9 @@ wmsx.Configurator = {
         [ "@MSX2P_NTSC.bios",       "@MSX2P_NTSC_54.bios" ],
         [ "@MSX2PEXT_PAL.bios",     "@MSX2PEXT_PAL_54.bios" ],
         [ "@MSX2PEXT_NTSC.bios",    "@MSX2PEXT_NTSC_54.bios" ],
-        [ "@KanjiBasic.bios",       "@KanjiBasic_54.bios" ],
+        [ "@KanjiBasic.bios",       "@KanjiBasic_NTSC_54.bios" ],
         [ "@KanjiBasic_PAL.bios",   "@KanjiBasic_PAL_54.bios" ],
-        [ "@[KanjiBasic].bios",     "@KanjiBasic_54.bios" ]         // older
+        [ "@[KanjiBasic].bios",     "@KanjiBasic_NTSC_54.bios" ]         // older
     ]
 
 };

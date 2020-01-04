@@ -28,7 +28,6 @@ wmsx.ROM = function(source, content, info, formatHint, startAddress) {
 
 };
 
-// TODO StartAddress is not on state???
 wmsx.ROM.loadState = function(state) {
     var source = wmsx.Configurator.adaptROMSourceForOldState(state.s);
     return new wmsx.ROM(source, null, state.i);
