@@ -13,5 +13,7 @@
   BUGS
 =========
 
+* Change donation message
+* CODE key does not change label on the settings screen
 * Baltak demo freezes. At different position when coming from savestates of different machine type???
 * Text on touch buttons is a little down on integrated Android browser?
