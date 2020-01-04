@@ -803,7 +803,7 @@ wmsx.V9990 = function() {
         scrollYOffsetFrame = scrollYOffset = ((register[18] & 0x1f) << 8) | (scrollYOffset & 0xff);
         scrollYHiUpdatePending = false;
 
-        // logInfo("updateScrollYHigh: " + scrollYOffset);
+        // console.log("updateScrollYHigh: " + scrollYOffset + ", max: " + scrollYMax);
     }
 
     function updateScrollX() {

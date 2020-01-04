@@ -289,7 +289,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         // console.error("Display Metrics Render:", renderWidth, renderHeight, internal ? "int" : "ext");
 
-        var newTargetWidth, newTargetHeight, newScrTargetWidth;
+        var newTargetWidth, newTargetHeight, newScrTargetWidth, newAspectXCorrection;
 
         switch (renderWidth) {
             case 192: case 384:            newTargetWidth = 384; break;
@@ -300,6 +300,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             default:                       newTargetWidth = 512 + 32;
         }
         newScrTargetWidth = newTargetWidth === 640 ? 640 : 512 + 32;    // For the actual screen, use 512 for all modes, except 640
+        newAspectXCorrection = newScrTargetWidth === 640 ? aspectXCorrectionVal : 1;
 
         switch (renderHeight) {
             case 192 + 16:                 newTargetHeight = 384 + 32; break;
@@ -311,19 +312,20 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         // Main or Aux screen?
         if ((videoOutputMode === 0 || videoOutputMode === 4) === internal)
-            updateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newScrTargetWidth, newTargetHeight);
+            updateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newTargetHeight, newScrTargetWidth, newAspectXCorrection);
         else
-            auxUpdateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newScrTargetWidth, newTargetHeight);
+            auxUpdateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newTargetHeight, newScrTargetWidth, newAspectXCorrection);
     };
 
-    function updateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newScrTargetWidth, newTargetHeight) {
+    function updateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newTargetHeight, newScrTargetWidth, newAspectXCorrection) {
         updatePixelMetrics(renderWidth, renderHeight, newScrTargetWidth, newTargetHeight);
 
-        if (targetWidth === newTargetWidth && scrTargetWidth === newScrTargetWidth && targetHeight === newTargetHeight) return;
+        if (targetWidth === newTargetWidth && targetHeight === newTargetHeight && scrTargetWidth === newScrTargetWidth && aspectXCorrection === newAspectXCorrection) return;
 
         targetWidth = newTargetWidth;
-        scrTargetWidth = newScrTargetWidth;
         targetHeight = newTargetHeight;
+        scrTargetWidth = newScrTargetWidth;
+        aspectXCorrection = newAspectXCorrection;
 
         updateCanvasContentSize();
         if (isFullscreen) requestReadjust(true);
@@ -345,12 +347,13 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         refreshPixelMetrics();
     }
 
-    function auxUpdateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newScrTargetWidth, newTargetHeight) {
-        if (auxTargetWidth === newTargetWidth && auxScrTargetWidth === newScrTargetWidth && auxTargetHeight === newTargetHeight) return;
+    function auxUpdateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newTargetHeight, newScrTargetWidth, newAspectXCorrection) {
+        if (auxTargetWidth === newTargetWidth && auxTargetHeight === newTargetHeight && auxScrTargetWidth === newScrTargetWidth && auxAspectXCorrection === newAspectXCorrection) return;
 
         auxTargetWidth = newTargetWidth;
-        auxScrTargetWidth = newScrTargetWidth;
         auxTargetHeight = newTargetHeight;
+        auxScrTargetWidth = newScrTargetWidth;
+        auxAspectXCorrection = newAspectXCorrection;
 
         if (!auxWindow) return false;       // auxWindow not ready
 
@@ -374,7 +377,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function refreshPixelMetrics() {
-        if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
+        if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX * aspectXCorrection, pixelHeight * scaleY);
     }
 
     this.getMonitor = function() {
@@ -995,7 +998,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function updateScale() {
-        var width = Math.round(scrTargetWidth * scaleY * aspectX);
+        var width = Math.round(scrTargetWidth * scaleY * aspectX * aspectXCorrection);
         var height = Math.round(targetHeight * scaleY);
         canvas.style.width = "" + width + "px";
         canvas.style.height = "" + height + "px";
@@ -1005,7 +1008,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function auxUpdateScale(changeWindow) {
-        var newWidth = Math.round(auxScrTargetWidth * auxScaleY * auxAspectX);
+        var newWidth = Math.round(auxScrTargetWidth * auxScaleY * auxAspectX * auxAspectXCorrection);
         var newHeight = Math.ceil(auxTargetHeight * auxScaleY);
         auxCanvas.style.width = "" + newWidth + "px";
         auxCanvas.style.height = "" + newHeight + "px";
@@ -2173,14 +2176,14 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function displayOptimalScaleY(maxWidth, maxHeight) {
         var scY = maxHeight / targetHeight;
-        if (scrTargetWidth * aspectX * scY > maxWidth)
+        if (scrTargetWidth * aspectX * aspectXCorrection * scY > maxWidth)
             scY = maxWidth / (scrTargetWidth * aspectX);
         return scY;
     }
 
     function auxDisplayOptimalScaleY(maxWidth, maxHeight) {
         var scY = maxHeight / auxTargetHeight;
-        if (auxScrTargetWidth * auxAspectX * scY > maxWidth)
+        if (auxScrTargetWidth * auxAspectX * auxAspectXCorrection * scY > maxWidth)
             scY = maxWidth / (auxScrTargetWidth * auxAspectX);
         return scY;
     }
@@ -2377,7 +2380,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var isLoading = false;
     var ledsStatePending, ledsInfoPending;
 
-    var aspectX = WMSX.SCREEN_DEFAULT_ASPECT;
+    var aspectX = WMSX.SCREEN_DEFAULT_ASPECT, aspectXCorrection = 1, aspectXCorrectionVal = 1 / aspectX;
     var scaleY = 1.0;
     var scaleYBeforeUserFullscreen = 0;
     var pixelWidth = 1, pixelHeight = 1;
@@ -2396,7 +2399,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var auxWindow, auxWindowAddWidth, auxWindowAddHeight;
     var auxCanvas, auxCanvasContext;
     var auxReadjustScreenSize = { w: 0, wk: 0, h: 0, pw: 0 };
-    var auxAspectX = WMSX.SCREEN_DEFAULT_ASPECT;
+    var auxAspectX = WMSX.SCREEN_DEFAULT_ASPECT, auxAspectXCorrection = 1;
     var auxScaleY = 1.1;
     var auxTargetWidth = targetWidth, auxScrTargetWidth = scrTargetWidth, auxTargetHeight = targetHeight;
     var auxLogo, auxFsElementCenter;
