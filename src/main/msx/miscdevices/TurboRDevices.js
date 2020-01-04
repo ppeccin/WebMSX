@@ -2,6 +2,8 @@
 
 // Turbo R Pause and S1990 devices
 
+// TODO Implement Pause key for TR and 2+
+
 wmsx.TurboRDevices = function(cpu, ledsSocket) {
 "use strict";
 

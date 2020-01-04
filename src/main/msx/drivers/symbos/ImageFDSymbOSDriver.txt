@@ -1,3 +1,5 @@
+// TODO Update SymbosInAction state for new ROMs
+
 // Used to generate the WebMSX SymbOS FD Driver (-FDWMSX.DRV)
 
 // Constants
