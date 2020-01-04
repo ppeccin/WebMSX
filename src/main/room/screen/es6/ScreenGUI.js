@@ -84,6 +84,16 @@ wmsx.ScreenGUI.auxHtml = function() {
                         </div>
                     </div>
                 </div>
+                <script>
+                    function onFirstResize() {
+                        // So we get the correct sizes of the just created window!
+                        window.onresize = undefined;
+                        opener.WMSX.room.screen.auxWindowFirstResize(window);
+                    }
+                    window.onresize = onFirstResize;
+                    // Make sure we get control even if resize event does not fire
+                    setTimeout(onFirstResize, 200);
+                </script>
             </body>`;
 };
 

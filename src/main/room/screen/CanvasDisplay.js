@@ -352,7 +352,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (!auxWindow) return false;       // auxWindow not ready
 
         auxUpdateCanvasContentSize();
-        auxReadjustAll(true);
+        auxUpdateScale(true);
 
         // console.error("Display Metrics AUX TARGET:", auxTargetWidth, auxTargetHeight);
     }
@@ -916,11 +916,16 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (settingsDialog && settingsDialog.isVisible()) settingsDialog.position();
     }
 
-    function auxUpdateScale() {
-        var width = Math.round(auxScrTargetWidth * auxScaleY * auxAspectX);
-        var height = Math.ceil(auxTargetHeight * auxScaleY);
-        auxCanvas.style.width = "" + width + "px";
-        auxCanvas.style.height = "" + height + "px";
+    function auxUpdateScale(changeWindow) {
+        var newWidth = Math.round(auxScrTargetWidth * auxScaleY * auxAspectX);
+        var newHeight = Math.ceil(auxTargetHeight * auxScaleY);
+        auxCanvas.style.width = "" + newWidth + "px";
+        auxCanvas.style.height = "" + newHeight + "px";
+
+        if (changeWindow) {
+            auxWindow.resizeTo(newWidth + auxWindowAddWidth, newHeight + auxWindowAddHeight);
+            console.error("AuxWindow size:", newWidth, newHeight, newWidth + auxWindowAddWidth, newHeight + auxWindowAddHeight);
+        }
     }
 
     function updateBarWidth(canvasWidth) {
@@ -1126,42 +1131,53 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         var newWindow = window.open("", "WebMSX 2nd Screen", "width=" + 682 + ",height=" + (502 + 1)
             + ",scrollbars=no,status=no,location=no,toolbar=no,menubar=no");
 
-        setTimeout(function openAuxWindow() {
-            auxWindow = newWindow;
+        var document = newWindow.document;
+        document.open("text/html", "replace").write(wmsx.ScreenGUI.auxHtml());
+        document.close();
+        wmsx.Util.insertCSS(document, wmsx.ScreenGUI.css());
+        document.documentElement.classList.add("wmsx-full-screen");
 
-            var document = auxWindow.document;
-            document.open("text/html", "replace").write(wmsx.ScreenGUI.auxHtml());
-            document.close();
-            wmsx.Util.insertCSS(document, wmsx.ScreenGUI.css());
-            document.documentElement.classList.add("wmsx-full-screen");
-
-            auxFsElementCenter = document.getElementById("wmsx-screen-fs-center");
-            auxLogo = document.getElementById("wmsx-logo");
-            auxCanvas = document.getElementById("wmsx-screen-canvas");
-
-            auxUpdateCanvasContentSize();
-            auxReadjustAll(true);
-
-            suppressContextMenu(document.body);
-            preventDrag(auxLogo);
-
-            if (!signalIsOn) updateLogo();
-
-            fileLoader.registerForDnDReject(auxFsElementCenter);
-            controllersHub.addKeyInputElement(auxFsElementCenter);
-
-            auxWindow.addEventListener("resize", auxWindowResized);
-            auxWindow.addEventListener("beforeunload", auxWindowUnload);
-
-            auxCanvas.focus();
-
-            window.focus();
-            self.focus();
-        }, 60);
+        console.log("FINISHED");
     }
 
+    this.auxWindowFirstResize = function(newWindow) {
+        if (auxWindow) return;
+
+        auxWindowAddWidth = newWindow.outerWidth - newWindow.innerWidth;
+        auxWindowAddHeight = newWindow.outerHeight - newWindow.innerHeight;
+        console.error("AuxWindow first resize:", newWindow.innerWidth, newWindow.innerHeight, auxWindowAddWidth, auxWindowAddHeight);
+
+        auxWindow = newWindow;
+        var document = auxWindow.document;
+
+        auxFsElementCenter = document.getElementById("wmsx-screen-fs-center");
+        auxLogo = document.getElementById("wmsx-logo");
+        auxCanvas = document.getElementById("wmsx-screen-canvas");
+
+        auxUpdateCanvasContentSize();
+        auxUpdateScale(true);
+
+        suppressContextMenu(document.body);
+        preventDrag(auxLogo);
+
+        if (!signalIsOn) updateLogo();
+
+        fileLoader.registerForDnDReject(auxFsElementCenter);
+        controllersHub.addKeyInputElement(auxFsElementCenter);
+
+        auxWindow.addEventListener("resize", auxWindowResized);
+        auxWindow.addEventListener("beforeunload", auxWindowUnload);
+
+        auxCanvas.focus();
+
+        window.focus();
+        self.focus();
+    };
+
     function auxWindowResized() {
-        auxReadjustAll(true);
+        console.error("AuxWindow resized");
+
+        auxReadjustByWindow(false);
     }
 
     function auxWindowUnload() {
@@ -2029,10 +2045,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         return true;
     }
 
-    function auxReadjustAll(force) {
+    function auxReadjustByWindow(force) {
         if (auxReadjustScreeSizeChanged(force)) {
             auxScaleY = auxDisplayOptimalScaleY(auxReadjustScreenSize.w, auxReadjustScreenSize.h);
-            auxUpdateScale();
+            auxUpdateScale(false);
         }
     }
 
@@ -2270,7 +2286,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var logoLoadingIcon;
     var scrollMessage, scrollMessageActive = false;
 
-    var auxWindow;
+    var auxWindow, auxWindowAddWidth, auxWindowAddHeight;
     var auxCanvas, auxCanvasContext;
     var auxReadjustScreenSize = { w: 0, wk: 0, h: 0, pw: 0 };
     var auxAspectX = WMSX.SCREEN_DEFAULT_ASPECT;
