@@ -957,11 +957,14 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         kanaLed.textContent = ledsStatePending[1] ? machineTypeSocket.getCodeKeyLabel() : "";
 
         if (quickOtionsDialog) quickOtionsDialog.machineTurboModesStateUpdate();
+
         turboButton.classList.toggle("wmsx-hidden", !ledsStatePending[2] && !ledsStatePending[3]);
-        turboButton.textContent = ledsStatePending[3] ? ledsInfoPending[3] : ledsInfoPending[2];
-        turboButton.style.backgroundPositionY = "" + (ledsStatePending[3] === 1 ? -116 : ledsStatePending[3] === 2 ? -141 : -166) + "px";
+        turboButton.textContent = ledsStatePending[3] > 1 ? ledsInfoPending[3] : ledsInfoPending[2];
+        turboButton.style.backgroundPositionY = "" + (ledsStatePending[3] === 3 ? -91 : ledsStatePending[3] === 2 ? -116 : ledsStatePending[3] === 1 ? -141 : -166) + "px";
 
         ledsStatePending = undefined;
+
+        // console.log("Display Update Leds");
     }
 
     function suppressContextMenu(element) {
@@ -1095,7 +1098,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         powerButton = addPeripheralControlButton("wmsx-bar-power", -120, -26, false, "System Power", null, menu, "System");
         barMenuSystem = menu;
 
-        netplayButton  = addPeripheralControlButton("wmsx-bar-netplay", -1, -91, false, "NetPlay!", wmsx.PeripheralControls.SCREEN_OPEN_NETPLAY);
+        netplayButton  = addPeripheralControlButton("wmsx-bar-netplay", -33, -91, false, "NetPlay!", wmsx.PeripheralControls.SCREEN_OPEN_NETPLAY);
         netplayButton.classList.add("wmsx-hidden");
 
         mediaIconsContainer = document.createElement("div");
@@ -1220,7 +1223,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (isTouchDevice) logoButton.classList.add("wmsx-full-screen-hidden");
         logoButton.classList.add("wmsx-narrow-hidden");
 
-        turboButton  = addPeripheralControlButton("wmsx-bar-turbo", -2, -116, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
+        turboButton  = addPeripheralControlButton("wmsx-bar-turbo", -2, -91, false, "CPU Turbo", wmsx.PeripheralControls.SCREEN_OPEN_QUICK_OPTIONS);
         turboButton.classList.add("wmsx-hidden");
 
         capsLed  = addPeripheralControlButton("wmsx-bar-caps", 0, 0);

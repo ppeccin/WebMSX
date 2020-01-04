@@ -52,7 +52,7 @@ wmsx.TurboDriver = function(bios) {
 
         var r800Multi = machine.cpu.getR800ClockMulti();
         ledsSocket.ledStateChanged(2, z80Multi !== 1 ? 1 : 0);
-        ledsSocket.ledInfoChanged(2, "" + z80Multi + "x");
+        ledsSocket.ledInfoChanged(2, z80Multi !== 1 ? "" + z80Multi + "x" : "");
         ledsSocket.ledInfoChanged(3, r800Multi !== 1 ? "" + r800Multi + "x" : "");
 
         // console.error("TurboDriver modes update. z80Multi:", z80Multi);

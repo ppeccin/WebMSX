@@ -71,7 +71,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
 
     this.reset = function() {
         leds = 0x00;
-        ledR800Type = 1;
+        r800DramLed = 0;
         registerSelect = 0;
         register6 = 0x60;
         this.outputE6(0);       // reset counter
@@ -113,17 +113,18 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
 
         if (registerSelect === 6) {
             var newVal = val & 0x60;
-            if (register6 === newVal) return;
+            var mod = val ^ register6;
+            if (!mod) return;
 
             register6 = newVal;
             cpu.setR800Mode((register6 & 0x20) === 0);
             setDRAMMode((register6 & 0x40) === 0);
 
-            // Update led type only if both the led and R800 is on
-            if ((register6 & 0x20) === 0) {
-                ledR800Type = 1 + ((register6 & 0x40) >> 6);
-                if (leds & 0x80) updateLeds();
-            }
+            // Update R800 DRAM Led status only if R800 Mode is on R800 Led is off
+            if (!(register6 & 0x20) || !(leds & 0x80)) r800DramLed = (register6 & 0x40) ? 0 : 1;
+
+            // Update Leds if R800 Led is on or if DRAM Mode changed
+            if ((leds & 0x80) || (mod & 0x40)) updateLeds();
         }
     };
     this.inputE5 = function() {
@@ -172,7 +173,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     }
 
     function updateLeds() {
-        ledsSocket.ledStateChanged(3, (leds & 0x80) ? ledR800Type : 0);
+        ledsSocket.ledStateChanged(3, (leds & 0x80) ? 2 + r800DramLed : (register6 & 0x40) ? 0 : 1);
     }
 
     this.patchPCMBIOS = function(bytes) {
@@ -219,7 +220,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     var active = false;
 
     var leds = 0x00;                // bit 7: R800 LED (1 = on), bit 1: Z80 pause??? (1 = yes), bit 0: pause LED (1 = on)
-    var ledR800Type = 1;
+    var r800DramLed = 0;
     var registerSelect = 0;
     var register5 = 0x00;           // bit 6: Firmware Switch (0=right(OFF), 1=left(ON))  NEVER CHANGED, firmware always inactive
     var register6 = 0x60;          	// bit 6: ROM mode (0=DRAM, 1=ROM), bit 5: Processor mode (0=R800, 1=Z80)
@@ -234,7 +235,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         return {
             a: active,
             ld: leds,
-            lr: ledR800Type,
+            rl: r800DramLed,
             rs: registerSelect,
             r5: register5,
             r6: register6,
@@ -252,7 +253,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
 
         active =  s.a;
         leds = s.ld;
-        ledR800Type = s.lr;
+        r800DramLed = s.rl || 0;
         registerSelect = s.rs;
         register5 = s.r5;
         register6 = s.r6;
