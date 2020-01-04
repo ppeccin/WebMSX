@@ -376,8 +376,8 @@ wmsx.V9990 = function() {
         updateYSEnabled();
     }
 
-    this.updateCycles = function() {
-        return vdp.updateCycles();
+    this.getVDPCycles = function() {
+        return vdp.getVDPCycles();
     };
 
     this.getScreenText = function() {

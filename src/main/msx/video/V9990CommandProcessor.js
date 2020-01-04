@@ -77,7 +77,7 @@ wmsx.V9990CommandProcessor = function() {
     };
 
     this.updateStatus = function() {
-        if (CE && finishingCycle >= 0 && (finishingCycle === 0 || v9990.updateCycles() >= finishingCycle))
+        if (CE && finishingCycle >= 0 && (finishingCycle === 0 || v9990.getVDPCycles() >= finishingCycle))
             finish();
     };
 
@@ -1227,7 +1227,7 @@ wmsx.V9990CommandProcessor = function() {
             var blocksPerFrame = bppInfo[typeBPP] || bppInfo;
             var cyclesPerPixel = BASE_CLOCK / 50 / 256 / blocksPerFrame;                                                     // / 50 / 256 because timing is for 256 pixel blocks per PAL frame
             var duration = ((pixels * cyclesPerPixel * self.COMMAND_PER_PIXEL_DURATION_FACTOR) / turboClockMulti) | 0;       // no cycles per line info available
-            finishingCycle = v9990.updateCycles() + duration;
+            finishingCycle = v9990.getVDPCycles() + duration;
 
             // Instantaneous
             // finishingCycle = 0;

@@ -70,7 +70,7 @@ wmsx.VDPCommandProcessor = function() {
     };
 
     this.updateStatus = function() {
-        if (CE && finishingCycle >= 0 && (finishingCycle === 0 || vdp.updateCycles() >= finishingCycle))
+        if (CE && finishingCycle >= 0 && (finishingCycle === 0 || vdp.getVDPCycles() >= finishingCycle))
             finish();
 
         status[2] = (status[2] & ~0x81) | (TR << 7) | CE;
@@ -785,7 +785,7 @@ wmsx.VDPCommandProcessor = function() {
             finishingCycle = 0;     // instantaneous
         } else {
             var duration = ((pixels * cyclesPerPixel * COMMAND_PER_PIXEL_DURATION_FACTOR + lines * cyclesPerLine) / turboClockMulti) | 0;
-            finishingCycle = vdp.updateCycles() + duration;
+            finishingCycle = vdp.getVDPCycles() + duration;
 
             //console.log ("+++++ Duration: " + duration);
         }

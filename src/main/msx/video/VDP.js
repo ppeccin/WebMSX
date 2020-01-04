@@ -274,7 +274,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     };
 
     this.reset = function() {
-        frame = cycles = lastBUSCyclesComputed = 0;
+        frame = 0;
         dataFirstWrite = null; dataPreRead = 0; vramPointer = 0; paletteFirstWrite = null;
         verticalAdjust = horizontalAdjust = 0;
         leftMask = leftScroll2Pages = false; leftScrollChars = leftScrollCharsInPage = rightScrollPixels = 0;
@@ -300,13 +300,8 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         beginFrame();
     };
 
-    this.updateCycles = function() {
-        var busCycles = cpu.getBUSCycles();
-
-        cycles += (busCycles - lastBUSCyclesComputed) * 6;
-        lastBUSCyclesComputed = busCycles;
-
-        return cycles;
+    this.getVDPCycles = function() {
+        return cpu.getBUSCycles() * 6;
     };
 
     this.getScreenText = function() {
@@ -2387,8 +2382,6 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     var bufferLineAdvance;
     var currentScanline;
 
-    var cycles, lastBUSCyclesComputed;
-
     var signalActiveHeight;
     var finishingScanline;
     var startingActiveScanline, frameStartingActiveScanline;
@@ -2509,9 +2502,8 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     this.saveState = function(extended) {
         var s = {
             v1: isV9918, v3: isV9938, v5: isV9958,
-            l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
+            f: frame, l: currentScanline, b: bufferPosition, ba: bufferLineAdvance, ad: renderLine === renderLineActive,
             fs: frameStartingActiveScanline,
-            f: frame, c: cycles, cc: lastBUSCyclesComputed,
             vp: vramPointer, d: dataFirstWrite, dr: dataPreRead, pw: paletteFirstWrite,
             ha: horizontalAdjust, va: verticalAdjust, hil: horizontalIntLine,
             lm: leftMask, ls2: leftScroll2Pages, lsc: leftScrollChars, rsp: rightScrollPixels,
@@ -2538,8 +2530,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         status = wmsx.Util.restoreStringBase64ToInt8BitArray(s.s, status);
         paletteRegister = wmsx.Util.restoreStringBase64ToInt16BitArray(s.p, paletteRegister);
         vram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.vram, vram, true);
-        currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
-        frame = s.f || 0; cycles = s.c; lastBUSCyclesComputed = s.cc;
+        frame = s.f || 0; currentScanline = s.l; bufferPosition = s.b; bufferLineAdvance = s.ba;
         vramPointer = s.vp; dataFirstWrite = s.d; dataPreRead = s.dr || 0; paletteFirstWrite = s.pw;
         horizontalAdjust = s.ha; verticalAdjust = s.va; horizontalIntLine = s.hil;
         leftMask = s.lm; leftScroll2Pages = s.ls2; leftScrollChars = s.lsc; rightScrollPixels = s.rsp;
