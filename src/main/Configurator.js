@@ -53,7 +53,6 @@ wmsx.Configurator = {
         then();
     },
 
-    // TODO Parameters set by CODE get overriden by presets, but work when set by URL
     applyFinalConfig: function () {
         // Apply Presets from Machine configuration
         this.applyPresets(WMSX.MACHINES_CONFIG[WMSX.MACHINE].PRESETS);

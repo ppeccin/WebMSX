@@ -7,6 +7,7 @@ wmsx.ImageCassetteDriver = function() {
     var self = this;
 
     this.connect = function(bios, machine) {
+        this.patchTapeBIOS(bios.bytes);
         machine.getCassetteSocket().connectDriver(this);
         deck = machine.getCassetteSocket().getDeck();
         keyboardExtension = bios.getKeyboardExtension();

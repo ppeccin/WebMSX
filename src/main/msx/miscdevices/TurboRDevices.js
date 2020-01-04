@@ -28,6 +28,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
 
     this.connectBIOS = function(slot) {
         bios = slot;
+        this.patchPCMBIOS(bios.bytes);
         if (ram) bios.connectRAM(ram, 65536);
     };
     this.disconnectBIOS = function(slot) {
@@ -174,7 +175,46 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         ledsSocket.ledStateChanged(3, (leds & 0x80) ? ledR800Type : 0);
     }
 
+    this.patchPCMBIOS = function(bytes) {
+        // console.log("Patch PCB BIOS, active: ", active);
 
+        if (!active) return;
+
+        // PCMPLY routine (EXT c)
+        bytes[0x0186] = 0xed;
+        bytes[0x0187] = 0xec;
+        bytes[0x0188] = 0xc9;
+
+        // PCMREC routine (EXT d)
+        bytes[0x0189] = 0xed;
+        bytes[0x018a] = 0xed;
+        bytes[0x018b] = 0xc9;
+    };
+
+    this.cpuExtensionBegin = function(s) {
+        switch (s.extNum) {
+            case 0xec:
+                return PCMPLY(s.F);
+            case 0xed:
+                return PCMREC(s.F);
+        }
+    };
+
+    this.cpuExtensionFinish = function(s) {
+        // No Finish operation
+    };
+
+    function PCMPLY(F) {
+        // console.log("PCMPLY");
+        return { F: F |= 0x01 };        // Set C flag = fail
+    }
+
+    function PCMREC(F) {
+        // console.log("PCMREC");
+        return { F: F |= 0x01 };        // Set C flag = fail
+    }
+
+    
     var bus;
     var active = false;
 

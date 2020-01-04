@@ -13,10 +13,10 @@ wmsx.SlotBIOS = function(rom) {
         self.bytes = bytes;
         topAddress = bytes.length;
         self.originalVideoStandard = ((bytes[0x2b] & 0x80) === 0) ? wmsx.VideoStandard.NTSC : wmsx.VideoStandard.PAL;
-        cassetteDriver.patchTapeBIOS(bytes);
     }
 
-    this.connect = function(machine) {
+    this.connect = function(pMachine) {
+        machine = pMachine;
         machine.setBIOS(this);
         machine.trd.connectBIOS(this);
         keyboardExtension.connect(machine);
@@ -24,11 +24,12 @@ wmsx.SlotBIOS = function(rom) {
         turboDriver.connect(machine);
     };
 
-    this.disconnect = function(machine) {
-        if (cassetteDriver) cassetteDriver.disconnect(this, machine);
-        if (turboDriver) turboDriver.disconnect(this, machine);
-        machine.trd.disconnectBIOS(this);
-        machine.setBIOS(null);
+    this.disconnect = function(pMachine) {
+        machine = undefined;
+        if (cassetteDriver) cassetteDriver.disconnect(this, pMachine);
+        if (turboDriver) turboDriver.disconnect(this, pMachine);
+        pMachine.trd.disconnectBIOS(this);
+        pMachine.setBIOS(null);
     };
 
     this.connectRAM = function(pRam, pRamBase) {
@@ -75,13 +76,21 @@ wmsx.SlotBIOS = function(rom) {
     // };
 
     this.cpuExtensionBegin = function(s) {
-        // Receive all CPU Extensions and pass to the Cassette Driver or Turbo Driver
-        return s.extNum < 0xe9 ? cassetteDriver.cpuExtensionBegin(s) : turboDriver.cpuExtensionBegin(s);
+        // Receive all CPU Extensions and pass to the Cassette Driver, TurboRDevices or Turbo Driver
+        return s.extNum < 0xe9
+            ? cassetteDriver.cpuExtensionBegin(s)
+            : s.extNum < 0xee
+                ? machine.trd.cpuExtensionBegin(s)
+                : turboDriver.cpuExtensionBegin(s);
     };
 
     this.cpuExtensionFinish = function(s) {
-        // Receive all CPU Extensions and pass to the Cassette Driver or Turbo Driver
-        return s.extNum < 0xe8 ? cassetteDriver.cpuExtensionFinish(s) : turboDriver.cpuExtensionFinish(s);
+        // Receive all CPU Extensions and pass to the Cassette Driver, TurboRDevices or Turbo Driver
+        return s.extNum < 0xe9
+            ? cassetteDriver.cpuExtensionFinish(s)
+            : s.extNum < 0xee
+                ? machine.trd.cpuExtensionFinish(s)
+                : turboDriver.cpuExtensionFinish(s);
     };
 
     this.setVideoStandardForced = function(forcedVideoStandard) {
@@ -94,6 +103,8 @@ wmsx.SlotBIOS = function(rom) {
         else bytes[0x2b] &= ~0x80;
     };
 
+
+    var machine;
 
     var bytes;
     this.bytes = null;
@@ -135,13 +146,14 @@ wmsx.SlotBIOS = function(rom) {
             this.rom.reloadEmbeddedContent();
             if (!bytes || bytes.length !== this.rom.content.length) bytes = new Array(this.rom.content.length);
             wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
+            if (machine) machine.trd.patchPCMBIOS(bytes);   // Patch now if already connected!
         }
         this.bytes = bytes;
         topAddress = bytes.length;
-        cassetteDriver.patchTapeBIOS(bytes);    // Backward compatibility, always re-patch BIOS to correct CPU Extensions used
+        cassetteDriver.patchTapeBIOS(bytes);                // Backward compatibility, always re-patch BIOS to correct CPU Extensions used
         if (s.ke) keyboardExtension.loadState(s.ke);
         turboDriver.loadState(s.td);
-        dramMode = !!s.dr;                      // Backward compatibility, will be false for old states
+        dramMode = !!s.dr;                                  // Backward compatibility, will be false for old states
     };
 
 
