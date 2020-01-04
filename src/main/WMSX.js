@@ -252,6 +252,8 @@ WMSX.PRESETS_CONFIG = {
     MSXMUSEXTTR: { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC]TR.rom", "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [0, 2], "EXTENSIONS_CONFIG.MSXMUSICX.SLOT": [3, 3] },
     KANJIDRVN:   { "EXTENSIONS_CONFIG.KANJI.BOUND": [ "KANJIDRV", "MSXJE" ] },
     KANJIDRVP:   { "EXTENSIONS_CONFIG.KANJI.BOUND": [ "MSXJE" ], "EXTENSIONS.KANJIDRV": 0 },
+    RAMN:        { "RAMMAPPER_SIZE": 512 },
+    RAMTR:       { "RAMMAPPER_SIZE": 1024 },
 
     // Alternate Slot Configuration: try to keep RAM alone on primary Slot 3
     ALTSLOTCONFIG: {
@@ -287,7 +289,7 @@ WMSX.PRESETS_CONFIG = {
         BOOT_DURATION_AUTO: 380
     },
     _MSXTRBASE: {
-        _INCLUDE:           "_MSX2BASE, DISKEXTTR, MSXMUSEXTTR, KANJIDRVP"
+        _INCLUDE:           "_MSX2BASE, DISKEXTTR, MSXMUSEXTTR, KANJIDRVP, RAMTR"
     },
 
     // MSX2+ Machine Presets. Do not use directly
@@ -368,7 +370,7 @@ WMSX.PRESETS_CONFIG = {
         SLOT4P_URL:         ""      // Special Device I/O only slot
     },
     _BASE: {
-        _INCLUDE:           "DISKEXTN, MSXMUSEXTN, KANJIDRVN"
+        _INCLUDE:           "DISKEXTN, MSXMUSEXTN, KANJIDRVN, RAMN"
     }
 
 };

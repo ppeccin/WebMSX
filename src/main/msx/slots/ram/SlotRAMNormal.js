@@ -17,7 +17,7 @@ wmsx.SlotRAMNormal = function(rom) {
 
     this.refreshConnect = function() {
         // Updates size if necessary
-        if (WMSX.RAMNORMAL_SIZE * 1024 !== bytes.length) init(self);
+        if (WMSX.RAMNORMAL_SIZE * 1024 !== bytes.length) init(this);
     };
 
     this.powerOff = function() {

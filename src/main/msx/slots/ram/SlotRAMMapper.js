@@ -37,7 +37,7 @@ wmsx.SlotRAMMapper = function(rom) {
     this.refreshConnect = function() {
         // Updates size and recreate if necessary
         if (WMSX.RAMMAPPER_SIZE * 1024 !== bytes.length) {
-            init(self);
+            init(this);
             if (trd) trd.connectRAM(this);      // Refresh RAM - BIOSes connections
         }
     };
