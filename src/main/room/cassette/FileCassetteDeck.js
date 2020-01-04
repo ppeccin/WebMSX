@@ -279,7 +279,7 @@ wmsx.FileCassetteDeck = function(room) {
 
     this.loadState = function(s) {
         tapeFileName = s.f;
-        tapeContent = s.c && wmsx.Util.uncompressStringBase64ToInt8BitArray(s.c, tapeContent);
+        tapeContent = s.c ? wmsx.Util.uncompressStringBase64ToInt8BitArray(s.c, tapeContent) : [];
         tapePosition = s.p;
         motor = s.m;
         modif = !!s.d;
