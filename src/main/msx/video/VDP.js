@@ -131,30 +131,20 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
                 res = getStatus0();                     // Dynamic value. status[0] is never accurate
                 break;
             case 1:
-                res = status[1];
-                status[1] &= ~0x80;                     // FL = 0
-                if ((register[0] & 0x10) && (status[1] & 0x01)) {
-                    status[1] &= ~0x01;                 // FH = 0, only if interrupts are enabled (IE1 = 1)
+                res = status[1] | FH;                   // Dynamic value. status[1] is never accurate
+
+                if ((register[0] & 0x10) && FH) {
+                    FH = 0;                             // FH = 0, only if interrupts are enabled (IE1 = 1)
                     updateIRQ();
                 }
                 break;
             case 2:
                 commandProcessor.updateStatus();
 
-                // if (self.TEST) return status[2] & ~0x40;
-
-                res = status[2];
-
-                // var deb = cpu.DEBUG;
-                // if (deb) console.log(res.toString(16));
-                // if (deb &&                                   (res & 0x81) !== 0) logInfo("Reading Command Status NOT READY: " + res.toString(16));
-                // if (deb && (register[46] & 0xf0) === 0xb0 && (res & 0x81) === 0x81) console.log("Reading Command Status PROGRESS and Transfer READY");
-                // if (deb && (register[46] & 0xf0) === 0xb0 && (res & 0x81) === 0x01) console.log("Reading Command Status PROGRESS and Transfer NOT READY");
-                // if (deb &&                                   (res & 0x81) === 0x00) console.log("Reading Command Status IDLE and Transfer NOT READY");
-                // if (deb &&                                   (res & 0x81) === 0x80) console.log("Reading Command Status IDLE and Transfer READY");
+                res = status[2]                        // Dynamic value. status[2] is never accurate
+                    | (VR << 6) | (HR << 5) | (EO << 1);
 
                 // logInfo("VDP Status2 Read : " + res.toString(16));
-
                 break;
             case 3: case 4: case 6:
                 res = status[reg];
@@ -291,7 +281,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         leftMask = leftScroll2Pages = false; leftScrollChars = leftScrollCharsInPage = rightScrollPixels = 0;
         backdropColor = backdropValue = 0;
         spritesCollided = false; spritesCollisionX = spritesCollisionY = spritesInvalid = -1; spritesMaxComputed = 0;
-        verticalIntReached = false; horizontalIntLine = 0;
+        horizontalIntLine = 0;
         vramInterleaving = false;
         renderMetricsChangePending = false;
         refreshWidth = refreshHeight = 0;
@@ -347,7 +337,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
                     // Clear FH bit immediately when IE becomes 0? Not as per https://www.mail-archive.com/msx@stack.nl/msg13886.html
                     // We clear it only at the beginning of the next line if IE === 0
                     // Laydock2 has glitches on WebMSX with Turbo and also on a real Expert3 at 10MHz
-                    // if (((val & 0x10) === 0) && (status[1] & 0x01)) status[1] &= ~0x01;
+                    // if (((val & 0x10) === 0) && FH) FH = 0
                     updateIRQ();
                 }
                 if (mod & 0x0e) updateMode();                            // Mx
@@ -488,7 +478,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     // Consider Alternative Page (EO and Blink)
     function updateLayoutTableAddressMask() {
         layoutTableAddressMask = layoutTableAddressMaskSetValue &
-            (blinkEvenPage || ((register[9] & 0x04) && (status[2] & 0x02) === 0) ? modeData.blinkPageMask : ~0);
+            (blinkEvenPage || ((register[9] & 0x04) && !EO) ? modeData.blinkPageMask : ~0);
     }
 
     function updateSpritePatternTableAddress() {
@@ -503,9 +493,9 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         var res = 0;
 
         // Vertical Int
-        if (verticalIntReached) {                   // F
+        if (F) {                                    // F
             res |= 0x80;
-            verticalIntReached = false;
+            F = 0;
             updateIRQ();
         }
 
@@ -648,8 +638,8 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
 
         if (blankingChangePending) updateLineActiveType();
 
-        if ((status[1] & 0x01) && ((register[0] & 0x10) === 0)) status[1] &= ~0x01;                 // FH = 0 if interrupts disabled (IE1 = 0)
-        if (currentScanline === startingActiveScanline - 1) status[2] &= ~0x40;                     // VR = 0 at the scanline before first Active scanline
+        if (FH && ((register[0] & 0x10) === 0)) FH = 0;                                             // FH = 0 if interrupts disabled (IE1 = 0)
+        if (currentScanline === startingActiveScanline - 1) VR = 0;                                 // VR = 0 at the scanline before first Active scanline
         else if (currentScanline - frameStartingActiveScanline === signalActiveHeight)              // VR = 1, F = 1 at the first Bottom Border line
             triggerVerticalInterrupt();
 
@@ -657,7 +647,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
 
         // Active Display: 1024 clocks
 
-        status[2] &= ~0x20;                                                                         // HR = 0
+        HR = 0;                                                                                     // HR = 0
 
         if (slave) slave.lineEventStartActiveDisplay();
 
@@ -680,7 +670,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
 
         // End of Active Display
 
-        status[2] |= 0x20;                                                                          // HR = 1
+        HR = 1;                                                                                     // HR = 1
         if (currentScanline - frameStartingActiveScanline === horizontalIntLine)
             triggerHorizontalInterrupt();                                                           // FH = 1
 
@@ -698,13 +688,12 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         if (currentScanline >= finishingScanline) finishFrame();
 
         if (slave) slave.lineEventEnd();
-
     }
 
     function triggerVerticalInterrupt() {
-        status[2] |= 0x40;                  // VR = 1
-        if (!verticalIntReached) {
-            verticalIntReached = true;      // Like F = 1
+        VR = 1;                             // VR = 1
+        if (!F) {
+            F = 1;
             updateIRQ();
         }
 
@@ -712,8 +701,8 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     }
 
     function triggerHorizontalInterrupt() {
-        if ((status[1] & 0x01) === 0) {
-            status[1] |= 0x01;              // FH = 1
+        if (!FH) {
+            FH = 1;                         // FH = 1
             updateIRQ();
         }
 
@@ -721,15 +710,15 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     }
 
     function updateIRQ() {
-        if ((verticalIntReached && (register[1] & 0x20))            // Like F == 1 and IE0 == 1
-            || ((status[1] & 0x01) && (register[0] & 0x10))) {      // FH == 1 and IE1 == 1
+        if ((F && (register[1] & 0x20))                             // F == 1 and IE0 == 1
+            || (FH && (register[0] & 0x10))) {                      // FH == 1 and IE1 == 1
             cpu.setINTChannel(0, 0);                                // VDP uses fixed channel 0
         } else {
             cpu.setINTChannel(0, 1);
         }
 
         //if (verticalIntReached && (register[1] & 0x20)) logInfo(">>>  VDP INT VERTICAL");
-        //if ((status[1] & 0x01) && (register[0] & 0x10)) logInfo(">>>  VDP INT HORIZONTAL");
+        //if (FH && (register[0] & 0x10)) logInfo(">>>  VDP INT HORIZONTAL");
     }
 
     function updateVRAMInterleaving() {
@@ -1873,7 +1862,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine >= size) continue;                               // Not visible at line
             if (++drawn > 4) {                                              // Max of 4 sprites drawn. Store the first invalid (5th)
-                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
+                if (spritesInvalid < 0 && !F) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
             color = vram[atrPos + 3];
@@ -1937,7 +1926,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine >= size) continue;                               // Not visible at line
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
-                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
+                if (spritesInvalid < 0 && !F) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
             spriteLine >>>= spritesMag;                                     // Adjust for Mag
@@ -2020,7 +2009,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine >= size) continue;                               // Not visible at line
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
-                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
+                if (spritesInvalid < 0 && !F) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
             spriteLine >>>= spritesMag;                                     // Adjust for Mag
@@ -2105,7 +2094,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             spriteLine = (line - y - 1) & 255;
             if (spriteLine >= size) continue;                               // Not visible at line
             if (++drawn > 8) {                                              // Max of 8 sprites drawn. Store the first invalid (9th)
-                if (spritesInvalid < 0 && !verticalIntReached) spritesInvalid = sprite;
+                if (spritesInvalid < 0 && !F) spritesInvalid = sprite;
                 if (spriteDebugModeLimit) return;
             }
             spriteLine >>>= spritesMag;                                     // Adjust for Mag
@@ -2235,11 +2224,11 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         if (!blinkPerLine && blinkPageDuration > 0) clockPageBlinking();
 
         // Field alternance
-        status[2] ^= 0x02;                    // Invert EO (Display Field flag)
+        EO ^= 1;                                                        // Invert EO (Display Field flag)
 
         // Interlace
         if (!isV9918 && (register[9] & 0x08)) {                         // IL
-            bufferPosition = (status[2] & 0x02) ? LINE_WIDTH : 0;       // EO
+            bufferPosition = EO ? LINE_WIDTH : 0;                       // EO
             bufferLineAdvance = LINE_WIDTH * 2;
         } else {
             bufferPosition = 0;
@@ -2273,11 +2262,12 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         wmsx.Util.arrayFill(register, 0);
         wmsx.Util.arrayFill(status, 0);
         register[9] = videoStandard === wmsx.VideoStandard.PAL ? 0x02 : 0;      // NT (PAL mode bit)
-        status[1] = isV9958 ? 0x04 : 0x00;    // VDP ID (mask 0x3e), 0x00 = V9938, 0x02 = V9958
-        status[2] = 0x0c;                     // Fixed "1" bits
-        status[4] = 0xfe;                     // Fixed "1" bits
-        status[6] = 0xfc;                     // Fixed "1" bits
-        status[9] = 0xfe;                     // Fixed "1" bits
+        status[0] = 0; F = 0;
+        status[1] = isV9958 ? 0x04 : 0x00; FH = 0;      // VDP ID (mask 0x3e), 0x00 = V9938, 0x02 = V9958
+        status[2] = 0x0c; VR = 0; HR = 0; EO = 0;       // Fixed "1" bits
+        status[4] = 0xfe;                               // Fixed "1" bits
+        status[6] = 0xfc;                               // Fixed "1" bits
+        status[9] = 0xfe;                               // Fixed "1" bits
     }
 
     function initFrameResources(useAlpha) {
@@ -2403,10 +2393,11 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
 
     var frameVideoStandard = videoStandard, framePulldown;                  // Delays VideoStandard change until next frame
 
-    var verticalIntReached = false;
     var horizontalIntLine = 0;
 
     var status = new Array(10);
+    var F = 0, FH = 0, VR = 0, HR = 0, EO = 0;
+
     var register = new Array(47);
     var paletteRegister = new Array(16);
 
@@ -2522,7 +2513,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             lm: leftMask, ls2: leftScroll2Pages, lsc: leftScrollChars, rsp: rightScrollPixels,
             bp: blinkEvenPage, bpd: blinkPageDuration, bpl: blinkPerLine,
             sc: spritesCollided, sx: spritesCollisionX, sy: spritesCollisionY, si: spritesInvalid, sm: spritesMaxComputed,
-            vi: verticalIntReached,
+            bf: F, bfh: FH, bvr: VR, bhr: HR, beo: EO,
             r: wmsx.Util.storeInt8BitArrayToStringBase64(register), s: wmsx.Util.storeInt8BitArrayToStringBase64(status),
             p: wmsx.Util.storeInt16BitArrayToStringBase64(paletteRegister),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_SIZE),
@@ -2551,13 +2542,18 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         leftScrollCharsInPage = leftScrollChars & 31;
         blinkEvenPage = s.bp; blinkPageDuration = s.bpd; blinkPerLine = s.bpl !== undefined ? s.bpl : (register[1] & 0x04) !== 0;
         spritesCollided = s.sc; spritesCollisionX = s.sx; spritesCollisionY = s.sy; spritesInvalid = s.si; spritesMaxComputed = s.sm;
-        verticalIntReached = s.vi;
+        if (s.bf !== undefined) {
+            F = s.bf; FH = s.bfh; VR = s.bvr; HR = s.bhr; EO = s.beo;
+        } else {
+            F = status[0] >> 7; FH = status[1] & 1;                                             // backward compatibility
+            VR = (status[2] >> 6) & 1; HR = (status[2] >> 5) & 1; EO = (status[2] >> 1) & 1;
+        }
         vramInterleaving = s.vrint;
         commandProcessor.loadState(s.cp);
         commandProcessor.connectVDP(this, vram, register, status);
         frameVideoStandard = videoStandard; framePulldown = pulldown;
         updateSignalMetrics(true);
-        if (s.fs !== undefined) frameStartingActiveScanline = s.fs;       // backward compatibility
+        if (s.fs !== undefined) frameStartingActiveScanline = s.fs;                             // backward compatibility
         updateIRQ();
         updateMode(true);
         updateSpritesConfig();
