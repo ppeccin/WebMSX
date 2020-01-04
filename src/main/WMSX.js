@@ -13,17 +13,17 @@ WMSX = {
     PRESETS:                        "",                         // Configuration Presets to apply. See Presets Configuration
 
     // Full or relative URL of Media files to load
-    CARTRIDGE1_URL:                 "",
+    CARTRIDGE1_URL:                 "",                         // ROM file
     CARTRIDGE2_URL:                 "",
-    DISKA_URL:                      "",                         // Image files
+    DISKA_URL:                      "",                         // Disk Image file
     DISKB_URL:                      "",
     HARDDISK_URL:                   "",
     DISKA_FILES_URL:                "",                         // File to load into a Disk. For several files, use a ZIP file
     DISKB_FILES_URL:                "",
     HARDDISK_FILES_URL:             "",
-    TAPE_URL:                       "",
-    STATE_URL:                      "",
-    AUTODETECT_URL:                 "",
+    TAPE_URL:                       "",                         // Disk Image file
+    STATE_URL:                      "",                         // Save State file
+    AUTODETECT_URL:                 "",                         // Open any file in auto-detect mode
 
     // Forcing ROM formats
     CARTRIDGE1_FORMAT:              "",                         // Normal, ASCII8, ASCII16, Konami, KonamiSCC, KonamiSCCI, FMPAC, etc...
@@ -56,6 +56,7 @@ WMSX = {
     BIOSEXT_SLOT:                   [3, 1],
     RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB when active
     RAMNORMAL_SIZE:                 64,                         // 16..64: Normal RAM size in KB when active
+    MEGARAM_SIZE:                   2048,                       // 256, 512, 1024, 2048: MegaRAM size in KB
     EXTENSIONS:                     { },                        // Extensions active. See Extensions Configuration. Use Presets to activate/deactivate
     RTC_ACTIVE:                     -1,                         // -1: auto; 0: not present; 1: present
     VDP_TYPE:                       -1,                         // -1: auto; 1: V9918; 2: V9938; 3: V9958
@@ -66,7 +67,7 @@ WMSX = {
     SPEED:                          100,                        // Default emulation speed (in %)
     AUTO_START:                     true,
     AUTO_POWER_ON_DELAY:            1200,                       // -1: no auto Power-ON; >= 0: wait specified milliseconds before Power-ON
-    MEDIA_CHANGE_DISABLED:          false,
+    MEDIA_CHANGE_DISABLED:          false,                      // Prevents user form changing Machine Type, Extensions and Medias (Disks, Carts, Tapes)
     SCREEN_RESIZE_DISABLED:         false,
     SCREEN_ELEMENT_ID:              "wmsx-screen",
     SCREEN_FULLSCREEN_MODE:         -1,                         // -2: disabled; -1: auto; 0: off; 1: on (Full Screen); 2: on (Full Windowed)
@@ -89,22 +90,21 @@ WMSX = {
     MOUSE_MODE:                     -1,                         // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
     TOUCH_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
     R800_CLOCK_MODE:                0,                          // 0: auto (soft-turbo possible); (0..2]: R800 CPU clock multiplier;
+    R800_WAITS:                     1,                          // 0: off, 1: on. Precise R800/S1990 timings. Turn off for faster and lighter emulation
     Z80_CLOCK_MODE:                 0,                          // 0: auto (soft-turbo possible); (0..8]: Z80 CPU clock multiplier;
     VDP_CLOCK_MODE:                 0,                          // 0: auto (soft-turbo possible); (0..8]: VDP Command Engine clock multiplier; 9: instantaneous
     Z80_SOFT_TURBO_MULTI:           1.5,                        // 1..8 Z80 CPU clock multiplier when in AUTO mode and activated by software or CPU_SOFT_TURBO_AUTO_ON
     VDP_SOFT_TURBO_MULTI:           1,                          // 1..9 VDP Command Engine clock multiplier when in AUTO mode and activated by software or CPU_SOFT_TURBO_AUTO_ON
-    CPU_SOFT_TURBO_AUTO_ON:         0,
+    CPU_SOFT_TURBO_AUTO_ON:         0,                          // o: off, 1: on. Automatically activates the CPU Soft Turbo when supported by machine
+    FAKE_TR_TURBO:                  -1,                         // -1: auto; 0: off; 1: on. Simulated Panasonic Turbo activation. Auto ON for 2+, never for tR
+    PANA_TURBO:                     -1,                         // -1: auto; 0: off; 1: on. Simulated tR CHGCPU Turbo activation. Auto ON for 2+, never for tR
     KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
     DEBUG_MODE:                     0,                          // 0: off; 1..7: debug mode. Don't change! :-)
     SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
     ROM_MAX_HASH_SIZE_KB:           4096,                       // Maximum ROM size for Hash calculation
     HARDDISK_MIN_SIZE_KB:           720,                        // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
-    MEGARAM_SIZE:                   2048,                       // 256, 512, 1024, 2048: MegaRAM size in KB
     DISK_ROM_START_PAGE:            0,                          // 0..1: Change starting page for ROMs > 16KB when format is DiskPatch
     LIGHT_STATES:                   true,
-    FAKE_TR_TURBO:                  -1,
-    PANA_TURBO:                     -1,
-    R800_WAITS:                     1,
 
     PSG_VOL:                        "f",                        // 0..f (hex digit):       PSG Volume adjust. Set globally or for each channel (4 values)
     PSG_PAN:                        "8",                        // 0; 1..8..f (hex digit): PSG PanPot adjust. Set globally or for each channel (4 values)
