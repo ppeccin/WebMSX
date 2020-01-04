@@ -141,7 +141,7 @@ The ROM Format is auto-detected. To force a format, set the `CARTRIDGE1_FORMAT` 
 You can also put the format specification in the ROM file name, between brackets. Example: `Game [KonamiSCC].rom`
 
 #### Valid Formats
-`Normal`, `Mirrored`, `NotMirrored`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `ASCII8SRAM2`, `ASCII8SRAM8`, `ASCII16SRAM2`, `ASCII16SRAM8`, `MegaRAM`, `GameMaster2`, `KoeiSRAM8`, `KoeiSRAM32`, `Wizardry`, `FMPAC`, `FMPAK`, `MSXDOS2`, `Majutsushi`, `Synthesizer`, `RType`, `CrossBlaim`, `Manbow2`, `HarryFox`, `AlQuran`, `AlQuranDecoded`, `Halnote`, `SuperSwangi`, `SuperLodeRunner`, `Dooly`, `Zemina80in1`, `Zemina90in1`, `Zemina126in1`, `MSXWrite`
+`Normal`, `Mirrored`, `NotMirrored`, `ASCII8`, `ASCII16`, `Konami`, `KonamiSCC`, `KonamiSCCI`, `ASCII8SRAM2`, `ASCII8SRAM8`, `ASCII16SRAM2`, `ASCII16SRAM8`, `MegaRAM`, `GameMaster2`, `KoeiSRAM8`, `KoeiSRAM32`, `Wizardry`, `FMPAC`, `FMPAK`, `MSXDOS2`, `Majutsushi`, `Synthesizer`, `RType`, `CrossBlaim`, `Manbow2`, `HarryFox`, `AlQuran`, `AlQuranDecoded`, `Halnote`, `SuperSwangi`, `SuperLodeRunner`, `Dooly`, `Zemina80in1`, `Zemina90in1`, `Zemina126in1`, `MSXWrite`, `KonamiUltimateCollection`
 
 ## Choosing a Machine
 
@@ -149,9 +149,9 @@ There are 12 different generic machines. The default machine is the MSX2+, and t
 
 | Machine | Machine ID | Specific Machine | Machine ID 
 | --- | :---: | --- | :---: 
-| MSX2 tR Auto-detection | `MSXTR` | MSX2 tR American (NTSC 60Hz) |  `MSXTRA`                
-|                        |         | MSX2 tR European (PAL 50Hz)  |  `MSXTRE`
-|                        |         | MSX2 tR Japanese (NTSC 60Hz) |  `MSXTRJ`
+| MSX tR Auto-detection  | `MSXTR` | MSX tR American (NTSC 60Hz)  |  `MSXTRA`                
+|                        |         | MSX tR European (PAL 50Hz)   |  `MSXTRE`
+|                        |         | MSX tR Japanese (NTSC 60Hz)  |  `MSXTRJ`
 | MSX2+ Auto-detection   | `MSX2P` | MSX2+ American (NTSC 60Hz)   |  `MSX2PA`                
 |                        |         | MSX2+ European (PAL 50Hz)    |  `MSX2PE`
 |                        |         | MSX2+ Japanese (NTSC 60Hz)   |  `MSX2PJ`
