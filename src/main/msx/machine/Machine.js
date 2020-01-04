@@ -1,7 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Review BIOS patches needed/prohibited for turbo R
-
 wmsx.Machine = function() {
 "use strict";
 

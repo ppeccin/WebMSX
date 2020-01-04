@@ -51,7 +51,7 @@ wmsx.VirtualKeyboard = {
     },
 
     updateKeysLabels: function(keyElements, shift, lang, codeLabel, noShift) {
-        this.finalLabels.COD = codeLabel || "CODE";
+        this.finalLabels.COD = this.finalLabels.KANA = codeLabel || "CODE";
 
         var a, b, c;
         if (noShift) { a = "cns_" + lang; b = "c_" + lang; c = "c_en"; }

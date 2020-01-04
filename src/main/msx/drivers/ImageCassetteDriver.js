@@ -7,7 +7,7 @@ wmsx.ImageCassetteDriver = function() {
     var self = this;
 
     this.connect = function(bios, machine) {
-        this.patchTapeBIOS(bios.bytes);
+        this.patchTapeBIOS(bios.bytes, machine);
         machine.getCassetteSocket().connectDriver(this);
         deck = machine.getCassetteSocket().getDeck();
         keyboardExtension = bios.getKeyboardExtension();
@@ -61,7 +61,10 @@ wmsx.ImageCassetteDriver = function() {
         // No Finish operation
     };
 
-    this.patchTapeBIOS = function(bytes) {
+    this.patchTapeBIOS = function(bytes, machine) {
+        // Only patch for machines up to MSX2+
+        if (machine.getMachineTypeSocket().getMachineType() >= wmsx.Machine.MACHINE_TYPE.MSXTR) return;
+
         // TAPION routine (EXT 0)
         bytes[0x00e1] = 0xed;
         bytes[0x00e2] = 0xe0;

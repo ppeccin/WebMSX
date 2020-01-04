@@ -150,10 +150,10 @@ wmsx.SlotBIOS = function(rom) {
         }
         this.bytes = bytes;
         topAddress = bytes.length;
-        cassetteDriver.patchTapeBIOS(bytes);                // Backward compatibility, always re-patch BIOS to correct CPU Extensions used
+        if (machine) cassetteDriver.patchTapeBIOS(bytes, machine);  // Backward compatibility, if already connected, always re-patch BIOS now to correct CPU Extensions used
         if (s.ke) keyboardExtension.loadState(s.ke);
         turboDriver.loadState(s.td);
-        dramMode = !!s.dr;                                  // Backward compatibility, will be false for old states
+        dramMode = !!s.dr;                                          // Backward compatibility, will be false for old states
     };
 
 

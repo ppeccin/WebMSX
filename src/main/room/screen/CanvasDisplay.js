@@ -844,8 +844,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function updateBarWidth(canvasWidth) {
         var fixedWidth = buttonsBarDesiredWidth > 0 ? buttonsBarDesiredWidth : canvasWidth;
         buttonsBar.style.width = buttonsBarDesiredWidth === -1 ? "100%" : "" + fixedWidth + "px";
-        buttonsBar.classList.toggle("wmsx-narrow", fixedWidth < NARROW_WIDTH);
-        buttonsBar.classList.toggle("wmsx-semi-narrow", fixedWidth < SEMI_NARROW_WIDTH);
+
+        var clientWidth = buttonsBar.clientWidth;
+        buttonsBar.classList.toggle("wmsx-narrow", clientWidth < NARROW_WIDTH);
+        buttonsBar.classList.toggle("wmsx-semi-narrow", clientWidth < SEMI_NARROW_WIDTH);
     }
 
     function updateKeyboardWidth(maxWidth) {
@@ -954,7 +956,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (!ledsStatePending) return;
 
         capsLed.textContent = ledsStatePending[0] ? "CAPS" : "";
-        kanaLed.textContent = ledsStatePending[1] ? machineTypeSocket.getCodeKeyLabel() : "";
+        kanaLed.textContent = ledsStatePending[1] ? machineTypeSocket.getCodeLedLabel() : "";
 
         if (quickOtionsDialog) quickOtionsDialog.machineTurboModesStateUpdate();
 

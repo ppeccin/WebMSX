@@ -18,6 +18,10 @@ wmsx.MachineTypeSocket = function(machine) {
     };
 
     this.getCodeKeyLabel = function() {
+        return WMSX.MACHINES_CONFIG[machine.machineName].CODE_LABEL || "CODE";
+    };
+
+    this.getCodeLedLabel = function() {
         return WMSX.MACHINES_CONFIG[machine.machineName].CODE_LABEL || "KANA";
     };
 
