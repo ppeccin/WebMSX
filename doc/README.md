@@ -173,7 +173,7 @@ The emulator supports several Extensions, or optional components that can be tur
 
 | Extension | Default in Machine | Presets
 | --- | :---: | ---
-| Hard Disk interface (Nextor)          | MSX2++               | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`
+| Hard Disk interface (Nextor)          | --                   | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`
 | Floppy Disk interface with 2 drives   | ALL                  | `DISK`, `NODISK`
 | Standard RAM Mapper, adjustable size  | MSX2, MSX2+          | `RAM128`..`RAM4096`, `RAMNORMAL`
 | Support for Kanji Characters          | Japanese MSX2, MSX2+ | `KANJI`, `NOKANJI`
@@ -227,6 +227,7 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 
 | Preset | Description
 | --- | ---
+| `BOOSTED`                                               |  Boosted Machine with HardDisk and CPU/VDP 3x Turbo 
 | `ALTSLOTCONFIG`                                         |  Alternate Slot Configuration. RAM at Primary Slot 3
 | `HARDDISK`, `HARDDISKC`, `NOHARDDISK`                   |  Hard Drive Extension
 | `DISK`, `DISKA`, `NODISK`                               |  Floppy Drives Extension

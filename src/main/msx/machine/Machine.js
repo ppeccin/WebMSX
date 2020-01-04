@@ -29,9 +29,6 @@ wmsx.Machine = function() {
         rtc.setMachineType(this.machineType);
         syf.setMachineType(this.machineType);
         trd.setMachineType(this.machineType);
-        z80ClockMode = WMSX.Z80_CLOCK_MODE < 0 ? 0 : WMSX.Z80_CLOCK_MODE;
-        r800ClockMode = WMSX.R800_CLOCK_MODE < 0 ? 0 : WMSX.R800_CLOCK_MODE;
-        vdpClockMode = WMSX.VDP_CLOCK_MODE < 0 ? 0 : WMSX.VDP_CLOCK_MODE;
         biosSocket.turboDriverTurboModesUpdate();
         bus.refreshConnect();
         machineTypeSocket.fireMachineTypeStateUpdate();
@@ -632,9 +629,9 @@ wmsx.Machine = function() {
     var fastBootFrames = WMSX.FAST_BOOT <= 0 ? 0 : WMSX.FAST_BOOT > 1 ? WMSX.FAST_BOOT : WMSX.BOOT_KEYS_FRAMES > 0 ? WMSX.BOOT_KEYS_FRAMES : WMSX.BOOT_DURATION_AUTO;
     var fastBootCountdown = 0;
 
-    var z80ClockMode = 0;
-    var r800ClockMode = 0;
-    var vdpClockMode = 0;
+    var z80ClockMode =  WMSX.Z80_CLOCK_MODE < 0 ? 0 :  WMSX.Z80_CLOCK_MODE;
+    var r800ClockMode = WMSX.R800_CLOCK_MODE < 0 ? 0 : WMSX.R800_CLOCK_MODE;
+    var vdpClockMode =  WMSX.VDP_CLOCK_MODE < 0 ? 0 :  WMSX.VDP_CLOCK_MODE;
 
     var EMPTY_SLOT = wmsx.SlotEmpty.singleton;
 
@@ -1289,4 +1286,4 @@ wmsx.Machine = function() {
 
 wmsx.Machine.BASE_CPU_CLOCK = 228 * 262 * 60;        // 3584160Hz, rectified to 60Hz (228 clocks per line, 262 lines, 60 fps)
 
-wmsx.Machine.MACHINE_TYPE = { MSX1: 1, MSX2: 2, MSX2P: 3, MSX2PP: 4, MSXTR: 5 };
+wmsx.Machine.MACHINE_TYPE = { MSX1: 1, MSX2: 2, MSX2P: 3, MSXTR: 4 };

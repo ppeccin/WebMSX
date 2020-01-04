@@ -12,8 +12,8 @@ wmsx.TurboDriver = function(bios) {
         machine = pMachine;
         ledsSocket = machine.getLedsSocket();
         var mt = machine.getMachineTypeSocket().getMachineType();
-        fakeTRTurbo = mt < M_TYPES.MSXTR && (WMSX.FAKE_TR_TURBO === 1 || (WMSX.FAKE_TR_TURBO === -1 && (mt === M_TYPES.MSX2P || mt === M_TYPES.MSX2PP)));       // Auto ON for >= MSX2P, never for turbo R
-        panaTurbo =   mt < M_TYPES.MSXTR && (WMSX.PANA_TURBO === 1 || (WMSX.PANA_TURBO === -1 && (mt === M_TYPES.MSX2P || mt === M_TYPES.MSX2PP)));             // Auto ON for >= MSX2P, never for turbo R
+        fakeTRTurbo = mt < M_TYPES.MSXTR && (WMSX.FAKE_TR_TURBO === 1 || (WMSX.FAKE_TR_TURBO === -1 && mt === M_TYPES.MSX2P));       // Auto ON for >= MSX2P, never for turbo R
+        panaTurbo =   mt < M_TYPES.MSXTR && (WMSX.PANA_TURBO === 1 || (WMSX.PANA_TURBO === -1 && mt === M_TYPES.MSX2P));             // Auto ON for >= MSX2P, never for turbo R
         updateSoftTurboDevices();
         this.turboModesUpdate();
     };
@@ -156,11 +156,11 @@ wmsx.TurboDriver = function(bios) {
     };
 
     this.loadState = function(s) {
-        softTurboON = s && s.st ? s.st : false;                                 // Backward compatibility: On for MSX2+ & MSX2++;
-        chgCpuValue = s && s.cv ? s.cv : 0;                                     // Backward compatibility: On for MSX2+ & MSX2++;
+        softTurboON = s && s.st ? s.st : false;                                 // Backward compatibility: On for MSX2+
+        chgCpuValue = s && s.cv ? s.cv : 0;                                     // Backward compatibility: On for MSX2+
 
         var mt = machine && machine.getMachineTypeSocket().getMachineType();
-        var softTurbo = mt === M_TYPES.MSX2P || mt === M_TYPES.MSX2PP;          // Backward compatibility: On for MSX2+ & MSX2++;
+        var softTurbo = mt === M_TYPES.MSX2P;                                   // Backward compatibility: On for MSX2+
         fakeTRTurbo = s.tt !== undefined ? s.tt : softTurbo;
         panaTurbo = s.pt !== undefined ? s.pt : softTurbo;
 
