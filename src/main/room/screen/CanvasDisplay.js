@@ -96,37 +96,39 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
 
         // Dual Screen mode? Decide which canvas to paint
-        var context;
+        var paintContext, paintCanvas;
         if (videoOutputMode < 4 || ((videoOutputMode === 5) ^ internal)) {
-            context = canvasContext || createCanvasContext();
+            paintContext = canvasContext || createCanvasContext();
+            paintCanvas = canvas;
         } else {
-            context = auxCanvasContext || auxCreateCanvasContext();
-            if (!context) return;
+            paintContext = auxCanvasContext || auxCreateCanvasContext();
+            paintCanvas = auxCanvas;
+            if (!paintContext) return;      // auxWindow not ready
         }
 
         // Need to clear previous image? (Only in Mixed mode, right before painting Internal signal)
-        if (videoOutputMode === 3 && internal) context.clearRect(0, 0, canvas.width, canvas.height);
+        if (videoOutputMode === 3 && internal) paintContext.clearRect(0, 0, paintCanvas.width, paintCanvas.height);
 
         // Paint frame
-        context.drawImage(
+        paintContext.drawImage(
             image,
             sourceX, sourceY, sourceWidth, sourceHeight,
-            0, 0, canvas.width, canvas.height
+            0, 0, paintCanvas.width, paintCanvas.height
         );
 
         // Paint Scanlines on top. Only if not in Debug and Signal is not Interlaced, also only once for both signals or for each in Dual mode
         if (crtScanlines && pixelHeight > 1 && !debugMode && (videoOutputMode >= 4 || (videoOutputMode <= 1 || !internal))) {
-            var oldComposite = context.globalCompositeOperation;
-            var oldAlpha = context.globalAlpha;
-            context.globalCompositeOperation = "source-over";
-            context.globalAlpha = crtScanlines / 10;
-            context.drawImage(
+            var oldComposite = paintContext.globalCompositeOperation;
+            var oldAlpha = paintContext.globalAlpha;
+            paintContext.globalCompositeOperation = "source-over";
+            paintContext.globalAlpha = crtScanlines / 10;
+            paintContext.drawImage(
                 scanlinesImage,
-                0, 0, 1, canvas.height,
-                0, 0, canvas.width, canvas.height
+                0, 0, 1, paintCanvas.height,
+                0, 0, paintCanvas.width, paintCanvas.height
             );
-            context.globalCompositeOperation = oldComposite;
-            context.globalAlpha = oldAlpha;
+            paintContext.globalCompositeOperation = oldComposite;
+            paintContext.globalAlpha = oldAlpha;
         }
 
         // console.log("Internal: " + internal + ", " + sourceWidth + "x" + sourceHeight + " > " + targetWidth + "x" + targetHeight);
@@ -278,21 +280,21 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (cap) fileDownloader.startDownloadURL("WMSX Screen.png", cap, "WebMSX Screen Capture");
     };
 
-    this.displayMetrics = function (renderWidth, renderHeight) {
+    this.displayMetrics = function (renderWidth, renderHeight, internal) {
         // Target metrics are at fixed sizes around double the normal 256x212 render metrics + borders
         // All modes will use 512x424 + borders, except V9918 256x192 mode (2x), and V9990 768x240, 1024x212, 640x400, 640x480 modes (1x)
 
-        // console.error("Display Metrics Render:", renderWidth, renderHeight);
+        // console.error("Display Metrics Render:", renderWidth, renderHeight, internal ? "int" : "ext");
 
         var newTargetWidth, newTargetHeight, newScrTargetWidth;
 
         switch (renderWidth) {
-            case 192: case 384:           newTargetWidth = 384; break;
-            case 256 + 16: case 512 + 32: newTargetWidth = 512 + 32; break;
-            case 640:                     newTargetWidth = 640; break;
-            case 768:                     newTargetWidth = 768; break;
-            case 1024 + 64:               newTargetWidth = 1024 + 64; break;
-            default:                      newTargetWidth = 512 + 32;
+            case 192: case 384:            newTargetWidth = 384; break;
+            case 256 + 16: case 512 + 32:  newTargetWidth = 512 + 32; break;
+            case 640:                      newTargetWidth = 640; break;
+            case 768:                      newTargetWidth = 768; break;
+            case 1024 + 64:                newTargetWidth = 1024 + 64; break;
+            default:                       newTargetWidth = 512 + 32;
         }
         newScrTargetWidth = newTargetWidth === 640 ? 640 : 512 + 32;    // For the actual screen, use 512 for all modes, except 640
 
@@ -304,6 +306,14 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             default:                       newTargetHeight = 424 + 32;
         }
 
+        // Main or Aux screen?
+        if ((videoOutputMode === 0 || videoOutputMode === 4) === internal)
+            updateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newScrTargetWidth, newTargetHeight);
+        else
+            auxUpdateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newScrTargetWidth, newTargetHeight);
+    };
+
+    function updateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newScrTargetWidth, newTargetHeight) {
         updatePixelMetrics(renderWidth, renderHeight, newScrTargetWidth, newTargetHeight);
 
         if (targetWidth === newTargetWidth && scrTargetWidth === newScrTargetWidth && targetHeight === newTargetHeight) return;
@@ -312,10 +322,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         scrTargetWidth = newScrTargetWidth;
         targetHeight = newTargetHeight;
 
-        updateDisplayMetrics();
-    };
-
-    function updateDisplayMetrics() {
         updateCanvasContentSize();
         if (isFullscreen) self.requestReadjust(true);
         else updateScale();
@@ -334,6 +340,21 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         pixelWidth = newPixelWidth;
         pixelHeight = newPixelHeight;
         refreshPixelMetrics();
+    }
+
+    function auxUpdateDisplayMetrics(renderWidth, renderHeight, newTargetWidth, newScrTargetWidth, newTargetHeight) {
+        if (auxTargetWidth === newTargetWidth && auxScrTargetWidth === newScrTargetWidth && auxTargetHeight === newTargetHeight) return;
+
+        auxTargetWidth = newTargetWidth;
+        auxScrTargetWidth = newScrTargetWidth;
+        auxTargetHeight = newTargetHeight;
+
+        if (!auxWindow) return false;       // auxWindow not ready
+
+        auxUpdateCanvasContentSize();
+        auxReadjustAll(true);
+
+        // console.error("Display Metrics AUX TARGET:", auxTargetWidth, auxTargetHeight);
     }
 
     this.displayScale = function(pAspectX, pScaleY) {
@@ -867,7 +888,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function auxEnterFullScreenByAPI() {
         if (fullscreenAPIEnterMethod) try {
-            fullscreenAPIEnterMethod.call(auxWindow.wmsxFsElementCenter);
+            fullscreenAPIEnterMethod.call(auxFsElementCenter);
         } catch (e) {
             /* give up */
         }
@@ -896,11 +917,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function auxUpdateScale() {
-        var width = Math.round(scrTargetWidth * auxScaleY * auxAspectX);
-        var height = Math.ceil(targetHeight * auxScaleY);
+        var width = Math.round(auxScrTargetWidth * auxScaleY * auxAspectX);
+        var height = Math.ceil(auxTargetHeight * auxScaleY);
         auxCanvas.style.width = "" + width + "px";
         auxCanvas.style.height = "" + height + "px";
-        if (!signalIsOn) updateLogoScale();
     }
 
     function updateBarWidth(canvasWidth) {
@@ -928,8 +948,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function auxUpdateCanvasContentSize() {
-        auxCanvas.width = targetWidth;
-        auxCanvas.height = targetHeight;
+        auxCanvas.width = auxTargetWidth;
+        auxCanvas.height = auxTargetHeight;
         auxCanvasContext = null;
     }
 
@@ -966,7 +986,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             if (canvasContext) canvasContext.clearRect(0, 0, canvas.width, canvas.height);
         }
         logo.classList.toggle("wmsx-show", !signalIsOn);
-        if (auxWindow) auxWindow.wmsxLogo.classList.toggle("wmsx-show", !signalIsOn);
+        if (auxWindow) auxLogo.classList.toggle("wmsx-show", !signalIsOn);
     }
 
     function updateLoading() {
@@ -1115,25 +1135,22 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             wmsx.Util.insertCSS(document, wmsx.ScreenGUI.css());
             document.documentElement.classList.add("wmsx-full-screen");
 
-            auxWindow.wmsxFsElementCenter = document.getElementById("wmsx-screen-fs-center");
-            auxWindow.wmsxLogo = document.getElementById("wmsx-logo");
+            auxFsElementCenter = document.getElementById("wmsx-screen-fs-center");
+            auxLogo = document.getElementById("wmsx-logo");
             auxCanvas = document.getElementById("wmsx-screen-canvas");
-
-            suppressContextMenu(document.body);
-            preventDrag(auxWindow.wmsxLogo);
-
-            fileLoader.registerForDnDReject(auxWindow.wmsxFsElementCenter);
-            controllersHub.addKeyInputElement(auxWindow.wmsxFsElementCenter);
 
             auxUpdateCanvasContentSize();
             auxReadjustAll(true);
 
+            suppressContextMenu(document.body);
+            preventDrag(auxLogo);
+
             if (!signalIsOn) updateLogo();
 
-            auxWindow.addEventListener("resize", function auxWindowResized() {
-                auxReadjustAll(true);
-            });
+            fileLoader.registerForDnDReject(auxFsElementCenter);
+            controllersHub.addKeyInputElement(auxFsElementCenter);
 
+            auxWindow.addEventListener("resize", auxWindowResized);
             auxWindow.addEventListener("beforeunload", auxWindowUnload);
 
             auxCanvas.focus();
@@ -1141,6 +1158,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             window.focus();
             self.focus();
         }, 60);
+    }
+
+    function auxWindowResized() {
+        auxReadjustAll(true);
     }
 
     function auxWindowUnload() {
@@ -1152,10 +1173,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function closeAuxWindow() {
         if (!auxWindow) return;
 
+        auxWindow.removeEventListener("resize", auxWindowResized);
         auxWindow.removeEventListener("beforeunload", auxWindowUnload);
-        auxCanvasContext = undefined;
         auxWindow.close();
-        auxWindow = undefined;
+        auxWindow = auxFsElementCenter = auxLogo = auxCanvas = auxCanvasContext = undefined;
     }
 
     function setupScanlines() {
@@ -2016,11 +2037,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function auxReadjustScreeSizeChanged(force) {
-        if (!auxWindow) return false;
-
         var parW = auxWindow.document.body.clientWidth;
-        var winW = auxWindow.wmsxFsElementCenter.clientWidth;
-        var winH = auxWindow.wmsxFsElementCenter.clientHeight;
+        var winW = auxFsElementCenter.clientWidth;
+        var winH = auxFsElementCenter.clientHeight;
 
        if (!force && auxReadjustScreenSize.pw === parW && auxReadjustScreenSize.w === winW && auxReadjustScreenSize.h === winH) return false;
 
@@ -2038,9 +2057,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     }
 
     function auxDisplayOptimalScaleY(maxWidth, maxHeight) {
-        var scY = maxHeight / targetHeight;
-        if (scrTargetWidth * auxAspectX * scY > maxWidth)
-            scY = maxWidth / (scrTargetWidth * auxAspectX);
+        var scY = maxHeight / auxTargetHeight;
+        if (auxScrTargetWidth * auxAspectX * scY > maxWidth)
+            scY = maxWidth / (auxScrTargetWidth * auxAspectX);
         return scY;
     }
 
@@ -2204,8 +2223,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var copyTextArea;
     var unmuteMessage;
 
-    var fsElement, fsElementCenter;
-
     var canvas, canvasOuter, canvasLoadingIcon;
     var canvasContext;
     var canvasImageRenderingValue;
@@ -2221,12 +2238,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var barMenu;
     var barMenus = [], barMenuActive, barMenuItemActive, barMenuSystem;
     var barMenuItemTouchActivation = 0;
-
-    var auxWindow;
-    var auxCanvas, auxCanvasContext;
-    var auxReadjustScreenSize = { w: 0, wk: 0, h: 0, pw: 0 };
-    var auxAspectX = WMSX.SCREEN_DEFAULT_ASPECT;
-    var auxScaleY = 1.1;
 
     var osd;
     var osdTimeout;
@@ -2253,10 +2264,19 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var targetWidth = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938, scrTargetWidth = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938;
     var targetHeight = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938;
 
+    var fsElement, fsElementCenter;
 
     var logo, logoCenter, logoImage, logoMessage, logoMessageText, logoMessageOK, logoMessageOKText, logoMessageActive = false;
     var logoLoadingIcon;
     var scrollMessage, scrollMessageActive = false;
+
+    var auxWindow;
+    var auxCanvas, auxCanvasContext;
+    var auxReadjustScreenSize = { w: 0, wk: 0, h: 0, pw: 0 };
+    var auxAspectX = WMSX.SCREEN_DEFAULT_ASPECT;
+    var auxScaleY = 1.1;
+    var auxTargetWidth = targetWidth, auxScrTargetWidth = scrTargetWidth, auxTargetHeight = targetHeight;
+    var auxLogo, auxFsElementCenter;
 
     var powerButton;
     var mediaIconsContainer;

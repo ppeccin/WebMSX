@@ -70,10 +70,10 @@ wmsx.Monitor = function(display) {
         intSignal.videoSignalDisplayStateUpdate(outputEffective !== 1, outputEffective === 2);
         if (extSignal) extSignal.videoSignalDisplayStateUpdate(outputEffective !== 0, outputEffective === 2);
 
-        if (outputEffective >= 1) extSignal.refreshDisplayMetrics();    // External Signal takes precedence when displayed
-        else intSignal.refreshDisplayMetrics();
-
         display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalName());
+
+        intSignal.refreshDisplayMetrics();
+        if (extSignal) extSignal.refreshDisplayMetrics();
     }
 
     this.toggleColorMode = function(dec) {
@@ -99,7 +99,7 @@ wmsx.Monitor = function(display) {
 
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {
         // Should we display this signal?
-        if (isSignalActive(signal))
+        if (isSignalDisplayed(signal))
             display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight, signal === intSignal);
     };
 
@@ -116,8 +116,8 @@ wmsx.Monitor = function(display) {
     };
 
     this.setDisplayMetrics = function(signal, renderWidth, renderHeight) {
-        if (isSignalActive(signal))
-            display.displayMetrics(renderWidth, renderHeight);
+        if (isSignalDisplayed(signal))
+            display.displayMetrics(renderWidth, renderHeight, signal === intSignal);
     };
 
     this.setDefaults = function() {
@@ -214,9 +214,8 @@ wmsx.Monitor = function(display) {
         }
     }
 
-    function isSignalActive(signal) {
+    function isSignalDisplayed(signal) {
         return (outputEffective !== 1 && signal === intSignal) || (outputEffective !== 0 && signal === extSignal);
-
     }
 
 
