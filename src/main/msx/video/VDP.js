@@ -2545,8 +2545,9 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         if (s.bf !== undefined) {
             F = s.bf; FH = s.bfh; VR = s.bvr; HR = s.bhr; EO = s.beo;
         } else {
-            F = status[0] >> 7; FH = status[1] & 1;                                             // backward compatibility
+            F = s.vi | 0; FH = status[1] & 1;                                                   // backward compatibility
             VR = (status[2] >> 6) & 1; HR = (status[2] >> 5) & 1; EO = (status[2] >> 1) & 1;
+            console.log(F, FH, VR, HR, EO);
         }
         vramInterleaving = s.vrint;
         commandProcessor.loadState(s.cp);
