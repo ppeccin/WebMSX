@@ -979,7 +979,6 @@ wmsx.V9990 = function() {
         frameBackBuffer.set(backdrop512, bufferPos);
     }
 
-    // TODO StandBy Top and Bottom borders are still Backdrop value. Make them use StandBy value
     function renderLineModeSBY() {
         renderLineTypeSBY(bufferPosition);
 
@@ -1867,7 +1866,7 @@ wmsx.V9990 = function() {
     var solidBlackValue =  0xff000000;
     var notPaintedValue  = 0xffff00ff;          // Pink
 
-    var standByValue =     0x00000000;
+    var standByValue =     solidBlackValue;
     var backdropValue =    solidBlackValue;
 
     var colors16bitValues = wmsx.ColorCache.getColors16bitValues();     // Init now, used by normal Palette
