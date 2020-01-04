@@ -234,16 +234,16 @@ wmsx.DOMPeripheralControls = function(room) {
                 }
                 break;
             case pc.SCREEN_CRT_FILTER:
-                monitor.crtFilterToggle(secPort); break;                // secPort for dec
+                screen.crtFilterToggle(secPort); break;                // secPort for dec
             case pc.SCREEN_CRT_SCANLINES:
-                monitor.crtScanlinesToggle(secPort); break;             // secPort for dec
+                screen.crtScanlinesToggle(secPort); break;             // secPort for dec
             case pc.SCREEN_CRT_PHOSPHOR:
-                monitor.crtPhosphorToggle(secPort); break;              // secPort for dec
+                screen.crtPhosphorToggle(secPort); break;              // secPort for dec
             case pc.SCREEN_FULLSCREEN:
-                monitor.fullscreenToggle(secPort); break;               // secPort for Windowed mode
+                screen.fullscreenToggle(secPort); break;               // secPort for Windowed mode
             case pc.SCREEN_DEFAULTS:
                 machineControls.processControlState(wmsx.MachineControls.DEFAULTS, true);
-                monitor.setDefaults();
+                screen.setDefaults();
                 break;
             case pc.SCREEN_TOGGLE_MENU:
                 screen.toggleMenuByKey();
@@ -328,13 +328,13 @@ wmsx.DOMPeripheralControls = function(room) {
         if (SCREEN_FIXED_SIZE) return;
         switch(control) {
             case pc.SCREEN_ASPECT_MINUS:
-                monitor.displayAspectDecrease(); break;
+                screen.displayAspectDecrease(); break;
             case pc.SCREEN_ASPECT_PLUS:
-                monitor.displayAspectIncrease(); break;
+                screen.displayAspectIncrease(); break;
             case pc.SCREEN_SCALE_MINUS:
-                monitor.displayScaleDecrease(); break;
+                screen.displayScaleDecrease(); break;
             case pc.SCREEN_SCALE_PLUS:
-                monitor.displayScaleIncrease(); break;
+                screen.displayScaleIncrease(); break;
         }
     }
 

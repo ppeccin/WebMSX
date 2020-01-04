@@ -65,36 +65,45 @@ wmsx.ScreenGUI.html = function() {
 };
 
 wmsx.ScreenGUI.auxHtml = function() {
-    return `<head>
-                <title>WebMSX 2nd Screen</title>
-            </head>
-            <body id="wmsx-aux-body">
-                <div id="wmsx-screen-fs" tabindex="0">
-                    <div id="wmsx-screen-fs-center" tabindex="-1">
-                        <div id="wmsx-screen-canvas-outer">
-                            <canvas id="wmsx-screen-canvas" tabindex="-1"></canvas>
+    return `<html class="wmsx-full-screen">
+                <head>
+                    <title>WebMSX: 2nd Video</title>
+                    <style type="text/css">`
+                        + wmsx.ScreenGUI.css() +
+                    `</style>
+                </head>
+                <body id="wmsx-aux-body">
+                    <div id="wmsx-screen-fs" tabindex="0">
+                        <div id="wmsx-screen-fs-center" tabindex="-1">
+                            <div id="wmsx-screen-canvas-outer">
+                                <canvas id="wmsx-screen-canvas" tabindex="-1"></canvas>
                                 <div id="wmsx-logo">
-                                <div id="wmsx-logo-center">
-                                    <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
-                                    <div id="wmsx-logo-message">
-                                        <div id="wmsx-logo-message-text"></div>
+                                    <div id="wmsx-logo-center">
+                                        <img id="wmsx-logo-image" draggable="false" src="` + wmsx.Images.urls.logo + `">
+                                        <div id="wmsx-logo-message">
+                                            <div id="wmsx-logo-message-text"></div>
+                                        </div>
                                     </div>
                                 </div>
+                                <div id="wmsx-osd"></div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <script>
-                    function onFirstResize() {
-                        // So we get the correct sizes of the just created window!
-                        window.onresize = undefined;
-                        opener.WMSX.room.screen.auxWindowFirstResize(window);
-                    }
-                    window.onresize = onFirstResize;
-                    // Make sure we get control even if resize event does not fire
-                    setTimeout(onFirstResize, 200);
-                </script>
-            </body>`;
+                    <script>
+                        // inner/outer dimensions are not reported consistently right after window has opened
+                        // So we do some async/event tricks to improve reliability  
+                        function onFirstResize() {
+                            window.onresize = undefined;
+                            setTimeout(function() {
+                                opener.WMSX.room.screen.auxWindowFirstResize(window);
+                            }, 121);
+                        }
+                        window.onresize = onFirstResize;
+                        // Make sure we get control even if resize event does not fire
+                        setTimeout(onFirstResize, 300);
+                    </script>
+                </body>
+            </html>`;
 };
 
 wmsx.ScreenGUI.css = function() {
@@ -112,9 +121,22 @@ wmsx.ScreenGUI.css = function() {
 }
 
 #wmsx-aux-body {
+    font-family: sans-serif;
+    font-weight: normal;
     margin: 0;
     padding: 0;
     background: black;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    text-size-adjust: none;
 }
 
 #wmsx-screen-fs, #wmsx-screen-fs div, #wmsx-screen-fs canvas {

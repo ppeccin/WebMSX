@@ -108,10 +108,6 @@ wmsx.Monitor = function(display) {
     };
 
     this.showOSD = function(message, overlap, error) {
-        this.showOSDDirect(message, overlap, error);
-    };
-
-    this.showOSDDirect = function(message, overlap, error) {
         display.showOSD(message, overlap, error);
     };
 
@@ -120,73 +116,13 @@ wmsx.Monitor = function(display) {
             display.displayMetrics(renderWidth, renderHeight, signal === intSignal);
     };
 
-    this.setDefaults = function() {
-        display.crtPhosphorSetDefault();
-        display.crtScanlinesSetDefault();
-        display.crtFilterSetDefault();
-        display.aspectAndScaleSetDefault();
-        display.requestReadjust(true);
-    };
-
     this.setDebugMode = function(signal, boo) {
         display.setDebugMode(boo);
-    };
-
-    this.crtFilterToggle = function(dec) {
-        display.crtFilterToggle(dec);
-    };
-
-    this.crtScanlinesToggle = function(dec) {
-        display.crtScanlinesToggle(dec);
-    };
-
-    this.crtPhosphorToggle = function(dec) {
-        display.crtPhosphorToggle(dec);
-    };
-
-    this.fullscreenToggle = function(windowed) {
-        display.displayToggleFullscreen(windowed);
-    };
-
-    this.displayAspectDecrease = function() {
-        this.displayScale(normalizeAspectX(displayAspectX - wmsx.Monitor.ASPECT_STEP), displayScaleY);
-        this.showOSDDirect("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
-    };
-
-    this.displayAspectIncrease = function() {
-        this.displayScale(normalizeAspectX(displayAspectX + wmsx.Monitor.ASPECT_STEP), displayScaleY);
-        this.showOSDDirect("Display Aspect: " + displayAspectX.toFixed(2) + "x", true);
-    };
-
-    this.displayScaleDecrease = function() {
-        this.displayScale(displayAspectX, normalizeScaleY(displayScaleY - wmsx.Monitor.SCALE_STEP));
-        this.showOSDDirect("Display Size: " + displayScaleY.toFixed(2) + "x", true);
-    };
-
-    this.displayScaleIncrease = function() {
-        this.displayScale(displayAspectX, normalizeScaleY(displayScaleY + wmsx.Monitor.SCALE_STEP));
-        this.showOSDDirect("Display Size: " + displayScaleY.toFixed(2) + "x", true);
     };
 
     this.getScreenText = function() {
         return intSignal.getScreenText();
     };
-
-    this.displayScale = function(aspectX, scaleY) {
-        displayAspectX = aspectX;
-        displayScaleY = scaleY;
-        display.displayScale(displayAspectX, displayScaleY);
-    };
-
-    function normalizeAspectX(aspectX) {
-        var ret = aspectX < 0.5 ? 0.5 : aspectX > 2.5 ? 2.5 : aspectX;
-        return Math.round(ret / wmsx.Monitor.ASPECT_STEP) * wmsx.Monitor.ASPECT_STEP;
-    }
-
-    function normalizeScaleY(scaleY) {
-        var ret = scaleY < 0.5 ? 0.5 : scaleY;
-        return Math.round(ret / wmsx.Monitor.SCALE_STEP) * wmsx.Monitor.SCALE_STEP;
-    }
 
     function showOutputModeOSD() {
         display.showOSD("Video Output: " + getOutputModeDesc(outputMode), true);
@@ -248,16 +184,9 @@ wmsx.Monitor = function(display) {
 
     var intSignal, extSignal;
 
-    var displayAspectX;
-    var displayScaleY;
-
-
     var COLOR_MODE_DESC = [ "Color", "B&W", "Green Phosphor", "Amber Phosphor" ];
     var PALETTE_MODE_DESC = [ "WebMSX Original", "V9918", "V9928", "V9938", "Toshiba", "Fujitsu FM-X" ];
 
 };
-
-wmsx.Monitor.SCALE_STEP = 0.05;
-wmsx.Monitor.ASPECT_STEP = 0.01;
 
 

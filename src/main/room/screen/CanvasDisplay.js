@@ -44,7 +44,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.powerOn = function() {
-        monitor.setDefaults();
+        this.setDefaults();
         updateLogo();
         document.documentElement.classList.add("wmsx-started");
         setPageVisibilityHandling();
@@ -323,7 +323,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         targetHeight = newTargetHeight;
 
         updateCanvasContentSize();
-        if (isFullscreen) self.requestReadjust(true);
+        if (isFullscreen) requestReadjust(true);
         else updateScale();
 
         // console.error("Display Metrics TARGET:", targetWidth, targetHeight);
@@ -352,17 +352,23 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (!auxWindow) return false;       // auxWindow not ready
 
         auxUpdateCanvasContentSize();
-        auxUpdateScale(true);
+        auxReadjustAll(true);
 
         // console.error("Display Metrics AUX TARGET:", auxTargetWidth, auxTargetHeight);
     }
 
-    this.displayScale = function(pAspectX, pScaleY) {
+    function displayScale (pAspectX, pScaleY) {
         aspectX = pAspectX;
         scaleY = pScaleY;
         updateScale();
         refreshPixelMetrics();
-    };
+    }
+
+    function auxDisplayScale (pAspectX, pScaleY, resizeWindow) {
+        auxAspectX = pAspectX;
+        auxScaleY = pScaleY;
+        auxUpdateScale(resizeWindow);
+    }
 
     function refreshPixelMetrics() {
         if (controllersHub) controllersHub.setScreenPixelScale(pixelWidth * scaleY * aspectX, pixelHeight * scaleY);
@@ -374,34 +380,41 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.showOSD = function(message, overlap, error) {
         if (osdTimeout) clearTimeout(osdTimeout);
-        if (!message) {
-            osd.style.transition = "all 0.15s linear";
-            osd.style.top = "-29px";
-            osd.style.opacity = 0;
-            osdShowing = false;
-            return;
-        }
+
+        if (!message) return hideOSDs();
+
+        var vOsd, vCanvas;
+        if (isFocusOnAuxWindow()) { vOsd = auxOsd; vCanvas = auxCanvas; }
+        else                      { vOsd = osd; vCanvas = canvasOuter; }
+
         if (overlap || !osdShowing) {
-            osd.innerHTML = message;
-            osd.style.color = error ? "rgb(255, 60, 40)" : "rgb(0, 255, 0)";
+            vOsd.innerHTML = message;
+            vOsd.style.color = error ? "rgb(255, 60, 40)" : "rgb(0, 255, 0)";
         }
-        osd.style.transition = "none";
-        osd.style.top = "12px";
-        osd.style.opacity = 1;
+        vOsd.style.transition = "none";
+        vOsd.style.top = "12px";
+        vOsd.style.opacity = 1;
         osdShowing = true;
 
-        var availWidth = canvasOuter.clientWidth - 30;      //  message width - borders
-        var width = osd.clientWidth;
+        var availWidth = vCanvas.clientWidth - 30;      //  message width - borders
+        var width = vOsd.clientWidth;
         var scale = width < availWidth ? 1 : availWidth / width;
-        osd.style.transform = "scale(" + scale.toFixed(4) + ")";
+        vOsd.style.transform = "scale(" + scale.toFixed(4) + ")";
 
-        osdTimeout = setTimeout(hideOSD, OSD_TIME);
+        osdTimeout = setTimeout(hideOSDs, OSD_TIME);
     };
+
+    function hideOSDs() {
+        osd.style.transition = auxOsd.style.transition = "all 0.15s linear";
+        osd.style.top = auxOsd.style.top = "-29px";
+        osd.style.opacity = auxOsd.style.opacity =  0;
+        osdShowing = false;
+    }
 
     function displayDefaultScale() {
         if (WMSX.SCREEN_DEFAULT_SCALE > 0) return WMSX.SCREEN_DEFAULT_SCALE;
 
-        var maxWidth = Number.parseFloat(window.getComputedStyle(mainElement.parentElement).width);
+        var maxWidth = mainElement.parentElement.clientWidth;
 
         //console.error(">>> Parent width: " + maxWidth);
 
@@ -410,27 +423,33 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             : maxWidth >= 660 ? 1.1 : maxWidth >= 540 ? 0.9 : maxWidth >= 420 ? 0.7 : maxWidth >= 320 ? 0.55 : 0.5;
     }
 
-    function hideOSD() {
-        osd.style.transition = "all 0.15s linear";
-        osd.style.top = "-29px";
-        osd.style.opacity = 0;
-        osdShowing = false;
-    }
-
     this.setDebugMode = function(boo) {
         debugMode = !!boo;
         if (debugMode && videoOutputMode > 1 && videoOutputMode < 4) monitor.setOutputMode(Math.min(1, videoOutputMode), true);        // Return to Internal or External output mode. Superimposed and Mixed not supported in Debug
         canvasContext = null;
     };
 
-    this.aspectAndScaleSetDefault = function() {
+    this.setDefaults = function() {
+        crtPhosphorSetDefault();
+        crtScanlinesSetDefault();
+        crtFilterSetDefault();
+        aspectAndScaleSetDefault();
+    };
+
+    function aspectAndScaleSetDefault() {
+        if (isFocusOnAuxWindow()) return auxAspectAndScaleSetDefault();
+
         aspectX = WMSX.SCREEN_DEFAULT_ASPECT;
         scaleY = displayDefaultScale();
         scaleYBeforeUserFullscreen = 0;
+        requestReadjust(true);
+    }
 
-        auxAspectX = aspectX;
-        auxScaleY = 1.10;
-    };
+    function auxAspectAndScaleSetDefault () {
+        auxAspectX = WMSX.SCREEN_DEFAULT_ASPECT;
+        auxScaleY = displayDefaultScale();
+        auxReadjustAll(true);
+    }
 
     this.crtFilterToggle = function(dec) {
         var newLevel;
@@ -449,10 +468,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     };
 
-    this.crtFilterSetDefault = function() {
+    function crtFilterSetDefault() {
         var user = WMSX.userPreferences.current.crtFilter;
         setCRTFilter(WMSX.SCREEN_FILTER_MODE !== -3 ? WMSX.SCREEN_FILTER_MODE : user !== null && user > -3 ? user : -1);
-    };
+    }
 
     this.crtScanlinesToggle = function(dec) {
         var newLevel;
@@ -463,7 +482,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (!crtScanlines && newLevel) {
             var spots = [ 0.5, 0.75, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5 ];
             var i = 0; while (i < spots.length - 1 && scaleY >= spots[i]) ++i;
-            monitor.displayScale(aspectX, spots[i - 1]);
+            displayScale(aspectX, spots[i - 1]);
+            if (auxWindow) {
+                i = 0; while (i < spots.length - 1 && auxScaleY >= spots[i]) ++i;
+                auxDisplayScale(auxAspectX, spots[i - 1], !auxIsMaxed());
+            }
         }
 
         setCRTScanlines(newLevel);
@@ -477,10 +500,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     };
 
-    this.crtScanlinesSetDefault = function() {
+    function crtScanlinesSetDefault() {
         var user = WMSX.userPreferences.current.crtScanlines;
         setCRTScanlines(WMSX.SCREEN_CRT_SCANLINES !== -1 ? Math.max(0, Math.min(10, WMSX.SCREEN_CRT_SCANLINES)) : user !== null && user > -1 ? user : 0);
-    };
+    }
 
     this.crtPhosphorToggle = function(dec) {
         var newMode;
@@ -492,9 +515,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         this.showOSD("CRT Phosphor: " + (crtPhosphor === -1 ? "AUTO (" + effectDesc + ")" : effectDesc), true);
     };
 
-    this.crtPhosphorSetDefault = function() {
+    function crtPhosphorSetDefault() {
         setCRTPhosphor(WMSX.SCREEN_CRT_PHOSPHOR);
-    };
+    }
 
     this.getControlReport = function(control) {
         switch (control) {
@@ -506,12 +529,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         return { label: "Unknown", active: false };
     };
 
-    this.displayToggleFullscreen = function(windowed) {                 // Only and Always user initiated
+    this.fullscreenToggle = function(windowed) {                 // Only and Always user initiated
         if (FULLSCREEN_MODE === -2) return;
 
-        // Aux Window fullscreen request?
-        if (auxWindow && auxWindow.document.hasFocus())
-            return this.auxDisplayToggleFullscreen();
+        if (isFocusOnAuxWindow()) return auxDisplayToggleFullscreen();
 
         // Save scale before Fullscreen
         if (!isFullscreen && !isMobileDevice) scaleYBeforeUserFullscreen = scaleY;
@@ -543,10 +564,60 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         //    setFullscreenState(mode)
     };
 
-    this.auxDisplayToggleFullscreen = function () {
+    function auxDisplayToggleFullscreen() {
         if (!auxIsFullScreenByAPI()) auxEnterFullScreenByAPI();
         else auxExitFullScreenByAPI();
+    }
+
+    this.displayAspectDecrease = function() {
+        if (isFocusOnAuxWindow()) {
+            auxDisplayScale(normalizeAspectX(auxAspectX - ASPECT_STEP), auxScaleY, !auxIsMaxed());
+            this.showOSD("Display Aspect: " + auxAspectX.toFixed(2) + "x", true);
+        } else {
+            displayScale(normalizeAspectX(aspectX - ASPECT_STEP), scaleY);
+            this.showOSD("Display Aspect: " + aspectX.toFixed(2) + "x", true);
+        }
     };
+
+    this.displayAspectIncrease = function() {
+        if (isFocusOnAuxWindow()) {
+            auxDisplayScale(normalizeAspectX(auxAspectX + ASPECT_STEP), auxScaleY, !auxIsMaxed());
+            this.showOSD("Display Aspect: " + auxAspectX.toFixed(2) + "x", true);
+        } else {
+            displayScale(normalizeAspectX(aspectX + ASPECT_STEP), scaleY);
+            this.showOSD("Display Aspect: " + aspectX.toFixed(2) + "x", true);
+        }
+    };
+
+    this.displayScaleDecrease = function() {
+        if (isFocusOnAuxWindow()) {
+            auxDisplayScale(auxAspectX, normalizeScaleY(auxScaleY - SCALE_STEP), !auxIsMaxed());
+            this.showOSD("Display Size: " + auxScaleY.toFixed(2) + "x", true);
+        } else {
+            displayScale(aspectX, normalizeScaleY(scaleY - SCALE_STEP));
+            this.showOSD("Display Size: " + scaleY.toFixed(2) + "x", true);
+        }
+    };
+
+    this.displayScaleIncrease = function() {
+        if (isFocusOnAuxWindow()) {
+            auxDisplayScale(auxAspectX, normalizeScaleY(auxScaleY + SCALE_STEP), !auxIsMaxed());
+            this.showOSD("Display Size: " + auxScaleY.toFixed(2) + "x", true);
+        } else {
+            displayScale(aspectX, normalizeScaleY(scaleY + SCALE_STEP));
+            this.showOSD("Display Size: " + scaleY.toFixed(2) + "x", true);
+        }
+    };
+
+    function normalizeAspectX(aspectX) {
+        var ret = aspectX < 0.5 ? 0.5 : aspectX > 2.5 ? 2.5 : aspectX;
+        return Math.round(ret / ASPECT_STEP) * ASPECT_STEP;
+    }
+
+    function normalizeScaleY(scaleY) {
+        var ret = scaleY < 0.5 ? 0.5 : scaleY;
+        return Math.round(ret / SCALE_STEP) * SCALE_STEP;
+    }
 
     this.focus = function() {
         canvas.focus();
@@ -706,7 +777,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         touchControlsMirror = mirror;
         if (isFullscreen) {
             if (touchControlsActive) controllersHub.setupTouchControlsIfNeeded(fsElementCenter);
-            this.requestReadjust(true);
+            requestReadjust(true);
         }
     };
 
@@ -768,8 +839,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             canvasContext = null; auxCanvasContext = null;
         }
 
-        if (videoOutputMode >= 4) setupAndShowAuxWindow();
-        else closeAuxWindow();
+        if (videoOutputMode >= 4) {
+            setupAndShowAuxWindow();
+            auxWindowUpdateTitle();
+        } else
+            closeAuxWindow();
 
         if (barMenuActive === menu) refreshBarMenu(menu);
     };
@@ -788,14 +862,14 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     };
 
-    this.requestReadjust = function(now, keepFocus) {
+    function requestReadjust(now, keepFocus) {
         if (now)
             readjustAll(true, keepFocus);
         else {
             readjustRequestTime = wmsx.Util.performanceNow();
             if (!readjustInterval) readjustInterval = setInterval(readjustAll, 50);
         }
-    };
+    }
 
     function setVirtualKeyboard(mode) {
         if (virtualKeyboardMode === mode) return;
@@ -808,7 +882,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         showCursorAndBar(true);
         document.documentElement.classList.toggle("wmsx-virtual-keyboard-active", !!mode);
         virtualKeyboardMode = mode;
-        self.requestReadjust(true);
+        requestReadjust(true);
     }
 
     function releaseControllersOnLostFocus() {
@@ -847,7 +921,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         // Return to window interface mode if user asked or not in standalone mode
         if (newAPIState || fullScreenAPIExitUserRequested || !isBrowserStandalone) setFullscreenState(newAPIState);
-        else self.requestReadjust();
+        else requestReadjust();
 
         // If machine not paused and on mobile, set message to resume, or set event to return to full screen
         if (prevFSState && !newAPIState && !fullScreenAPIExitUserRequested && isMobileDevice) {
@@ -888,7 +962,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function auxEnterFullScreenByAPI() {
         if (fullscreenAPIEnterMethod) try {
-            fullscreenAPIEnterMethod.call(auxFsElementCenter);
+            fullscreenAPIEnterMethod.call(auxFsElementCenter);      // resize event will trigger
         } catch (e) {
             /* give up */
         }
@@ -896,7 +970,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function auxExitFullScreenByAPI() {
         if (fullScreenAPIExitMethod) try {
-            fullScreenAPIExitMethod.call(auxWindow.document);
+            fullScreenAPIExitMethod.call(auxWindow.document);      // resize event will trigger
         } catch (e) {
             /* give up */
         }
@@ -904,6 +978,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function auxIsFullScreenByAPI() {
         return !!auxWindow.document[fullScreenAPIQueryProp];
+    }
+
+    function auxIsMaxed() {
+        return auxIsFullScreenByAPI() || (auxWindow.outerWidth >= auxWindow.screen.availWidth && auxWindow.outerHeight >= auxWindow.screen.availHeight)
     }
 
     function updateScale() {
@@ -924,7 +1002,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         if (changeWindow) {
             auxWindow.resizeTo(newWidth + auxWindowAddWidth, newHeight + auxWindowAddHeight);
-            console.error("AuxWindow size:", newWidth, newHeight, newWidth + auxWindowAddWidth, newHeight + auxWindowAddHeight);
+            // console.error("AuxWindow scale:", auxScaleY, newWidth, newHeight, newWidth + auxWindowAddWidth, newHeight + auxWindowAddHeight);
+        } else {
+            // console.error("AuxCanvas scale:", auxScaleY, newWidth, newHeight);
         }
     }
 
@@ -1128,34 +1208,37 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function setupAndShowAuxWindow() {
         if (auxWindow) return;
 
-        var newWindow = window.open("", "WebMSX 2nd Screen", "width=" + 682 + ",height=" + (502 + 1)
+        var scale = displayDefaultScale();
+        var width = wmsx.VDP.SIGNAL_MAX_WIDTH_V9938 * auxAspectX * scale;       // 682
+        var height = wmsx.VDP.SIGNAL_MAX_HEIGHT_V9938 * scale;                  //  502;
+
+        var newWindow = window.open("", "WebMSX: 2nd Video", "width=" + width + ",height=" + (height + 1)
             + ",scrollbars=no,status=no,location=no,toolbar=no,menubar=no");
 
         var document = newWindow.document;
         document.open("text/html", "replace").write(wmsx.ScreenGUI.auxHtml());
         document.close();
-        wmsx.Util.insertCSS(document, wmsx.ScreenGUI.css());
-        document.documentElement.classList.add("wmsx-full-screen");
-
-        console.log("FINISHED");
     }
 
     this.auxWindowFirstResize = function(newWindow) {
         if (auxWindow) return;
 
-        auxWindowAddWidth = newWindow.outerWidth - newWindow.innerWidth;
-        auxWindowAddHeight = newWindow.outerHeight - newWindow.innerHeight;
-        console.error("AuxWindow first resize:", newWindow.innerWidth, newWindow.innerHeight, auxWindowAddWidth, auxWindowAddHeight);
+        // Get window chrome additional dimensions only once. Use some maximum values for safety
+        auxWindowAddWidth = Math.min(16, newWindow.outerWidth - newWindow.innerWidth);
+        auxWindowAddHeight = Math.min(100, newWindow.outerHeight - newWindow.innerHeight);
+        // console.error("AuxWindow first resize:", newWindow.innerWidth, newWindow.innerHeight, auxWindowAddWidth, auxWindowAddHeight);
 
         auxWindow = newWindow;
         var document = auxWindow.document;
 
         auxFsElementCenter = document.getElementById("wmsx-screen-fs-center");
-        auxLogo = document.getElementById("wmsx-logo");
         auxCanvas = document.getElementById("wmsx-screen-canvas");
+        auxLogo = document.getElementById("wmsx-logo");
+        auxOsd = document.getElementById("wmsx-osd");
 
+        auxWindowUpdateTitle();
         auxUpdateCanvasContentSize();
-        auxUpdateScale(true);
+        auxAspectAndScaleSetDefault();
 
         suppressContextMenu(document.body);
         preventDrag(auxLogo);
@@ -1169,30 +1252,34 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         auxWindow.addEventListener("beforeunload", auxWindowUnload);
 
         auxCanvas.focus();
-
-        window.focus();
-        self.focus();
     };
 
     function auxWindowResized() {
-        console.error("AuxWindow resized");
-
-        auxReadjustByWindow(false);
+        auxReadjustAll(false, true);
     }
 
     function auxWindowUnload() {
         monitor.setOutputMode(-1);
-        window.focus();
         self.focus();
     }
 
     function closeAuxWindow() {
         if (!auxWindow) return;
 
+        self.focus();
         auxWindow.removeEventListener("resize", auxWindowResized);
         auxWindow.removeEventListener("beforeunload", auxWindowUnload);
         auxWindow.close();
         auxWindow = auxFsElementCenter = auxLogo = auxCanvas = auxCanvasContext = undefined;
+        auxOsd = { style: {} };         // Dummy for use when AuxWindow is not open
+    }
+
+    function auxWindowUpdateTitle() {
+        if (auxWindow) auxWindow.document.title = "WebMSX: " + (videoOutputMode === 4 ? "V9990 Video" : "Internal Video" );
+    }
+
+    function isFocusOnAuxWindow() {
+        return auxWindow && auxWindow.document.hasFocus();
     }
 
     function setupScanlines() {
@@ -1219,7 +1306,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             closeAllOverlays();
             if (signalIsOn) hideCursorAndBar();
             else showCursorAndBar();
-            self.requestReadjust();
+            requestReadjust();
         });
 
         window.addEventListener("resize", function windowResized() {
@@ -1227,7 +1314,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                 closeAllOverlays(true);
                 if (signalIsOn) hideCursorAndBar();
                 else showCursorAndBar();
-                self.requestReadjust(true, true);
+                requestReadjust(true, true);
             }
         });
 
@@ -1728,7 +1815,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
 
         closeAllOverlays();
-        self.requestReadjust();
+        requestReadjust();
         controllersHub.screenFullscreenStateUpdate(isFullscreen);
     }
 
@@ -2012,10 +2099,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                 var winH = readjustScreenSize.h;
                 if (!isLandscape || virtualKeyboardMode) winH -= wmsx.ScreenGUI.BAR_HEIGHT + 2;
                 if (virtualKeyboardMode) winH -= keyboardRect.h + 2;
-                monitor.displayScale(aspectX, displayOptimalScaleY(readjustScreenSize.w, winH));
+                displayScale(aspectX, displayOptimalScaleY(readjustScreenSize.w, winH));
             } else {
                 buttonsBarDesiredWidth = -1;
-                monitor.displayScale(aspectX, scaleYBeforeUserFullscreen || displayDefaultScale());
+                displayScale(aspectX, scaleYBeforeUserFullscreen || displayDefaultScale());
             }
 
             if (!keepFocus) self.focus();
@@ -2045,10 +2132,13 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         return true;
     }
 
-    function auxReadjustByWindow(force) {
-        if (auxReadjustScreeSizeChanged(force)) {
-            auxScaleY = auxDisplayOptimalScaleY(auxReadjustScreenSize.w, auxReadjustScreenSize.h);
-            auxUpdateScale(false);
+    function auxReadjustAll(force, byWindow) {
+        if (auxReadjustScreeSizeChanged(force || byWindow)) {
+            if (auxIsMaxed() || byWindow) {
+                auxDisplayScale(auxAspectX, auxDisplayOptimalScaleY(auxReadjustScreenSize.w, auxReadjustScreenSize.h));
+            } else {
+                auxDisplayScale(auxAspectX, auxScaleY, true);   // resize AuxWindow
+            }
         }
     }
 
@@ -2293,6 +2383,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var auxScaleY = 1.1;
     var auxTargetWidth = targetWidth, auxScrTargetWidth = scrTargetWidth, auxTargetHeight = targetHeight;
     var auxLogo, auxFsElementCenter;
+    var auxOsd = { style: {} };         // Dummy for use when AuxWindow is not open
 
     var powerButton;
     var mediaIconsContainer;
@@ -2342,6 +2433,10 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var MENU_ITEM_SELECT_KEYS = {}; MENU_ITEM_SELECT_KEYS[domKeys.VK_UP.wc] = -1; MENU_ITEM_SELECT_KEYS[domKeys.VK_DOWN.wc] = 1;
 
     var OPEN_TYPE = wmsx.FileLoader.OPEN_TYPE;
+
+    var SCALE_STEP = 0.05;
+    var ASPECT_STEP = 0.01;
+
 
     init();
 

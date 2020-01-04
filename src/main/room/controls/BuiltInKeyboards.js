@@ -350,18 +350,18 @@
             "pt-BR": en_BR,
             "ja-JP": en_JP,
             "es-ES": en_ES,
-            "nl-NL": en_NL,
             "it-IT": en_IT,
-            "fr-FR": en_FR
+            "fr-FR": en_FR,
+            "nl-NL": en_NL
         },
         ja: {
             "en-US": ja_US,
             "pt-BR": ja_BR,
             "ja-JP": ja_JP,
             "es-ES": ja_ES,
-            "nl-NL": ja_NL,
             "it-IT": ja_IT,
-            "fr-FR": ja_FR
+            "fr-FR": ja_FR,
+            "nl-NL": ja_NL
         }
     };
 

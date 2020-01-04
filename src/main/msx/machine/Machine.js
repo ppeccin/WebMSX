@@ -193,7 +193,7 @@ wmsx.Machine = function() {
     };
 
     this.showOSD = function(message, overlap, error) {
-        videoSocket.getMonitor().showOSDDirect(message, overlap, error);
+        videoSocket.getMonitor().showOSD(message, overlap, error);
     };
 
     this.setVideoStandardSoft = function(pVideoStandard) {
