@@ -5,7 +5,6 @@
 // Color Bus, B/W Mode, Wait Function not supported
 // Gen-lock with Internal VDP is always active
 // Original base clock: 21477270 Hz (XTAL), same as Internal VDP which is 6x CPU clock. Rectified to real 60Hz: 21504960 Hz
-// TODO Connect to Kanji ROM and add CMMK support
 
 wmsx.V9990 = function() {
 "use strict";
@@ -680,7 +679,7 @@ wmsx.V9990 = function() {
 
     function updateIRQ() {
         if (register[9] & interruptFlags) {         // (IEV == 1 & VI == 1) || (IEH == 1 & HI == 1) || (IECE == 1 & CE == 1) all bits aligned
-            cpu.setINTChannel(1, 0);                // V9990 using fixed channel 1
+            cpu.setINTChannel(1, 0);                // V9990 using fixed channel 1. What if multiple V9990 connected?
 
             // logInfo(">>>  INT ON");
         } else {
@@ -2045,9 +2044,6 @@ wmsx.V9990 = function() {
 
     this.register = register;
     this.registerWrite = registerWrite;
-
-
-    window.V9990 = this;      // TODO Global
 
 };
 

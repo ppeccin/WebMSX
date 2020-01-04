@@ -1399,9 +1399,6 @@ wmsx.V9990CommandProcessor = function() {
         return eval(str);
     };
 
-
-    window.V9990CMD = this;      // TODO Global
-
 };
 
 

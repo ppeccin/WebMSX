@@ -2582,9 +2582,6 @@ wmsx.VDP = function(machine, cpu) {
         return eval(str);
     };
 
-
-    window.VDP = this;      // TODO Global
-
 };
 
 wmsx.VDP.VRAM_LIMIT = 0x1ffff;      // 128K

@@ -8,9 +8,6 @@ wmsx.OPL4Audio = function(pName, cart) {
     var self = this;
 
     function init(self) {
-
-        // window.OPL4 = self;
-
         name = pName || "OPL4";
         self.fm = fm = new wmsx.OPL4AudioFM(self);
         self.wave = wave = new wmsx.OPL4AudioWave(self);
@@ -39,7 +36,7 @@ wmsx.OPL4Audio = function(pName, cart) {
     };
 
     this.reset = function() {
-        // Start with audio disconnected
+        // Start with audio connected
         connectAudio();
 
         fm.reset();

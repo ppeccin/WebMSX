@@ -3223,8 +3223,6 @@ wmsx.Z80 = function() {
         return eval(str);
     };
 
-    window.CPU = this;      // TODO Global
-
 };
 
 wmsx.Z80.BASE_CLOCK = 3584160;      // Hz
