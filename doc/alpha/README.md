@@ -278,7 +278,7 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `BOOT_KEYS_FRAMES`              |  -1                 |  Number of frames for Boot Keys. -1: auto; > 0: frames
 | `FAST_BOOT`                     |  0                  |  Number of frames for Fast Boot. 0: off; 1: auto (same as Boot Keys frames); > 1: number of frames
 | `VDP_TYPE`                      |  -1                 |  VDP Chip. -1: auto; 1: V9918; 2: V9938; 3: V9958
-| `+ VDP_PALETTE`                 |  2                  |  MSX1 Palette. 0: WebMSX Original; 1: V9918; 2: V9928; 3: V9938; 4: Toshiba; 5: Fujitsu FM-X
+| **+** `VDP_PALETTE`             |  2                  |  MSX1 Palette. 0: WebMSX Original; 1: V9918; 2: V9928; 3: V9938; 4: Toshiba; 5: Fujitsu FM-X
 | `RTC_ACTIVE`                    |  -1                 |  RTC Chip. -1: auto; 0: not present; 1: present
 | `RAMMAPPER_SIZE`                |  512                |  RAM Mapper size when active. 64, 128, 256, 512, 1024, 2048, 4096, in KB 
 | `RAMNORMAL_SIZE`                |  64                 |  Normal RAM size when active. 16..64, in KB
@@ -299,26 +299,26 @@ https://webmsx.org?MACHINE=MSX1E&DISK=https://basicmuseum.org/Demos.dsk&BASIC_RU
 | `SCREEN_CONTROL_BAR`            |  1                  |  Screen Bottom Bar controls. 0: on hover; 1: always
 | `SCREEN_FORCE_HOST_NATIVE_FPS`  |  -1                 |  Force host native video frequency. -1: auto-detect. Don't change! :-)
 | `SCREEN_VSYNC_MODE`             |  -2                 |  VSync mode. -2: user set (default auto); -1: disabled; 0: off; 1: auto (on when available)
-| `+ SCREEN_VIDEO_OUT`            |  -1                 |  Video output. -1: auto; 0: Internal VDP; 1: External V9990; 2: Superimposed; 3: Mixed; 4: Dual (main: Internal); 5: Dual (main: V9990)
-| `+ SCREEN_COLORS`               |  0                  |  CTR color type. 0: Color; 1: B&W; 2: Green Phosphor; 3: Amber Phosphor
+| **+** `SCREEN_VIDEO_OUT`        |  -1                 |  Video output. -1: auto; 0: Internal VDP; 1: External V9990; 2: Superimposed; 3: Mixed; 4: Dual (main: Internal); 5: Dual (main: V9990)
+| **+** `SCREEN_COLORS`           |  0                  |  CRT color type. 0: Color; 1: B&W; 2: Green Phosphor; 3: Amber Phosphor
 | `AUDIO_MONITOR_BUFFER_BASE`     |  -3                 |  Audio buffer base size. -3: user set (default auto); -2: disable audio; -1: auto; 0: browser default; 1..6: base value. More buffer = more delay
 | `AUDIO_MONITOR_BUFFER_SIZE`     |  -1                 |  Audio buffer size. -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size. More buffer = more delay. Don't change! :-)
 | `AUDIO_SIGNAL_BUFFER_RATIO`     |  2                  |  Internal Audio Signal buffer based on Monitor buffer
 | `AUDIO_SIGNAL_ADD_FRAMES`       |  3                  |  Additional frames in internal Audio Signal buffer based on Monitor buffer
-| `+ R800_CLOCK_MODE`             |  0                  |  R800 CPU Clock. 0: auto; (0..2]: R800 CPU clock multiplier
-| `+ R800_TIMING`                 |  1                  |  Precise R800/S1990 timings. 0: off, 1: on; 2: VDP waits only. Turn off for faster and lighter emulation
+| **+** `R800_CLOCK_MODE`         |  0                  |  R800 CPU Clock. 0: auto; (0..2]: R800 CPU clock multiplier
+| **+** `R800_TIMING`             |  1                  |  Precise R800/S1990 timings. 0: off, 1: on; 2: VDP waits only. Turn off for faster and lighter emulation
 | `Z80_CLOCK_MODE`                |  0                  |  Z80 CPU Clock. 0: auto (soft-turbo possible); (0..8]: CPU clock multiplier
 | `VDP_CLOCK_MODE`                |  0                  |  VDP Command Engine Clock. 0: auto (soft-turbo possible); (0..8]: Engine clock multiplier; 9: instantaneous
 | `Z80_SOFT_TURBO_MULTI`          |  1.5                |  Z80 CPU clock multiplier when in AUTO mode and activated by software. 1..8: multi
 | `VDP_SOFT_TURBO_MULTI`          |  1                  |  VDP Command Engine clock multiplier when in AUTO mode and activated by software. 1..9: multi
-| `+ CPU_SOFT_TURBO_AUTO_ON`      |  0                  |  Automatically activate the CPU Soft Turbo when supported by machine. 0: off, 1: on 
-| `+ CPU_FAKE_TR_TURBO`           |  -1                 |  Simulated tR CHGCPU Turbo activation. -1: auto; 0: off; 1: on. Auto ON for 2+, never for tR
-| `+ CPU_PANA_TURBO`              |  -1                 |  Simulated Panasonic Turbo activation. -1: auto; 0: off; 1: on. Auto ON for 2+, never for tR
+| **+** `CPU_SOFT_TURBO_AUTO_ON`  |  0                  |  Automatically activate the CPU Soft Turbo when supported by machine. 0: off, 1: on 
+| **+** `CPU_FAKE_TR_TURBO`       |  -1                 |  Simulated tR CHGCPU Turbo activation. -1: auto; 0: off; 1: on. Auto ON for 2+, never for tR
+| **+** `CPU_PANA_TURBO`          |  -1                 |  Simulated Panasonic Turbo activation. -1: auto; 0: off; 1: on. Auto ON for 2+, never for tR
 | `JOYSTICKS_MODE`                |  0                  |  Joysticks (on Host) controls. -1: disabled; 0: auto; 1: auto (swapped)
 | `JOYKEYS_MODE`                  |  -1                 |  JoyKeys controls. -1: disabled; 0: enabled at port 1; 1: enabled at port 2; 2: enabled at both ports; 3: enabled at both ports (swapped)
 | `MOUSE_MODE`                    |  -1                 |  Mouse controls. -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
 | `TOUCH_MODE`                    |  0                  |  Touch controls. -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
-| `+ MOBILE_MODE`                 |  0                  |  Forced Mobile interface. -1: disabled; 0: auto; 1: enabled
+| **+** `MOBILE_MODE`             |  0                  |  Forced Mobile interface. -1: disabled; 0: auto; 1: enabled
 | `DEBUG_MODE`                    |  0                  |  Debug Modes. 0: off; 1..7: mode. Don't change! :-)
 | `SPRITES_DEBUG_MODE`            |  0                  |  Sprites Debug Modes. 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
 | `KEYBOARD_JAPAN_LAYOUT`         |  1                  |  Japanese keyboard layout. 0: ANSI, 1: JIS
