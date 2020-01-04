@@ -51,7 +51,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         this.focus();
         if (WMSXFullScreenSetup.shouldStartInFullScreen()) {
             setFullscreenState(true);
-            if (FULLSCREEN_MODE === 1) setEnterFullscreenByAPIOnFirstTouch();       // Not if mode = 2 (Windowed)
+            if (FULLSCREEN_MODE !== 2 & isMobileDevice) setEnterFullscreenByAPIOnFirstTouch();       // Not if mode = 2 (Windowed)
         }
     };
 
@@ -267,6 +267,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     };
 
     this.toggleVirtualKeyboard = function() {
+        // this.showOSD("Info: " + navigator.maxTouchPoints + ", " + window.orientation + ", " + wmsx.Util.isMobileDevice() + ", " + WMSX.MOBILE_MODE);
+
         setVirtualKeyboard((virtualKeyboardMode + 1) % 3);
     };
 
@@ -832,7 +834,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         menu[6].checkedOp = mode >= 4 ? mode - 3 : 0;
         menu[6].disabled = !this.isDualScreenAllowed();
         menu[8].disabled = autoInternal && mode === -1;
-        if (barMenuActive === menu) refreshBarMenu(menu);
 
         if (videoOutputMode !== effectiveMode) {
             videoOutputMode = effectiveMode;

@@ -492,11 +492,13 @@ wmsx.Util = new function() {
     };
 
     this.isMobileDevice = function() {
-        return this.isTouchDevice() && (/android|blackberry|iemobile|ipad|iphone|ipod|opera mini|webos/i).test(navigator.userAgent);
+        return WMSX.MOBILE_MODE > 0 || (WMSX.MOBILE_MODE !== -1 && this.isTouchDevice() && (
+            (/android|blackberry|iemobile|ipad|iphone|ipod|opera mini|webos/i).test(navigator.userAgent)
+            || (navigator.maxTouchPoints > 1 && window.orientation !== undefined && window.orientation !== null)));
     };
 
     this.isIOSDevice = function() {
-        return (/ipad|iphone|ipod/i).test(navigator.userAgent);
+        return (/ipad|iphone|ipod/i).test(navigator.userAgent);     // Will return FALSE for new iPadOS browsers
     };
 
     this.isBrowserStandaloneMode = function() {

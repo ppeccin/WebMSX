@@ -188,6 +188,7 @@ wmsx.Configurator = {
         WMSX.JOYKEYS_MODE |= 0;
         WMSX.MOUSE_MODE |= 0;
         WMSX.TOUCH_MODE |= 0;
+        WMSX.MOBILE_MODE |= 0;
         WMSX.VOL = Number(WMSX.VOL); if (isNaN(WMSX.VOL)) WMSX.VOL = 1;
         WMSX.HARDDISK_MIN_SIZE_KB |= 0;
         WMSX.MEGARAM_SIZE |= 0;

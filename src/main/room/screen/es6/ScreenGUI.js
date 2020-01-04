@@ -126,6 +126,7 @@ wmsx.ScreenGUI.css = function() {
     margin: 0;
     padding: 0;
     background: black;
+    overflow: hidden;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;

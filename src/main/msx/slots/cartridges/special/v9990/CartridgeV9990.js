@@ -49,7 +49,7 @@ wmsx.CartridgeV9990 = function(rom) {
     };
 
     this.v9990DisplayEnabled = function() {
-        if (mode === 0) this.output6f(0);      // When in default mode (Internal) and V9990 is actifaved, set mode = 1 (V9990) automatically
+        if (mode === 0) this.output6f(0);      // When in default mode (Internal) and V9990 is activated, set mode = 1 (V9990) automatically
     };
 
     this.output6f = function(val) {

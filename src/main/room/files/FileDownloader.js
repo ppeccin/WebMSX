@@ -14,7 +14,6 @@ wmsx.FileDownloader = function() {
     this.startDownloadBinary = function (fileName, data, desc) {
         try {
             if (!saveType) setup();
-            if (checkNone()) return false;
 
             var href;
             if (saveType === "BLOB") {
@@ -41,7 +40,6 @@ wmsx.FileDownloader = function() {
     this.startDownloadURL = function (fileName, url, desc) {
         try {
             if (!saveType) setup();
-            if (checkNone()) return;
 
             if (saveType === "BLOB")
                 // Release previous URL
@@ -58,20 +56,8 @@ wmsx.FileDownloader = function() {
         }
     };
 
-    function checkNone() {
-        if (saveType === "NONE") {
-            alert("Unfortunately file saving in WebApps is broken in this version of iOS. The file could not be saved. If you really need to save a file, you must run WebMSX on the official homepage." );
-            return true;
-        }
-    }
-
     function setup() {
-        saveType = wmsx.Util.isIOSDevice()
-            ? wmsx.Util.isBrowserStandaloneMode() ? "NONE" : "DATA"
-            : wmsx.Util.browserInfo().name === "SAFARI" ? "DATA" : "BLOB";
-
-        // No need to create link element if we won't use it
-        if (saveType === "NONE") return;
+        saveType = wmsx.Util.isIOSDevice() ? "DATA" : "BLOB";
 
         downloadLinkElement = document.createElement('a');
         downloadLinkElement.style.display = "none";
