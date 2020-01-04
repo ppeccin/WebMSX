@@ -36,14 +36,20 @@ wmsx.SlotPlainROM = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             ba: baseAddress
         };
     };
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        if (s.b)
+            bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        else {
+            this.rom.reloadEmbeddedContent();
+            if (!bytes || bytes.length !== this.rom.content.length) bytes = new Array(this.rom.content.length);
+            wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
+        }
         this.bytes = bytes;
         baseAddress = s.ba;
         topAddress = baseAddress + bytes.length;

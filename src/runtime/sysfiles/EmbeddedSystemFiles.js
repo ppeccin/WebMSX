@@ -54,11 +54,6 @@ wmsx.EmbeddedSystemFiles = {
             0x3c9b: [ 0x02 ]                                            // reg9 PAL init
         }},
 
-        // MSX2+ NTSC Bootlogo, based on PAL version
-        "MSX2POPEN_NTSC.bios": { based: "@MSX2POPEN_PAL.bios", diffs: {
-            0x3c9b: [ 0x00 ]                                            // reg9 NTSC init
-        }},
-
         // MSX tR NTSC Main Bios+Basic, based on PAL version
         "MSXTR_NTSC.bios": { based: "@MSXTR_PAL.bios", diffs: {
             0x2b: [ 0x11 ],                                             // NTSC flag
@@ -76,9 +71,9 @@ wmsx.EmbeddedSystemFiles = {
             0x2c6c: [ 0x00 ]                                            // reg9 NTSC init
         }},
 
-        // MSX tR NTSC Bootlogo, based on PAL version
-        "MSXTROPEN_NTSC.bios": { based: "@MSXTROPEN_PAL.bios", diffs: {
-            0x3c3e: [ 0x00 ]                                            // reg9 NTSC init
+        // MSX tR PAL Bootlogo, based on NTSC version
+        "MSXTROPEN_PAL.bios": { based: "@MSXTROPEN_NTSC.bios", diffs: {
+            0x3c3e: [ 0x02 ]                                            // reg9 PAL init
         }}
 
     }

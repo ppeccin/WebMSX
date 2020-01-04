@@ -141,7 +141,7 @@ wmsx.CartridgeHalnote = function(rom) {
         return {
             f: this.format.name,
             r: this.rom.saveState(),
-            b: wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
+            b: this.lightState() ? null : wmsx.Util.compressInt8BitArrayToStringBase64(bytes),
             b1: bank1Offset,
             b2: bank2Offset,
             b3: bank3Offset,
@@ -158,7 +158,13 @@ wmsx.CartridgeHalnote = function(rom) {
 
     this.loadState = function(s) {
         this.rom = wmsx.ROM.loadState(s.r);
-        bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        if (s.b)
+            bytes = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.b, bytes);
+        else {
+            this.rom.reloadEmbeddedContent();
+            if (!bytes || bytes.length !== this.rom.content.length) bytes = new Array(this.rom.content.length);
+            wmsx.Util.arrayCopy(this.rom.content, 0, bytes);
+        }
         this.bytes = bytes;
         bank1Offset = s.b1;
         bank2Offset = s.b2;

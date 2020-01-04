@@ -14,7 +14,7 @@ wmsx.CompressedSystemFilesList = [
     "MSXTR_PAL.bios",
     "MSXTREXT_JAP.bios",
     "MSXTREXT_PAL.bios",
-    "MSXTROPEN_PAL.bios",
+    "MSXTROPEN_NTSC.bios",
     "KanjiBasicOnly.bios",
     "KanjiBasic2PLogo_NTSC.bios",
     "[Kanji1].rom",
