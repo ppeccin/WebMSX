@@ -631,11 +631,11 @@ wmsx.SlotFormats = {
 
     "KonamiUltimateCollection": {
         name: "KonamiUltimateCollection",
-        desc: "Konami Ultimate Collection SCC+ Sound Mapper Cartridge",
+        desc: "Konami Ultimate Collection SCC+/PCM Sound Mapper Cartridge",
         priority: 1109,
         priorityForRom: function (rom) {
-            // Any > 0 & <= 5M content, multiple of 8K. Must be selected via info format hint
-            return (rom.content.length > 0 && rom.content.length <= 5242880 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
+            // Any <= 8MB content, multiple of 8K. Must be selected via info format hint
+            return (rom.content.length <= 8388608 && (rom.content.length & 0x1fff) === 0) ? this.priority : null;
         },
         createFromROM: function (rom) {
             return new wmsx.CartridgeKonamiUltimateCollection(rom);
