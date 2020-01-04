@@ -606,6 +606,10 @@ wmsx.V9990 = function() {
         spriteDebugModeLimit = (spriteDebugMode === 0) || (spriteDebugMode === 2);
     };
 
+    this.setColorMode = function(mode) {
+        console.log("V9990 SetColorMode:", mode);
+    };
+
     function updateSynchronization() {
         // According to the native video frequency detected, target Video Standard and vSynchMode, use a specific pulldown configuration
         if (vSynchMode === 1) {    // ON

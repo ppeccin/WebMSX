@@ -242,6 +242,10 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteDebugMode], true);
     };
 
+    this.setColorMode = function(mode) {
+        console.log("VDP SetColorMode:", mode);
+    };
+
     this.getSpriteDebugModeQuickDesc = function() {
         return ["Normal", "Unlimited", "No Collis.", "Both"][spriteDebugMode];
     };

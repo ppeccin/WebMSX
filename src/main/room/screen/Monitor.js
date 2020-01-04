@@ -6,6 +6,7 @@ wmsx.Monitor = function(display) {
     this.connectInternalVideoSignal = function(videoSignal) {
         intSignal = videoSignal;
         intSignal.connectMonitor(this);
+        setColorMode(WMSX.SCREEN_COLORS);
         updateOutputMode();
     };
 
@@ -60,6 +61,18 @@ wmsx.Monitor = function(display) {
         else intSignal.refreshDisplayMetrics();
 
         display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc());
+    }
+
+    this.toggleColorMode = function(dec) {
+        if (dec) setColorMode(colorMode <= 0 ? 3 : colorMode - 1);
+        else     setColorMode(colorMode >= 3 ? 0 : colorMode + 1);
+    };
+
+    function setColorMode(mode) {
+        if (colorMode === mode) return;
+        colorMode = mode;
+        intSignal.setColorMode(mode);
+        if (extSignal) extSignal.setColorMode(mode);
     }
 
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {
@@ -187,21 +200,26 @@ wmsx.Monitor = function(display) {
 
     this.saveState = function() {
         return {
-            m: outputMode, me: outputEffective, ma: outputAuto
+            m: outputMode, me: outputEffective, ma: outputAuto,
+            cm: colorMode
         };
     };
 
     this.loadState = function(s) {
         if (s) {
             outputMode = s.m; outputAuto = s.ma;
+            setColorMode(s.cm || 0);
         } else {
             outputMode = -1; outputAuto = 0;
+            setColorMode(0);
         }
         updateOutputMode();
     };
 
 
     var outputMode = -1, outputAuto = 0, outputEffective = 0;
+
+    var colorMode = 0;
 
     var intSignal, extSignal;
 
