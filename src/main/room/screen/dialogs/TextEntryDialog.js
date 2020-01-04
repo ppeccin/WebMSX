@@ -1,6 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Why top padding and top hidden on the textarea?
 wmsx.TextEntryDialog = function(mainElement, screen, machineControls) {
     "use strict";
 

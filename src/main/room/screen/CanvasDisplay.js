@@ -1,6 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// TODO Keyboard focus make Dialogs close on some Android devices
 // TODO Remove unstable UNICODE chars (Paste icon, Arrows in Settings)
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
@@ -735,9 +734,9 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     };
 
-    this.requestReadjust = function(now) {
+    this.requestReadjust = function(now, keepFocus) {
         if (now)
-            readjustAll(true);
+            readjustAll(true, keepFocus);
         else {
             readjustRequestTime = wmsx.Util.performanceNow();
             if (!readjustInterval) readjustInterval = setInterval(readjustAll, 50);
@@ -1042,16 +1041,20 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if ("onblur" in document) fsElement.addEventListener("blur", releaseControllersOnLostFocus, true);
         else fsElement.addEventListener("focusout", releaseControllersOnLostFocus, true);
 
-        function windowChanged() {
+        window.addEventListener("orientationchange", function windowOrientChanged() {
             closeAllOverlays();
             if (signalIsOn) hideCursorAndBar();
             else showCursorAndBar();
             self.requestReadjust();
-        }
+        });
 
-        window.addEventListener("orientationchange", windowChanged);
         window.addEventListener("resize", function windowResized() {
-            if (isFullscreen) windowChanged();
+            if (isFullscreen) {
+                closeAllOverlays(true);
+                if (signalIsOn) hideCursorAndBar();
+                else showCursorAndBar();
+                self.requestReadjust(true, true);
+            }
         });
 
         mainElement.addEventListener("drop", closeAllOverlays, false);
@@ -1759,19 +1762,19 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (textEntryDialog) textEntryDialog.hide();
     }
 
-    function closeAllOverlays() {
+    function closeAllOverlays(keepTextEntry) {
         hideBarMenu();
         if (pasteDialog) pasteDialog.hide();
-        if (textEntryDialog) textEntryDialog.hide();
         if (machineSelectDialog) machineSelectDialog.hide();
         if (diskSelectDialog) diskSelectDialog.hide();
         if (newHardDiskDialog) newHardDiskDialog.hide();
         if (saveStateDialog) saveStateDialog.hide();
         if (touchConfigDialog) touchConfigDialog.hide();
         if (quickOtionsDialog) quickOtionsDialog.hide();
-        if (netPlayDialog) netPlayDialog.hide();
         if (cartFormatDialog) cartFormatDialog.hide();
         if (settingsDialog) settingsDialog.hide();
+        if (netPlayDialog && !keepTextEntry) netPlayDialog.hide();
+        if (textEntryDialog && !keepTextEntry) textEntryDialog.hide();
     }
 
     function showLogoMessage(mes, button, higherButton, afterAction) {
@@ -1822,7 +1825,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     }
 
-    function readjustAll(force) {
+    function readjustAll(force, keepFocus) {
         if (readjustScreeSizeChanged(force)) {
             if (isFullscreen) {
                 var isLandscape = readjustScreenSize.w > readjustScreenSize.h;
@@ -1837,7 +1840,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
                 monitor.displayScale(aspectX, scaleYBeforeUserFullscreen || displayDefaultScale());
             }
 
-            self.focus();
+            if (!keepFocus) self.focus();
             controllersHub.screenReadjustedUpdate();
 
             //console.log("READJUST");
