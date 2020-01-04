@@ -50,7 +50,7 @@ wmsx.QuickOptionsDialog = function(mainElement, machineTypeSocket, machineContro
             controlsItems[i].classList.toggle("wmsx-selected", !!item.selected);
             if (item.machineType) item.element.classList.toggle("wmsx-hidden", item.machineType > machineType);
         }
-        dialog.style.height = "" + (machineType >= 5 ? 386 : 352) + "px";
+        dialog.style.height = "" + (machineType >= wmsx.Machine.MACHINE_TYPE.MSXTR ? 386 : 352) + "px";
     }
 
     function create() {
@@ -63,7 +63,7 @@ wmsx.QuickOptionsDialog = function(mainElement, machineTypeSocket, machineContro
 
         items = [
             { label: "NTSC / PAL",                    control: mc.VIDEO_STANDARD },
-            { label: "R800 CPU Clock",                control: mc.R800_CLOCK_MODE,        machineType: 5 },
+            { label: "R800 CPU Clock",                control: mc.R800_CLOCK_MODE,        machineType: wmsx.Machine.MACHINE_TYPE.MSXTR },
             { label: "Z80 CPU Clock",                 control: mc.Z80_CLOCK_MODE },
             { label: "VDP Clock",                     control: mc.VDP_CLOCK_MODE },
             { label: "Sprites Mode",                  control: mc.SPRITE_MODE },

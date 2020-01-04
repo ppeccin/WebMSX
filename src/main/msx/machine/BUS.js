@@ -1,7 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
 // BUS interface. Controls 4 Primary Slots and I/O Device Ports
-// I/O ports addressing limited to 8 bits (lower 8 bits of Z80 I/O address)
+// I/O ports addressing limited to 8 bits (lower 8 bits of CPU I/O address)
 // For Turbo R S19990 added waits, assumes the standard Slot configuration
 
 wmsx.BUS = function(machine, cpu) {

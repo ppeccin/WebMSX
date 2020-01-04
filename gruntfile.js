@@ -10,7 +10,7 @@ module.exports = function (grunt) {
         "src/main/util/EmbeddedFiles.js",
         "src/main/util/MultiDownloader.js",
         "src/main/util/MultiFileReader.js",
-        "src/main/msx/cpu/Z80.js",
+        "src/main/msx/cpu/CPU.js",
         "src/main/msx/ppi/PPI.js",
         "src/main/msx/video/ColorCache.js",
         "src/main/msx/video/VDP.js",

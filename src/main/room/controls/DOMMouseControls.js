@@ -374,7 +374,7 @@ wmsx.DOMMouseControls = function(room, hub) {
     var isMobileDevice = wmsx.Util.isMobileDevice();
 
     var TYPE = wmsx.ControllersHub.MOUSE;
-    var READ_CYCLE_RESET_TIMEOUT = (wmsx.Z80.BASE_CLOCK / 1000 * 1.5) | 0;   // 1.5 milliseconds
+    var READ_CYCLE_RESET_TIMEOUT = (wmsx.CPU.BASE_CLOCK / 1000 * 1.5) | 0;   // 1.5 milliseconds
 
 };
 

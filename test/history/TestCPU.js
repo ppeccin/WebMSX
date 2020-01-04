@@ -2,7 +2,7 @@
  * Created by ppeccin on 15/05/2015.
  */
 
-    Z = new wmsx.Z80();
+    Z = new wmsx.CPU();
     R = new Ram64K();
 
     Z.connectBus(R);

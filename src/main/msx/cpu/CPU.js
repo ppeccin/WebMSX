@@ -8,7 +8,7 @@
 // R800 clock is double Z80 clock, and processing pauses for ~4us each ~31us for memory refresh (~12.9% of the processing time)
 // Thus it stops approx. twice each NTSC scanline, for about approx. 29 clocks
 
-wmsx.Z80 = function() {
+wmsx.CPU = function() {
 "use strict";
 
     var self = this;
@@ -3258,4 +3258,4 @@ wmsx.Z80 = function() {
 
 };
 
-wmsx.Z80.BASE_CLOCK = 3584160;      // Hz
+wmsx.CPU.BASE_CLOCK = 3584160;      // Hz

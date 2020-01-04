@@ -46,7 +46,7 @@ function startEmulator(rom) {
 
     var start = 0x100;
 
-    CPU = new wmsx.Z80();
+    CPU = new wmsx.CPU();
     RAM = new TestRam64K(rom, start);
     CPU.connectBus(RAM);
 

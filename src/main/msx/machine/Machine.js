@@ -533,7 +533,7 @@ wmsx.Machine = function() {
     }
 
     function mainComponentsCreate() {
-        self.cpu = cpu = new wmsx.Z80();
+        self.cpu = cpu = new wmsx.CPU();
         self.rtc = rtc = new wmsx.RTC(videoClockSocket);
         self.syf = syf = new wmsx.SystemFlags();
         self.trd = trd = new wmsx.TurboRDevices(cpu, ledsSocket);
