@@ -109,7 +109,7 @@ wmsx.SlotExpanded0 = function() {
 
     this.getBreakWaitSub = function(address, lastAddress) {
         // Performance trade-off: consider ALL subSlots the same as Slot 0 (BIOS), so all have DRAM Mode
-        if (dramMode && (address >>> 8) === (lastAddress >>> 8))
+        if (dramMode && (address >> 8) === (lastAddress >> 8))
             return 0;                               // RAM without Page Break
         else
             return 1;                               // RAM with Page Break or ROM Forced Break

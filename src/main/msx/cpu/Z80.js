@@ -96,7 +96,7 @@ wmsx.Z80 = function() {
     }
 
     // Called once every 228 clocks. 28 / 228 = ~4us refresh time each ~31.8us (~12.3% of processing time)
-    this.r800MemoryRefreshPause = function() {
+    this.r800MemoryRefresh = function() {
         if (r800) {
             ++R;
             W += 28;

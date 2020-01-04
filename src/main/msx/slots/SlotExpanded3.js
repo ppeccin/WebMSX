@@ -108,7 +108,7 @@ wmsx.SlotExpanded3 = function() {
 
     this.getBreakWaitSub = function(address, lastAddress) {
         var slot = ((secondarySlotConfig >> ((address >> 14) << 1)) & 3);
-        if ((slot === 0 || (slot === 1 && dramMode)) && (address >>> 8) === (lastAddress >>> 8))      // RAM or BIOSExt in DRAM Mode?
+        if ((slot === 0 || (slot === 1 && dramMode)) && (address >> 8) === (lastAddress >> 8))      // RAM or BIOSExt in DRAM Mode?
             return 0;                               // RAM without Page Break
         else
             return 1;                               // RAM with Page Break or ROM Forced Break
