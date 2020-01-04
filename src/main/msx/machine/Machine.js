@@ -65,6 +65,7 @@ wmsx.Machine = function() {
         this.powerIsOn = false;
         if (userPaused) this.userPause(false);
         else machineControlsSocket.firePowerAndUserPauseStateUpdate();
+        this.cpuPause(false);
     };
 
     this.reset = function(fromState) {
@@ -216,8 +217,10 @@ wmsx.Machine = function() {
         var prev = userPaused;
         if (userPaused !== pause) {
             userPaused = !!pause; userPauseMoreFrames = -1;
-            if (userPaused && !keepAudio) audioSocket.muteAudio();
-            else audioSocket.unMuteAudio();
+            if (userPaused) {
+                if (!keepAudio) audioSocket.muteAudio();
+            } else
+                audioSocket.unMuteAudio();
             machineControlsSocket.firePowerAndUserPauseStateUpdate();
         }
         return prev;
@@ -228,7 +231,7 @@ wmsx.Machine = function() {
         if (systemPaused !== val) {
             systemPaused = !!val;
             if (systemPaused) audioSocket.pauseAudio();
-            else audioSocket.unpauseAudio();
+            else if (!trd.isCPUPaused()) audioSocket.unpauseAudio();
         }
         return prev;
     };
@@ -237,12 +240,12 @@ wmsx.Machine = function() {
         return systemPaused;
     };
 
-    this.cpuPause = function(pause, muteAudio) {
-        if (cpuPaused !== pause) {
-            cpuPaused = !!pause;
-            updateCPUPause();
-            if (cpuPaused && muteAudio) audioSocket.muteAudio();
-            else audioSocket.unMuteAudio();
+    this.cpuPause = function(pause, keepAudio) {
+        if (pause !== trd.isCPUPaused()) {
+            trd.setCPUPause(pause);
+            if (pause) {
+                if (!keepAudio) audioSocket.pauseAudio();
+            } else if (!systemPaused) audioSocket.unpauseAudio();
         }
     };
 
@@ -338,11 +341,6 @@ wmsx.Machine = function() {
         alternateSpeed = null;
         videoClockUpdateSpeed();
     };
-
-    function updateCPUPause() {
-        cpu.setZ80Pause(cpuPaused);
-        trd.setR800Pause(cpuPaused);
-    }
 
     function getSlot(slotPos) {
         if (typeof slotPos === "number") slotPos = [slotPos];
@@ -456,7 +454,6 @@ wmsx.Machine = function() {
             ps: psg.saveState(),
             vd: vdp.saveState(extended),
             c:  cpu.saveState(),
-            cp: cpuPaused,
             va: videoStandardIsAuto,
             vs: videoStandard.name,
             ctm: z80ClockMode,
@@ -509,8 +506,6 @@ wmsx.Machine = function() {
         syf.loadState(s.sf);
         trd.loadState(s.td);
         bus.loadState(s.b);
-        cpuPaused = !!s.cp;
-        updateCPUPause();
         videoSocket.loadState(s.vm);
         diskDriveSocket.loadState(s.dd);
         cassetteSocket.loadState(s.ct);
@@ -703,8 +698,9 @@ wmsx.Machine = function() {
                 if (self.powerIsOn) self.powerOff();
                 break;
             case controls.PAUSE_CPU:
-                self.cpuPause(!cpuPaused, altFunc);
-                self.showOSD(cpuPaused ? "CPU PAUSE" + (altFunc ? " with AUDIO OFF" : "") : "CPU RESUME", true);
+                var paused = !trd.isCPUPaused();
+                self.cpuPause(paused, altFunc);
+                self.showOSD(paused ? "CPU PAUSE" + (altFunc ? " with AUDIO ON" : "") : "CPU RESUME", true);
                 break;
             case controls.PAUSE:
                 self.userPause(!userPaused, altFunc);

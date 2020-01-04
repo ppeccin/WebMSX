@@ -2250,6 +2250,8 @@ wmsx.VDP = function(machine, cpu) {
     }
 
     function finishFrame() {
+        // console.error("Finish Frame");
+
         //var cpuCycles = cpu.getCycles();
         //wmsx.Util.log("Frame FINISHED. CurrentScanline: " + currentScanline + ", CPU cycles: " + (cpuCycles - debugFrameStartCPUCycle));
         //debugFrameStartCPUCycle = cpuCycles;
@@ -2259,8 +2261,6 @@ wmsx.VDP = function(machine, cpu) {
         refreshHeight = renderHeight;
         frameContext.putImageData(frameImageData, 0, 0, 0, 0, refreshWidth, refreshHeight);
         ++frame;
-
-        // console.error("Finish Frame");
 
         beginFrame();
     }

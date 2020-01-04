@@ -16,7 +16,7 @@ wmsx.Z80 = function() {
     var r800Waits = !!WMSX.R800_WAITS;
 
     function init() {
-        defineInstructionSet(instructionsByPrefixZ80,  false, false);
+        defineZ80InstructionSet();
     }
 
     this.connectBus = function(aBus) {
@@ -56,11 +56,6 @@ wmsx.Z80 = function() {
         updateInstructionSet();
     };
 
-    // TODO Detect Pause ON only at VBLANK
-    this.setZ80Pause = function(pause) {
-        z80Pause = !!pause;
-    };
-
     this.setR800Mode = function(state) {
         // console.log("Set R800 mode: " + state);
 
@@ -72,6 +67,10 @@ wmsx.Z80 = function() {
         updateClockMulti();
     };
 
+    this.setZ80BUSRQ = function(pause) {    // true = low = active
+        z80BUSRQ = pause;
+    };
+
     function updateInstructionSet() {
         if (r800) {
             instructionsNoPrefix = instructionsNoPrefixR800;
@@ -80,6 +79,10 @@ wmsx.Z80 = function() {
             instructionsNoPrefix = instructionsNoPrefixZ80;
             instructionsByPrefix = instructionsByPrefixZ80;
         }
+    }
+
+    function defineZ80InstructionSet() {
+        if (!instructionsNoPrefixZ80[0]) defineInstructionSet(instructionsByPrefixZ80,  false, false);
     }
 
     function defineR800InstructionSet() {
@@ -109,10 +112,10 @@ wmsx.Z80 = function() {
             if (T === 1) instruction.operation();
             else {
                 if (W > 0) { --W; continue; }
-                if (z80Pause) continue;
-                if (ackINT)
+                if (z80BUSRQ && !r800) continue;
+                if (ackINT) {
                     acknowledgeINT();
-                else {
+                } else {
                     fetchNextInstruction();
                     if (T === 1) instruction.operation();
                 }
@@ -180,7 +183,7 @@ wmsx.Z80 = function() {
     var r800 = false;
     var r800Present = false;
     var modeBackState = {}, modeFrontState = {};
-    var z80Pause = false;
+    var z80BUSRQ = false;                                   // used to Halt Z80 when CPU Pause Key is ON
 
     // Speed Control
     var z80ClockMulti = 1, r800ClockMulti = 2;              // relative to BUS clock
@@ -245,35 +248,36 @@ wmsx.Z80 = function() {
 
     var fetchLastAddress = 0;
 
-    var instructionsNoPrefixZ80 = new Array(270);
+    var instructionsNoPrefixZ80 = new Array(280);
     var instructionsByPrefixZ80 = [
         instructionsNoPrefixZ80,   // 0
-        new Array(270),            // 1  ED
-        new Array(270),            // 2  CB
-        new Array(270),            // 3  DD
-        new Array(270),            // 4  FD
-        new Array(270),            // 5  DDCB
-        new Array(270),            // 6  FDCB
+        new Array(280),            // 1  ED
+        new Array(280),            // 2  CB
+        new Array(280),            // 3  DD
+        new Array(280),            // 4  FD
+        new Array(280),            // 5  DDCB
+        new Array(280),            // 6  FDCB
         instructionsNoPrefixZ80    // 7  After EI
     ];
 
-    var instructionsNoPrefixR800 = new Array(270);
+    var instructionsNoPrefixR800 = new Array(280);
     var instructionsByPrefixR800 = [
         instructionsNoPrefixR800,  // 0
-        new Array(270),            // 1  ED
-        new Array(270),            // 2  CB
-        new Array(270),            // 3  DD
-        new Array(270),            // 4  FD
-        new Array(270),            // 5  DDCB
-        new Array(270),            // 6  FDCB
+        new Array(280),            // 1  ED
+        new Array(280),            // 2  CB
+        new Array(280),            // 3  DD
+        new Array(280),            // 4  FD
+        new Array(280),            // 5  DDCB
+        new Array(280),            // 6  FDCB
         instructionsNoPrefixR800   // 7  After EI
     ];
 
-    var instructionsNoPrefix, instructionsByPrefix;
-
     var instructionsAll = [];
+    var instructionsAllOld = [];
 
     var HALTopcode = 0x76;
+
+    var instructionsNoPrefix, instructionsByPrefix;
 
 
     // Internal operations
@@ -1968,7 +1972,7 @@ wmsx.Z80 = function() {
     var bw = 1;         // R800 Deterministic Forced Page Brake (1 wait) in First Memory Write. DOES NOT include additional page break in next instruction
 
     function defineInstructionSet(instructionsByPrefix, r8, w8) {
-        //console.log("Z80 Defining Instruction Set:", r8, w8);
+        //console.log("CPU Defining Instruction Set:", r8, w8);
 
         var from, to;
         var t = 0, tr = 0;
@@ -3085,6 +3089,10 @@ wmsx.Z80 = function() {
         defineInstruction(null, null, opcode, 19, 5 + bw + br, instr, "< INT_M2 >", false);    // r800 VERIFY
 
 
+        // Add all just defined instructions to the complete instructions collections
+        for (var pr = 0, len = instructionsByPrefix.length; pr < len; ++pr) instructionsAll.push.apply(instructionsAll, instructionsByPrefix[pr]);
+
+
         // ------------------------------
 
         function defineInstruction(prefix1, prefix2, opcode, cyclesZ80, cyclesR800, operation, mnemonic, undocumented) {
@@ -3115,7 +3123,7 @@ wmsx.Z80 = function() {
         }
 
         function registerInstruction(instr) {
-            instructionsAll.push(instr);
+            instructionsAllOld.push(instr);
 
             if (!instr.prefix)                instructionsByPrefix[0][instr.opcode] = instr;
             else if (instr.prefix === 0xed)   instructionsByPrefix[1][instr.opcode] = instr;
@@ -3135,7 +3143,7 @@ wmsx.Z80 = function() {
             PC: PC, SP: SP, A: A, F: F, B: B, C: C, DE: DE, HL: HL, IX: IX, IY: IY,
             AF2: AF2, BC2: BC2, DE2: DE2, HL2: HL2, I: I, R: R, R7: R7, IM: IM, IFF1: IFF1, INT: INT, nINT: 1,
             cc: cpuCycles, bc: busCycles, cbc: cpuToBusCycles,
-            T: T, W: W, o: opcode, p: prefix, ai: ackINT, ii: instructionsAll.indexOf(instruction),
+            T: T, W: W, o: opcode, p: prefix, ai: ackINT, in: instructionsAll.indexOf(instruction),
             ecr: extCurrRunning, eei: extExtraIter,
             r8p: r800Present, r8: r800,
             bs: modeBackState,
@@ -3153,10 +3161,10 @@ wmsx.Z80 = function() {
         extCurrRunning = s.ecr; extExtraIter = s.eei;
         r800Present = !!s.r8p; r800 = !!s.r8;
         if (r800Present) defineR800InstructionSet();
-        instruction = instructionsAll[s.ii];
-        if (s.bs) modeBackState = s.bs;                                     // Backward compatibility
-        z80ClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;    // Backward compatibility
-        r800ClockMulti = s.rcm !== undefined ? s.rcm : 2;                   // Backward compatibility
+        instruction = s.in >= 0 ? instructionsAll[s.in] : instructionsAllOld[s.ii];         // Backward compatibility
+        if (s.bs) modeBackState = s.bs;                                                     // Backward compatibility
+        z80ClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;                    // Backward compatibility
+        r800ClockMulti = s.rcm !== undefined ? s.rcm : 2;                                   // Backward compatibility
         updateInstructionSet();
         updateClockMulti();
     };
@@ -3197,14 +3205,14 @@ wmsx.Z80 = function() {
     //}
 
     // this.printInstructions = function() {
-    //    instructionsAll.sort(function(a,b) {
+    //    instructionsAllOld.sort(function(a,b) {
     //        return a == b ? 0 : a.opcodeString > b.opcodeString ? 1 : -1;
     //    });
     //    var res = "";
-    //    for (var i = 0, len = instructionsAll.length; i < len; i++) {
-    //        var opcodeString = instructionsAll[i].opcodeString;
+    //    for (var i = 0, len = instructionsAllOld.length; i < len; i++) {
+    //        var opcodeString = instructionsAllOld[i].opcodeString;
     //        for (; opcodeString.length < 30;) opcodeString += " ";
-    //        res += "\n" + opcodeString + " : " + instructionsAll[i].totalCyclesZ80 + " , " + instructionsAll[i].totalCyclesR800;
+    //        res += "\n" + opcodeString + " : " + instructionsAllOld[i].totalCyclesZ80 + " , " + instructionsAllOld[i].totalCyclesR800;
     //    }
     //    return res;
     // };

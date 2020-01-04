@@ -1,6 +1,7 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Turbo R Pause and S1990 devices
+// Turbo R S1990 devices
+// Also controls CPU Pause Key for all machines
 
 wmsx.TurboRDevices = function(cpu, ledsSocket) {
 "use strict";
@@ -88,7 +89,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         updateLeds();
     };
     this.inputA7 = function() {
-        return active ? r800Pause : 0xff;
+        return active ? cpuPause && (register6 & 0x20) === 0 ? 0x01 : 0x00 : 0xff;     // bit 0: R800 pause switch (1 = on), report only in R800 mode!
     };
 
     this.outputE4 = function(val) {
@@ -153,13 +154,23 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         return active ? getCounterValue() >> 8 : 0xff;
     };
 
-    this.setR800Pause = function(pause) {
-        r800Pause = pause ? 0x01 : 0x00;
-    };
-
     this.isR800LedOn = function() {
         return (leds & 0x80) !== 0;
     };
+
+    this.isCPUPaused = function() {
+        return cpuPause;
+    };
+
+    this.setCPUPause = function(pause) {
+        cpuPause = pause;
+        updateCPUPause();
+    };
+
+    // TODO Detect CPU Pause ON only at VBLANK
+    function updateCPUPause() {
+        cpu.setZ80BUSRQ(cpuPause);
+    }
 
     function setDRAMMode(dramMode) {
         bus.setDRAMMode(ram && dramMode);
@@ -172,6 +183,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         return ((cpu.getBUSCycles() - counterBase) / 14) & 0xffff;
     }
 
+    // TODO Implement CPU Pause led
     function updateLeds() {
         ledsSocket.ledStateChanged(3, (leds & 0x80) ? 2 + r800DramLed : (register6 & 0x40) ? 0 : 1);
     }
@@ -219,7 +231,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     var bus;
     var active = false;
 
-    var r800Pause = 0x00;           // bit 0: R800 pause switch (1 = on)
+    var cpuPause = false;
     var leds = 0x00;                // bit 7: R800 LED (1 = on), bit 1: Z80 pause??? (1 = yes), bit 0: pause LED (1 = on)
     var r800DramLed = 0;
     var registerSelect = 0;
@@ -235,6 +247,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     this.saveState = function() {
         return {
             a: active,
+            pa: cpuPause,
             ld: leds,
             rl: r800DramLed,
             rs: registerSelect,
@@ -249,16 +262,18 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         if (!s) {
             active = false;
             this.reset();
-            return;
+        } else {
+            active = s.a;
+            cpuPause = s.pa;
+            leds = s.ld;
+            r800DramLed = s.rl || 0;
+            registerSelect = s.rs;
+            register5 = s.r5;
+            register6 = s.r6;
+            counterBase = s.cb;
         }
 
-        active = s.a;
-        leds = s.ld;
-        r800DramLed = s.rl || 0;
-        registerSelect = s.rs;
-        register5 = s.r5;
-        register6 = s.r6;
-        counterBase = s.cb;
+        updateCPUPause();
         updateLeds();
     };
 
