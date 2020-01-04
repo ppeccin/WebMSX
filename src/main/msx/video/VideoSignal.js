@@ -1,6 +1,6 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-wmsx.VideoSignal = function(source, name, shortName) {
+wmsx.VideoSignal = function(source, name) {
 "use strict";
 
     this.connectMonitor = function(pMonitor) {
@@ -47,12 +47,8 @@ wmsx.VideoSignal = function(source, name, shortName) {
         if (monitor) monitor.setOutputAutoMode(this, mode);
     };
 
-    this.getSignalDesc = function() {
+    this.getSignalName = function() {
         return name;
-    };
-
-    this.getSignalShortDesc = function() {
-        return shortName;
     };
 
     this.setDebugMode = function(boo) {

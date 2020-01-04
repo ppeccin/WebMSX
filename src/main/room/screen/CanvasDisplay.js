@@ -91,8 +91,14 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             updateLogo();
         }
 
-        var context = videoOutputMode !== 4 || (videoOutputDualPri ^ internal)  ? canvasContext : auxCanvasContext;
-        if (!context) context = videoOutputMode !== 4 || (videoOutputDualPri ^ internal) ? createCanvasContext() : auxCreateCanvasContext();
+        // Dual Screen mode? Decide which canvas to paint
+        var context;
+        if (videoOutputMode !== 4 || (videoOutputDualPri ^ internal)) {
+            context = canvasContext || createCanvasContext();
+        } else {
+            context = auxCanvasContext || auxCreateCanvasContext();
+            if (!context) return;
+        }
 
         // Need to clear previous image? (Only in Mixed mode, right before painting Internal signal)
         if (videoOutputMode === 3 && internal) context.clearRect(0, 0, canvas.width, canvas.height);
@@ -718,7 +724,6 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             menu[i].checkedOp = mode === (i - 1) ? 1 : 0;
         menu[0].label = autoModeDesc;
         menu[2].label = extDesc;
-        menu[6].label = "Dual (" + (dualPri ? "V99 + Int)" : "Int + V99)");
         menu[6].checkedOp = mode === 4 ? dualPri + 1 : 0;
         menu[8].disabled = autoInternal && mode === -1;
         if (barMenuActive === menu) refreshBarMenu(menu);
@@ -947,6 +952,8 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     function auxCreateCanvasContext() {
         // Prepare Context used to draw frame
+        if (!auxWindow) return;
+
         auxCanvasContext = auxCanvas.getContext("2d", { alpha: false, antialias: false });
         updateImageComposition(auxCanvasContext);
         updateImageSmoothing(auxCanvasContext);
@@ -1063,34 +1070,40 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function setupAndShowAuxWindow() {
         if (auxWindow) return;
 
-        auxWindow = window.open("/", "WebMSX_AuxScreen", "width = " + 682 + ", height = " + (502 + 1)
-            + ", scrollbars = no, status = no, location = no, toolbar = no, menubar = no", false);
+        var newWindow = window.open("", "WebMSX_AuxScreen", "width=" + 682 + ",height=" + (502 + 1)
+            + ",scrollbars=no,status=no,location=no,toolbar=no,menubar=no", false);
 
-        var document = auxWindow.document;
-        document.write(wmsx.ScreenGUI.auxHtml());
-        wmsx.Util.insertCSS(document, wmsx.ScreenGUI.css());
-        document.documentElement.classList.add("wmsx-full-screen");
+        // newWindow.addEventListener("DOMContentLoaded", function() {
+            auxWindow = newWindow;
 
-        auxWindow.wmsxFsElementCenter = document.getElementById("wmsx-screen-fs-center");
-        auxWindow.wmsxLogo = document.getElementById("wmsx-logo");
-        auxCanvas = document.getElementById("wmsx-screen-canvas");
+            var document = auxWindow.document;
+            document.open("text/html", "replace").write(wmsx.ScreenGUI.auxHtml());
+            document.close();
+            wmsx.Util.insertCSS(document, wmsx.ScreenGUI.css());
+            document.documentElement.classList.add("wmsx-full-screen");
 
-        auxUpdateCanvasContentSize();
-        auxReadjustAll(true);
+            auxWindow.wmsxFsElementCenter = document.getElementById("wmsx-screen-fs-center");
+            auxWindow.wmsxLogo = document.getElementById("wmsx-logo");
+            auxCanvas = document.getElementById("wmsx-screen-canvas");
 
-        auxWindow.addEventListener("resize", function auxWindowResized() {
+            auxUpdateCanvasContentSize();
             auxReadjustAll(true);
-        });
 
-        auxWindow.addEventListener("beforeunload", auxWindowUnload);
+            auxWindow.addEventListener("resize", function auxWindowResized() {
+                auxReadjustAll(true);
+            });
 
-        auxWindow.blur();
-        window.focus();
-        self.focus();
+            auxWindow.addEventListener("beforeunload", auxWindowUnload);
+
+            window.focus();
+            self.focus();
+        // });
     }
 
     function auxWindowUnload() {
         monitor.setOutputMode(-1);
+        window.focus();
+        self.focus();
     }
 
     function closeAuxWindow() {
@@ -1292,7 +1305,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             { label: "Superimposed",       clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_SUPERIMPOSED, toggle: true, radio: true },
             { label: "Mixed",              clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_MIXED, toggle: true, radio: true },
             { label: "",                   divider: true },
-            { label: "Dual Screens",       clickModif: KEY_ALT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_DUAL, toggle: true },
+            { label: "Dual Screen",        clickModif: KEY_ALT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.SCREEN_OUTPUT_DUAL, toggle: true },
             { label: "",                   divider: true },
             { label: "Reset Auto Internal",            control: wmsx.PeripheralControls.SCREEN_OUTPUT_RESET_AUTO }
         ];

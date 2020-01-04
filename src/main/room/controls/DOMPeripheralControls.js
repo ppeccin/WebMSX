@@ -389,7 +389,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
         keyCodeMap[KEY_FULLSCREEN | k.ALT]   = pc.SCREEN_FULLSCREEN;
 
-        keyCodeMap[KEY_VIDEO_OUTPUT | k.ALT] = pc.SCREEN_OUTPUT_TOGGLE;
+        keyCodeMap[KEY_VIDEO_OUTPUT | k.ALT] =             pc.SCREEN_OUTPUT_TOGGLE;
         keyCodeMap[KEY_VIDEO_OUTPUT | k.CONTROL | k.ALT] = pc.SCREEN_OUTPUT_DUAL;
 
         keyCodeMap[KEY_UP | k.CONTROL | k.ALT]     = pc.SCREEN_SCALE_MINUS;

@@ -71,7 +71,7 @@ wmsx.Monitor = function(display) {
         if (outputEffective >= 1) extSignal.refreshDisplayMetrics();    // External Signal takes precedence when displayed
         else intSignal.refreshDisplayMetrics();
 
-        display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalDesc(), outputDualPri);
+        display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalName(), outputDualPri);
     }
 
     this.toggleColorMode = function(dec) {
@@ -193,10 +193,10 @@ wmsx.Monitor = function(display) {
     function getOutputModeDesc(mode) {
         switch (mode) {
             case 0:  return "Internal";
-            case 1:  return extSignal ? extSignal.getSignalDesc() : "External";
+            case 1:  return extSignal ? extSignal.getSignalName() : "External";
             case 2:  return "Superimposed";
             case 3:  return "Mixed";
-            case 4:  return "Dual (main: " + (outputDualPri ? "V9990)" : "Internal)");
+            case 4:  var ext = extSignal ? extSignal.getSignalName() : "External"; return "Dual Screen " + (outputDualPri ? "(" + ext + " + Internal)" : "(Internal + " + ext + ")");
             default: return "Auto (" + getOutputModeDesc(outputAuto) + ")";
         }
     }
@@ -204,7 +204,7 @@ wmsx.Monitor = function(display) {
     function getOutputModeShortDesc(mode) {
         switch (mode) {
             case 0:  return "Internal";
-            case 1:  return extSignal ? extSignal.getSignalShortDesc() : "External";
+            case 1:  return extSignal ? extSignal.getSignalName() : "External";
             case 2:  return "Superimp";
             case 3:  return "Mixed";
             case 4:  return "Dual";

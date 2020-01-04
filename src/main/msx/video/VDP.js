@@ -11,7 +11,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VideoSignal(self, "Internal", "Internal");
+        videoSignal = new wmsx.VideoSignal(self, "Internal");
         audioClockPulse32 = machine.getAudioSocket().audioClockPulse32;
         initColorCaches();
         initFrameResources(false);

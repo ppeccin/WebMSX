@@ -66,7 +66,7 @@ wmsx.ScreenGUI.html = function() {
 
 wmsx.ScreenGUI.auxHtml = function() {
     return `<head>
-                <title>WebMSX</title>
+                <title>WebMSX Secondary Screen</title>
             </head>
             <body id="wmsx-aux-body">
                 <div id="wmsx-screen-fs">

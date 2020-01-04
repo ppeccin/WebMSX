@@ -12,7 +12,7 @@ wmsx.V9990 = function() {
     var self = this;
 
     function init() {
-        videoSignal = new wmsx.VideoSignal(self, "V9990 Video", "V9990");
+        videoSignal = new wmsx.VideoSignal(self, "V9990");
         initColorCaches();
         initFrameResources(false);
         initDebugPatternTables();
