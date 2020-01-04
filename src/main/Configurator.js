@@ -358,17 +358,22 @@ wmsx.Configurator = {
     },
 
     loadState: function(s, cfg) {
+        // Store loading state version
+        this.loadingStateVersion = s.v || 0;
+
+        // Load config from state if present
         if (cfg) {
             WMSX.MACHINES_CONFIG = cfg.mc;
             WMSX.EXTENSIONS_CONFIG = cfg.ec;
             WMSX.PRESETS_CONFIG = cfg.pc;
         } else {
-            // Backward compatibility. For State versions < 530, cfg will be null, so restore original config
+            // Backward compatibility. For State versions < 530, cfg will be null, so restore original config and adapt
             this.adaptForOldState(s);
         }
         for (var i = 0; i < this.listeners.length; ++i) this.listeners[i].configurationStateUpdate();
     },
 
+    // Only for state versions < 530, as they have no Config saved
     adaptForOldState: function(s) {
         // Make config compatible with old State
         WMSX.MACHINES_CONFIG = JSON.parse(this.originalConfig.MACHINES_CONFIG);
@@ -388,11 +393,23 @@ wmsx.Configurator = {
             WMSX.EXTENSIONS_CONFIG.KANJI.SLOT =     [2, 1];
             WMSX.EXPANSION1_SLOT =                  [2, 2];
             WMSX.EXPANSION2_SLOT =                  [2, 3];
-        } else if (s.v < 60) {
+        } else {
             WMSX.EXTENSIONS_CONFIG.HARDDISK.SLOT2 = [3, 3];
             WMSX.EXTENSIONS_CONFIG.DISK.SLOT2 =     [3, 3];
             WMSX.EXTENSIONS_CONFIG.MSXMUSIC.SLOT =  [3, 2];
         }
+    },
+
+    adaptROMSourceForOldState: function(source) {
+        if (this.loadingStateVersion >= 600) return source;
+
+        var newSource = source;
+        for (var i in this.romSourcePre600Adapts)
+            newSource = newSource.split(this.romSourcePre600Adapts[i][0]).join(this.romSourcePre600Adapts[i][1]);
+
+        console.log(this.loadingStateVersion, source, " ===> ", newSource);
+
+        return newSource;
     },
 
     backupOriginalConfig: function () {
@@ -405,6 +422,8 @@ wmsx.Configurator = {
         if (this.listeners.indexOf(listener) >= 0) return;
         this.listeners.push(listener);
     },
+
+    loadingStateVersion: 0,
 
     listeners: [],
 
@@ -452,6 +471,16 @@ wmsx.Configurator = {
         VDP_TURBO: "VDP_CLOCK_MODE",
         VDP_CLOCK: "VDP_CLOCK_MODE",
         VERSION: "VERSION_CHANGE_ATTEMPTED"      // Does not allow version to be changed ;-)
-    }
+    },
+
+    romSourcePre600Adapts: [
+        [ "@MSX2P_PAL.bios",        "@MSX2P_PAL_54.bios" ],
+        [ "@MSX2P_NTSC.bios",       "@MSX2P_NTSC_54.bios" ],
+        [ "@MSX2PEXT_PAL.bios",     "@MSX2PEXT_PAL_54.bios" ],
+        [ "@MSX2PEXT_NTSC.bios",    "@MSX2PEXT_NTSC_54.bios" ],
+        [ "@KanjiBasic.bios",       "@KanjiBasic_54.bios" ],
+        [ "@KanjiBasic_PAL.bios",   "@KanjiBasic_PAL_54.bios" ],
+        [ "@[KanjiBasic].bios",     "@KanjiBasic_54.bios" ]         // older
+    ]
 
 };

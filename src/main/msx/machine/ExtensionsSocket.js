@@ -178,6 +178,8 @@ wmsx.ExtensionsSocket = function(machine) {
             // Activate or Deactivate on same op
             if (conf.CHANGE)
                 for (var c in conf.CHANGE) updateExtensionOnConf(c, !!conf.CHANGE[c], op2, true);
+            if (conf.BOUND)
+                for (    c in conf.BOUND)  updateExtensionOnConf(conf.BOUND[c], true, op2, true);
             // Toggle options with partner extension if activated
             if (conf.TOGGLE) {
                 c = conf.TOGGLE;
@@ -186,10 +188,15 @@ wmsx.ExtensionsSocket = function(machine) {
                     if (!self.isActiveOnConf(ext, !op2)) updateExtensionOnConf(c, true, !op2, true);     // only if we are not there too!
                 }
             }
+
             // Activate others that we require
             //if (conf.require)
             //    for (var r = 0, req = conf.require.split(","); r < req.length; ++r) updateExtensionOnConf(req[r].trim(), true, op2, false);
         } else {
+            // Deactivate on same op
+            if (conf.BOUND)
+                for (    c in conf.BOUND)  updateExtensionOnConf(conf.BOUND[c], false, op2, true);
+
             // Deactivate others that require this
             //for (var dep in config)
             //    if (config[dep].require && config[dep].require.indexOf(ext) >= 0) {

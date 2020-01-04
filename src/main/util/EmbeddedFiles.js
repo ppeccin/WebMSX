@@ -9,8 +9,11 @@ wmsx.EmbeddedFiles = {
         // Yes, concatenate several files
         var fileNames = fileName.split(/\s*\|\s*/);
         var allContents = new Array(fileNames.length);
-        for (var i = 0; i < fileNames.length; ++i)
-            allContents[i] = this.getFile(fileNames[i]).content;
+        for (var i = 0; i < fileNames.length; ++i) {
+            var file = this.getFile(fileNames[i]);
+            if (file === undefined) return undefined;
+            allContents[i] = file.content;
+        }
         return { name: fileName, content: wmsx.Util.arraysConcatAll(allContents) };
     },
 

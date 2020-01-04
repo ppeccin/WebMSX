@@ -1,6 +1,5 @@
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
 
-// Verify: NOT TESTED. Could not make cartridge launch...
 // 1024K ROMs with 128 * 8K banks, mapped in 4 8K banks starting at 0x4000, and 2 2K sub-banks starting at 0x7000 (upper half of ROM)
 // 16K SRAM, enabled at 0x0000
 // 0x0000 - 0xbfff
@@ -54,6 +53,7 @@ wmsx.CartridgeHalnote = function(rom) {
     };
 
     this.write = function(address, value) {
+        // Bank Switching
         switch (address) {
             case 0x4fff:
                 bank1Offset = ((value & 0x7f) << 13) - 0x4000;
@@ -75,6 +75,16 @@ wmsx.CartridgeHalnote = function(rom) {
                 return;
             case 0x7fff:
                 subBank2Offset = (value << 11) - 0x7800 + 0x80000;
+                return;
+        }
+
+        // SRAM Write?
+        if (sramEnabled && address < 0x4000) {
+            if (!sramModif && sram[address] !== value) {
+                sramModif = true;
+                cartridgeSocket.fireCartridgesModifiedStateUpdate();
+            }
+            sram[address] = value;
         }
     };
 

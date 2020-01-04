@@ -19,12 +19,17 @@ wmsx.ROM = function(source, content, info, formatHint, startAddress) {
 
     this.reloadEmbeddedContent = function() {
         if (this.content || !wmsx.EmbeddedFiles.isEmbeddedURL(this.source)) return;
+
         var emb = wmsx.EmbeddedFiles.get(this.source);
-        this.content = emb && emb.content;
+        if (!emb) throw new Error("Cannot reload embedded content: " + this.source);
+
+        this.content = emb.content;
     };
 
 };
 
+// TODO StartAddress is not on state???
 wmsx.ROM.loadState = function(state) {
-    return new wmsx.ROM(state.s, null, state.i);
+    var source = wmsx.Configurator.adaptROMSourceForOldState(state.s);
+    return new wmsx.ROM(source, null, state.i);
 };
