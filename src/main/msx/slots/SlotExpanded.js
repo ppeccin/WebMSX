@@ -66,39 +66,33 @@ wmsx.SlotExpanded = function() {
     };
 
     function getSubSlotForAddress(address) {
-        switch ((address >> 14) & 3) {
-            case 0: return page0Slot;
-            case 1: return page1Slot;
-            case 2: return page2Slot;
-            case 3: return page3Slot;
-        }
+        var s = address >> 14;
+        if (s === 0) return page0Slot;
+        if (s === 1) return page1Slot;
+        if (s === 2) return page2Slot;
+                     return page3Slot;
     }
     this.getSubSlotForAddress = getSubSlotForAddress;
 
     this.read = function(address) {
-        // Get correct subSlot
-        switch ((address >> 14) & 3) {
-            case 0: return page0Slot.read(address);
-            case 1: return page1Slot.read(address);
-            case 2: return page2Slot.read(address);
-            case 3:
-                // Check for control register
-                if (address === 0xffff) return (~secondarySlotConfig) & 0xff;       // Inverted per specification
-                return page3Slot.read(address);
-        }
+        var s = address >> 14;
+        if (s === 0) return page0Slot.read(address);
+        if (s === 1) return page1Slot.read(address);
+        if (s === 2) return page2Slot.read(address);
+        // Check for control register
+        if (address === 0xffff) return (~secondarySlotConfig) & 0xff;       // Inverted per specification
+                     return page3Slot.read(address);
     };
 
     this.write = function(address, val) {
-        // Get correct subSlot
-        switch ((address >> 14) & 3) {
-            case 0: page0Slot.write(address, val); return;
-            case 1: page1Slot.write(address, val); return;
-            case 2: page2Slot.write(address, val); return;
-            case 3:
-                // Check for control register
-                if (address === 0xffff) { this.setSecondarySlotConfig(val); return }
-                page3Slot.write(address, val); return;
-        }
+        var s = address >> 14;
+        if      (s === 0)   page0Slot.write(address, val);
+        else if (s === 3) {
+            // Check for control register
+            if (address === 0xffff) this.setSecondarySlotConfig(val);
+            else            page3Slot.write(address, val);
+        } else if (s === 1) page1Slot.write(address, val);
+          else              page2Slot.write(address, val);
     };
 
     this.setSecondarySlotConfig = function(val) {

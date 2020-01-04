@@ -99,23 +99,21 @@ wmsx.SlotRAMMapper = function(rom) {
     this.read = function(address) {
         // wmsx.Util.log ("RAM Mapper read: " + address.toString(16) + ", " + bytes[address].toString(16) + ". SlotConf: " + WMSX.room.machine.bus.getPrimarySlotConfig().toString(16));
 
-        switch (address & 0xc000) {
-            case 0x0000: return bytes[address + page0Offset];
-            case 0x4000: return bytes[address + page1Offset];
-            case 0x8000: return bytes[address + page2Offset];
-            case 0xc000: return bytes[address + page3Offset];
-        }
+        var p = address >> 14;
+        if (p === 3) return bytes[address + page3Offset];
+        if (p === 0) return bytes[address + page0Offset];
+        if (p === 2) return bytes[address + page2Offset];
+                     return bytes[address + page1Offset];
     };
 
     this.write = function(address, value) {
         // wmsx.Util.log ("RAM Mapper write: " + address.toString(16) + ", " + value.toString(16) + ". SlotConf: " + WMSX.room.machine.bus.getPrimarySlotConfig().toString(16));
 
-        switch (address & 0xc000) {
-            case 0x0000: if (dramModeOff || (address + page0Offset < dramModeStart)) bytes[address + page0Offset] = value; return;
-            case 0x4000: if (dramModeOff || (address + page1Offset < dramModeStart)) bytes[address + page1Offset] = value; return;
-            case 0x8000: if (dramModeOff || (address + page2Offset < dramModeStart)) bytes[address + page2Offset] = value; return;
-            case 0xc000: if (dramModeOff || (address + page3Offset < dramModeStart)) bytes[address + page3Offset] = value; return;
-        }
+        var p = address >> 14;
+        if      (p === 3) { if (dramModeOff || (address + page3Offset < dramModeStart)) bytes[address + page3Offset] = value; }
+        else if (p === 0) { if (dramModeOff || (address + page0Offset < dramModeStart)) bytes[address + page0Offset] = value; }
+        else if (p === 2) { if (dramModeOff || (address + page2Offset < dramModeStart)) bytes[address + page2Offset] = value; }
+        else              { if (dramModeOff || (address + page1Offset < dramModeStart)) bytes[address + page1Offset] = value; }
     };
 
 

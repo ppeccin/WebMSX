@@ -57,49 +57,34 @@ wmsx.BUS = function(machine, cpu) {
     };
 
     function getSlotForAddress(address) {
-        switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
-            case 0: return slot0;
-            case 1: return slot1;
-            case 2: return slot2;
-            case 3: return slot3;
-            // slotModules inaccessible
-        }
+        var s = (primarySlotConfig >> ((address >> 14) << 1)) & 3;
+        if (s === 0) return slot0;
+        if (s === 1) return slot1;
+        if (s === 2) return slot2;
+                     return slot3;
     }
     this.getSlotForAddress = getSlotForAddress;
 
     this.read = function(address) {
-        // Get correct slot
-        switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
-            case 0: return slot0.read(address);
-            case 1: return slot1.read(address);
-            case 2: return slot2.read(address);
-            case 3: return slot3.read(address);
-            // slotModules inaccessible
-        }
+        var s = (primarySlotConfig >> ((address >> 14) << 1)) & 3;
+        if (s === 3) return slot3.read(address);
+        if (s === 1) return slot1.read(address);
+        if (s === 0) return slot0.read(address);
+                     return slot2.read(address);
     };
 
     this.write = function(address, val) {
-        // Get correct slot
-        switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
-            case 0: slot0.write(address, val); return;
-            case 1: slot1.write(address, val); return;
-            case 2: slot2.write(address, val); return;
-            case 3: slot3.write(address, val); return;
-            // slotModules inaccessible
-        }
+        var s = (primarySlotConfig >> ((address >> 14) << 1)) & 3;
+        if      (s === 3) slot3.write(address, val);
+        else if (s === 1) slot1.write(address, val);
+        else if (s === 2) slot2.write(address, val);
+        else              slot0.write(address, val);
     };
     var origWrite = this.write;
 
     this.writeWithBusMonitor = function(address, val) {
         writeMonitor(address, val);
-        // Get correct slot
-        switch ((primarySlotConfig >> ((address >> 14) << 1)) & 3) {
-            case 0: slot0.write(address, val); return;
-            case 1: slot1.write(address, val); return;
-            case 2: slot2.write(address, val); return;
-            case 3: slot3.write(address, val); return;
-            // slotModules inaccessible
-        }
+        origWrite(address, val);
     };
 
     this.setDRAMMode = function(state) {
@@ -115,17 +100,13 @@ wmsx.BUS = function(machine, cpu) {
             if ((address ^ lastAddress) >> 8) {
                 return 1;
             } else {
-                var u = (slot3.getSecondarySlotConfig() >> p) & 3;
-                return u === 0 ? 0 : u === 1 ? dramWait : 1;
+                s = (slot3.getSecondarySlotConfig() >> p) & 3;
+                return s === 0 ? 0 : s === 1 ? dramWait : 1;
             }
-        } else if (s === 0) {
-            if ((address ^ lastAddress) >> 8) {
-                return 1;
-            } else {
-                return dramWait;
-            }
-        } else
-            return 1;
+        }
+        if (s === 0)
+            return (address ^ lastAddress) >> 8 ? 1 : dramWait;
+        return 1;
     };
 
     // TODO Performance trade-off: For Expanded Slot 0 consider ALL subSlots the same as subSlot 0 (BIOS), so all have DRAM Mode
@@ -133,12 +114,12 @@ wmsx.BUS = function(machine, cpu) {
         var p = (address >> 14) << 1;
         var s = (primarySlotConfig >> p) & 3;
         if (s === 3) {
-            var u = (slot3.getSecondarySlotConfig() >> p) & 3;
-            return u === 0 ? 0 : u === 1 ? dramWait : 1;
-        } else if (s === 0) {
+            s = (slot3.getSecondarySlotConfig() >> p) & 3;
+            return s === 0 ? 0 : s === 1 ? dramWait : 1;
+        }
+        if (s === 0)
             return dramWait;
-        } else
-            return 2;
+        return 2;
     };
 
     this.input = function(port) {
