@@ -5,7 +5,7 @@ wmsx.ROMDatabaseUncompressed = {
 
 uncompress: function() {},
 
-version: 20200125,
+version: 20200131,
 
 // Entries from Vampier's file
 
@@ -1818,6 +1818,7 @@ version: 20200125,
 "8F67F3A9D48A2B1903D73543F52C12D81ECBF7DD":{n:"Video Hustler - SCC",f:"KonamiSCCI"},
 "DF16A00213C36939645B9095D2D3BD2FD441F68E":{n:"Yie Ar Kung Fu 1 - SCC",f:"KonamiSCCI"},
 "14CF977E79A07D373120CBAEBC477348606FB116":{n:"Yie Ar Kung Fu 2 - SCC",f:"KonamiSCCI"},
+"4EBD62AE6A43846DE266C193B92C962E464E4A6F":{n:"Who Dares Wins",f:"KonamiSCC"},
 
 "DDEB8D9903C2EF90360FCF385E20E4E02E334B76":{n:"Dreams Puzzle",f:"ASCII16",e:"V9990"},
 "F7039EBD100695D9A40188D7A3117C0FCC11D442":{n:"Intruder",f:"ASCII16",e:"V9990"},
