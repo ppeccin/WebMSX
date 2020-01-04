@@ -99,6 +99,9 @@ wmsx.ExtensionsSocket = function(machine) {
     };
 
     this.getInitialLoaderURLSpecs = function() {
+        // First propagate all active Extensions effects
+        this.propagateAllExtensions();
+        // Then get all active Extensions URLs
         var loaderUrlSpecs = [];
         for (var ext in config) {
             if (WMSX.EXTENSIONS[ext] & 1) loaderUrlSpecs.push(makeLoaderUrlSpec(ext, false));
@@ -170,17 +173,17 @@ wmsx.ExtensionsSocket = function(machine) {
 
         WMSX.EXTENSIONS[ext] ^= (op2 ? 2 : 1);
 
-        if (stopRecursion) return;
+        if (!stopRecursion) propageteUpdateExtensionOnConf(ext, val, op2);
+    }
 
+    function propageteUpdateExtensionOnConf(ext, val, op2) {
         var conf = config[ext];
         if (conf.MUTUAL) updateExtensionOnConf(conf.MUTUAL, !val, op2, true);
         if (val) {
-            // Activate or Deactivate on same op
-            if (conf.CHANGE)
-                for (var c in conf.CHANGE) updateExtensionOnConf(c, !!conf.CHANGE[c], op2, true);
+            // Activate together
             if (conf.BOUND)
-                for (    c in conf.BOUND)  updateExtensionOnConf(conf.BOUND[c], true, op2, true);
-            // Toggle options with partner extension if activated
+                for (    c in conf.BOUND) updateExtensionOnConf(conf.BOUND[c], true, op2, true);
+            // Toggle options with partner extension when activating
             if (conf.TOGGLE) {
                 c = conf.TOGGLE;
                 if (self.isActiveOnConf(c, op2)) {
@@ -188,27 +191,26 @@ wmsx.ExtensionsSocket = function(machine) {
                     if (!self.isActiveOnConf(ext, !op2)) updateExtensionOnConf(c, true, !op2, true);     // only if we are not there too!
                 }
             }
-
-            // Activate others that we require
-            //if (conf.require)
-            //    for (var r = 0, req = conf.require.split(","); r < req.length; ++r) updateExtensionOnConf(req[r].trim(), true, op2, false);
+            // Forced changes when activating
+            if (conf.CHANGE)
+                for (var c in conf.CHANGE) updateExtensionOnConf(c, !!conf.CHANGE[c], op2, true);
         } else {
-            // Deactivate on same op
+            // Deactivate together
             if (conf.BOUND)
-                for (    c in conf.BOUND)  updateExtensionOnConf(conf.BOUND[c], false, op2, true);
-
-            // Deactivate others that require this
-            //for (var dep in config)
-            //    if (config[dep].require && config[dep].require.indexOf(ext) >= 0) {
-            //        updateExtensionOnConf(dep, false, false, false);
-            //        updateExtensionOnConf(dep, false, true, false);
-            //    }
+                for (    c in conf.BOUND) updateExtensionOnConf(conf.BOUND[c], false, op2, true);
         }
     }
 
+    this.propagateAllExtensions = function() {
+        for (var ext in WMSX.EXTENSIONS) {
+            propageteUpdateExtensionOnConf(ext, (WMSX.EXTENSIONS[ext] & 1) !== 0, false);
+            if (config[ext].SLOT2) propageteUpdateExtensionOnConf(ext, (WMSX.EXTENSIONS[ext] & 2) !== 0, true);
+        }
+    };
+
     function makeLoaderUrlSpec(ext, op2) {
         return {
-            url: config[ext].URL || "",
+            url: config[ext].URL || "@[Empty].rom",
             onSuccess: function (res) {
                 fileLoader.loadFromContentAsSlot(res.url, res.content, op2 ? config[ext].SLOT2 : config[ext].SLOT, true, null, null, true);     // altPower, internal
             }

@@ -28,6 +28,8 @@ wmsx.Configurator = {
     },
 
     applyConfigDetails: function(then) {
+        this.initExtensions();
+
         // First apply modifications to Presets configurations including Alternate Slot Configuration Preset itself (special case)
         this.applyPresetsConfigModifications();
 
@@ -45,10 +47,8 @@ wmsx.Configurator = {
         if(WMSX.PAGE_BACK_CSS) document.body.style.background = WMSX.PAGE_BACK_CSS;
 
         // Auto activate HardDrive Extension if not active and user trying to load HardDisk file
-        if ((WMSX.HARDDISK_URL || WMSX.HARDDISK_FILES_URL) && !WMSX.EXTENSIONS.HARDDISK) {
+        if ((WMSX.HARDDISK_URL || WMSX.HARDDISK_FILES_URL) && !WMSX.EXTENSIONS.HARDDISK)
             WMSX.EXTENSIONS.HARDDISK = 1;
-            if (WMSX.EXTENSIONS.DISK) WMSX.EXTENSIONS.DISK = 2;
-        }
 
         then();
     },
@@ -425,6 +425,11 @@ wmsx.Configurator = {
         this.listeners.push(listener);
     },
 
+    initExtensions: function() {
+        // Initialize Extensions, all inactive
+        if (!Object.keys(WMSX.EXTENSIONS).length) for (var ext in WMSX.EXTENSIONS_CONFIG) WMSX.EXTENSIONS[ext] = 0;
+    },
+
     loadingStateVersion: 0,
 
     listeners: [],
@@ -480,9 +485,9 @@ wmsx.Configurator = {
         [ "@MSX2P_NTSC.bios",       "@MSX2P_NTSC_54.bios" ],
         [ "@MSX2PEXT_PAL.bios",     "@MSX2PEXT_PAL_54.bios" ],
         [ "@MSX2PEXT_NTSC.bios",    "@MSX2PEXT_NTSC_54.bios" ],
-        [ "@KanjiBasic.bios",       "@KanjiBasic_NTSC_54.bios" ],
-        [ "@KanjiBasic_PAL.bios",   "@KanjiBasic_PAL_54.bios" ],
-        [ "@[KanjiBasic].bios",     "@KanjiBasic_NTSC_54.bios" ]         // older
+        [ "@KanjiBasic.bios",       "@KanjiBasic2PLogo_NTSC.bios" ],
+        [ "@KanjiBasic_PAL.bios",   "@KanjiBasic2PLogo_PAL.bios" ],
+        [ "@[KanjiBasic].bios",     "@KanjiBasic2PLogo_NTSC.bios" ]         // older
     ]
 
 };

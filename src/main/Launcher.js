@@ -16,7 +16,7 @@ WMSX.start = function (machinePowerOn) {
     delete WMSX.preLoadImagesAndStart;
 
     // Apply Configuration, including Machine Type and URL Parameters if allowed. Assync continue after reading Config file if asked
-    wmsx.Configurator.applyConfig(function applyConfigAfterFile() {
+    wmsx.Configurator.applyConfig(function startAfterConfigApplied() {
 
         // Init preferences
         WMSX.userPreferences.load();

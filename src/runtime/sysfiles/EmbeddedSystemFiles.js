@@ -48,6 +48,10 @@ wmsx.EmbeddedSystemFiles = {
             0x2c6c: [ 0x00 ]                                            // reg9 NTSC init
         }},
 
+        "KanjiBasic2PLogo_PAL.bios": { based: "@KanjiBasic2PLogo_NTSC.bios", diffs: {
+            0x3c9b: [ 0x02 ]                                            // reg9 PAL init
+        }},
+
         // MSX2+ NTSC Bootlogo, based on PAL version
         "MSX2POPEN_NTSC.bios": { based: "@MSX2POPEN_PAL.bios", diffs: {
             0x3c9b: [ 0x00 ]                                            // reg9 NTSC init
@@ -78,28 +82,18 @@ wmsx.EmbeddedSystemFiles = {
 
         // Old versions files for Savestate backward compatibility
 
-        // MSX2+ NTSC Main Bios+Basic, based on PAL version
         "MSX2P_NTSC_54.bios": { based: "@MSX2P_PAL_54.bios", diffs: {
             0x2b: [ 0x11 ],                                             // NTSC flag
             0x7754: [ 0x40, 0x00, 0x45, 0x14 ]                          // PLAY NTSC timing
         }},
 
-        // MSX2+ PAL Ext Bios, based on JAP version
         "MSX2PEXT_PAL_54.bios": { based: "@MSX2PEXT_JAP.bios", diffs: {
             0x57e: [ 0x00, 0x05, 0x02, 0x0f, 0x04, 0x04 ],              // mode & colors
             0x2c63: [ 0x02 ]                                            // reg9 PAL init
         }},
 
-        // MSX2+ NTSC Ext Bios, based on PAL version
         "MSX2PEXT_NTSC_54.bios": { based: "@MSX2PEXT_PAL_54.bios", diffs: {
             0x2c63: [ 0x00 ]                                            // reg9 NTSC init
-        }},
-
-        "KanjiBasic_NTSC_54.bios": { based: "@KanjiBasic2PLogo_NTSC.bios", diffs: {
-        }},
-
-        "KanjiBasic_PAL_54.bios": { based: "@KanjiBasic_54.bios", diffs: {
-            0x3c9b: [ 0x02 ]                                            // reg9 PAL init
         }}
 
     }

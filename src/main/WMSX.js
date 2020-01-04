@@ -155,7 +155,8 @@ WMSX.EXTENSIONS_CONFIG = {
     KANJIDRV:  {                        URL: "@KanjiBasicOnly.bios", SLOT: [2, 1] },
     MSXJE:     {                        URL: "@[MSXJE].rom",         SLOT: [2, 2] },
     V9990:     { DESC: "V9990 Video",   URL: "@[V9990].rom",         SLOT: [4, 3] },
-    MSXMUSIC:  { DESC: "MSX-MUSIC",     URL: "@[MSXMUSIC].rom",      SLOT: [3, 3] },
+    MSXMUSIC:  { DESC: "MSX-MUSIC",     URL: "@[MSXMUSIC].rom",      SLOT: [3, 3],                BOUND:  [ "MSXMUSICX" ] },
+    MSXMUSICX: {                        URL: "",                     SLOT: [0, 2] },
     OPL4:      { DESC: "OPL4 Wave",     URL: "@[MoonSound].rom",     SLOT: [4, 1] },
     DOUBLEPSG: { DESC: "Double PSG",    URL: "@[ExtraPSG].rom",      SLOT: [4, 2] },
     SCCI:      { DESC: "Konami SCC+",   URL: "@[SCCIExpansion].rom", SLOT: [1],    SLOT2: [2], CHANGE: { SCC:  0, PAC: 0, MEGARAM: 0 } },
@@ -169,9 +170,9 @@ WMSX.PRESETS_CONFIG = {
     // Extensions Options Presets. Must be specified in this order
 
     // Hard Disk: Nextor Removable Device
-    HARDDISK:   { "EXTENSIONS.HARDDISK": 1, "EXTENSIONS.DISK": 2, _INCLUDE: "RAMMAPPER" },
-    HARDDISKC:  { "EXTENSIONS.HARDDISK": 2, "EXTENSIONS.DISK": 1, _INCLUDE: "RAMMAPPER" },
-    DOS2:       { "EXTENSIONS.HARDDISK": 1, "EXTENSIONS.DISK": 2, _INCLUDE: "RAMMAPPER" },
+    HARDDISK:   { "EXTENSIONS.HARDDISK": 1 },
+    HARDDISKC:  { "EXTENSIONS.HARDDISK": 2 },
+    DOS2:       { "EXTENSIONS.HARDDISK": 1 },
     NOHARDDISK: { "EXTENSIONS.HARDDISK": 0 },
 
     // Floppy Disk Drives
@@ -180,13 +181,12 @@ WMSX.PRESETS_CONFIG = {
     NODISK:    { "EXTENSIONS.DISK": 0 },
 
     // RAM type
-    RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
-    RAMNORMAL: { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAMNORMAL": 1 },
-    NORAM:     { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAMNORMAL": 0 },
+    RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1 },
+    RAMNORMAL: { "EXTENSIONS.RAMMAPPER": 0 },
 
     // Japanese character support
-    KANJI:   { "EXTENSIONS.KANJI":  1, "EXTENSIONS.KANJIDRV":  1, "EXTENSIONS.MSXJE":  1 },
-    NOKANJI: { "EXTENSIONS.KANJI":  0, "EXTENSIONS.KANJIDRV":  0, "EXTENSIONS.MSXJE":  0 },
+    KANJI:   { "EXTENSIONS.KANJI":  1 },
+    NOKANJI: { "EXTENSIONS.KANJI":  0 },
 
     // V9990 Video
     V9990: { "EXTENSIONS.V9990":  1 },
@@ -240,16 +240,21 @@ WMSX.PRESETS_CONFIG = {
 
     DISKEXTN:    { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatch].rom" },
     DISKEXTTR:   { "EXTENSIONS_CONFIG.DISK.URL": "@[DiskPatchDOS2TR].rom" },
-    MSXMUSEXTN:  { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC].rom",   "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [3, 3]  },
-    MSXMUSEXTTR: { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC]TR.rom", "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [0, 2] },
+    MSXMUSEXTN:  { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC].rom",   "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [3, 3], "EXTENSIONS_CONFIG.MSXMUSICX.SLOT": [0, 2] },
+    MSXMUSEXTTR: { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC]TR.rom", "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [0, 2], "EXTENSIONS_CONFIG.MSXMUSICX.SLOT": [3, 3] },
+    KANJIDRVN:   { "EXTENSIONS_CONFIG.KANJI.BOUND": [ "KANJIDRV", "MSXJE" ] },
+    KANJIDRVP:   { "EXTENSIONS_CONFIG.KANJI.BOUND": [ "MSXJE" ], "EXTENSIONS.KANJIDRV": 0 },
 
     // Alternate Slot Configuration: try to keep RAM alone on primary Slot 3
 
     ALTSLOTCONFIG: {
-        EXPANSION1_SLOT:                   [3, 2],
-        EXPANSION2_SLOT:                   [3, 3],
-        "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [2, 2],
-        "PRESETS_CONFIG.DISK":             { "EXTENSIONS.DISK": 1 }
+        EXPANSION1_SLOT:                    [3, 2],
+        EXPANSION2_SLOT:                    [3, 3],
+        "PRESETS_CONFIG.DISK":              { "EXTENSIONS.DISK": 1 },
+        "PRESETS_CONFIG.MSXMUSEXTN":        { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC].rom",   "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [2, 2], "EXTENSIONS_CONFIG.MSXMUSICX.SLOT": [0, 2] },
+        "PRESETS_CONFIG.MSXMUSEXTTR":       { "EXTENSIONS_CONFIG.MSXMUSIC.URL": "@[MSXMUSIC]TR.rom", "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [0, 2], "EXTENSIONS_CONFIG.MSXMUSICX.SLOT": [2, 2] },
+        "EXTENSIONS_CONFIG.KANJIDRV.SLOT":  [2, 1],
+        "EXTENSIONS_CONFIG.MSXJE.SLOT":     [3, 3]
     },
 
     // Boosted Machine Preset
@@ -262,26 +267,25 @@ WMSX.PRESETS_CONFIG = {
         _INCLUDE:           "_MSXTRBASE",
         SLOT00_URL:         "@MSXTR_NTSC.bios",
         SLOT03_URL:         "@MSXTROPEN_NTSC.bios", SLOT03_FORMAT: "PlainROM", SLOT03_START: "0x4000",
-        SLOT31_URL:         "@MSXTREXT_NTSC.bios",
+        SLOT31_URL:         "@MSXTREXT_NTSC.bios | @KanjiBasicOnly.bios",
         BOOT_DURATION_AUTO: 380
     },
     _MSXTRE: {
         _INCLUDE:           "_MSXTRBASE",
         SLOT00_URL:         "@MSXTR_PAL.bios",
         SLOT03_URL:         "@MSXTROPEN_PAL.bios", SLOT03_FORMAT: "PlainROM", SLOT03_START: "0x4000",
-        SLOT31_URL:         "@MSXTREXT_PAL.bios",
+        SLOT31_URL:         "@MSXTREXT_PAL.bios | @KanjiBasicOnly.bios",
         BOOT_DURATION_AUTO: 380
     },
     _MSXTRJ: {
         _INCLUDE:           "_MSXTRBASE, KANJI",
         SLOT00_URL:         "@MSXTR_JAP.bios",
         SLOT03_URL:         "@MSXTROPEN_NTSC.bios", SLOT03_FORMAT: "PlainROM", SLOT03_START: "0x4000",
-        SLOT31_URL:         "@MSXTREXT_JAP.bios",
+        SLOT31_URL:         "@MSXTREXT_JAP.bios | @KanjiBasicOnly.bios",
         BOOT_DURATION_AUTO: 380
     },
     _MSXTRBASE: {
-        _INCLUDE:           "_MSX2BASE, DISKEXTTR, MSXMUSEXTTR",
-        SLOT33_URL:         "@[Empty].rom"       // MSX tR does not have MSX-MUSIC in slot 3-3
+        _INCLUDE:           "_MSX2BASE, DISKEXTTR, MSXMUSEXTTR, KANJIDRVP"
     },
 
     // MSX2+ Machine Presets. Do not use directly
@@ -289,23 +293,23 @@ WMSX.PRESETS_CONFIG = {
     _MSX2PA: {
         _INCLUDE:           "_MSX2PBASE",
         SLOT0P_URL:         "@MSX2P_NTSC.bios",
-        SLOT31_URL:         "@MSX2PEXT_NTSC.bios | @MSX2POPEN_NTSC.bios",
+        SLOT31_URL:         "@MSX2PEXT_NTSC.bios | @KanjiBasic2PLogo_NTSC.bios",
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PE: {
         _INCLUDE:           "_MSX2PBASE",
         SLOT0P_URL:         "@MSX2P_PAL.bios",
-        SLOT31_URL:         "@MSX2PEXT_PAL.bios | @MSX2POPEN_PAL.bios",
+        SLOT31_URL:         "@MSX2PEXT_PAL.bios | @KanjiBasic2PLogo_PAL.bios",
         BOOT_DURATION_AUTO: 395
     },
     _MSX2PJ: {
         _INCLUDE:           "_MSX2PBASE, KANJI",
         SLOT0P_URL:         "@MSX2P_JAP.bios",
-        SLOT31_URL:         "@MSX2PEXT_JAP.bios | @MSX2POPEN_NTSC.bios",
+        SLOT31_URL:         "@MSX2PEXT_JAP.bios | @KanjiBasic2PLogo_NTSC.bios",
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PBASE: {
-        _INCLUDE:           "_MSX2BASE"
+        _INCLUDE:           "_MSX2BASE, KANJIDRVP"
     },
 
     // MSX2 Machine Presets. Do not use directly
@@ -351,14 +355,14 @@ WMSX.PRESETS_CONFIG = {
     },
     _MSX1BASE: {
         _INCLUDE:           "_BASE, RAMNORMAL, DISK, NOHARDDISK, NOMSXMUSIC, NOKANJI",
-        SLOT31_URL :        ""       // MSX1 has no BIOS Extension on slot 3-1
+        SLOT31_URL :        ""       // MSX1 has no BIOS Extension on slot 3-1, clear
     },
 
     // Base Machines Presets. Do not use directly
 
     _EMPTY: {
         _INCLUDE:           "_BASE",
-        EXTENSIONS:         null,
+        EXTENSIONS:         { },
         SLOT0P_URL:         "",
         SLOT1P_URL:         "",
         SLOT2P_URL:         "",
@@ -367,7 +371,7 @@ WMSX.PRESETS_CONFIG = {
     },
 
     _BASE: {
-        _INCLUDE:           "DISKEXTN, MSXMUSEXTN"
+        _INCLUDE:           "DISKEXTN, MSXMUSEXTN, KANJIDRVN"
     }
 
 };

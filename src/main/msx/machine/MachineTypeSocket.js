@@ -40,6 +40,7 @@ wmsx.MachineTypeSocket = function(machine) {
         new wmsx.MultiDownloader(
             wmsx.Configurator.slotURLSpecs(),
             function onAllSuccess() {
+                machine.getExtensionsSocket().propagateAllExtensions();
                 machine.getExtensionsSocket().refreshSlotsFromConfig(function() {
                     machine.getSavestateSocket().externalStateChange();
                     machine.showOSD((machineConfig.DESC || machineConfig.DESCX) + " machine activated", true);
