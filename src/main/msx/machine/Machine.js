@@ -23,6 +23,7 @@ wmsx.Machine = function() {
     this.updateMachineType = function() {
         this.machineName = WMSX.MACHINE;
         this.machineType = WMSX.MACHINES_CONFIG[this.machineName].TYPE || 3;
+        cpu.setMachineType(this.machineType);
         vdp.setMachineType(this.machineType);
         rtc.setMachineType(this.machineType);
         syf.setMachineType(this.machineType);

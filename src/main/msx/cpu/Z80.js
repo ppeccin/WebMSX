@@ -16,12 +16,16 @@ wmsx.Z80 = function() {
     var r800Waits = !!WMSX.R800_WAITS;
 
     function init() {
-        defineAllInstructions(instructionsByPrefixZ80,  false, false);
-        defineAllInstructions(instructionsByPrefixR800, true, true);
+        defineInstructionSet(instructionsByPrefixZ80,  false, false);
     }
 
     this.connectBus = function(aBus) {
         bus = aBus;
+    };
+
+    this.setMachineType = function(machineType) {
+        r800Present = machineType >= wmsx.Machine.MACHINE_TYPE.MSXTR;
+        if (r800Present) defineR800InstructionSet();
     };
 
     this.powerOn = function() {
@@ -43,7 +47,7 @@ wmsx.Z80 = function() {
         cpuCycles = 0; busCycles = 0; cpuToBusCycles = 0;
         ackINT = false; prefix = 0;
         T = 0; W = 0;
-        opcode = 0; instruction = null;
+        opcode = 0; instruction = undefined;
         PC = 0; I = 0; R = 0; R7 = 0; IFF1 = 0; IM = 0;
         extCurrRunning = null; extExtraIter = 0;
         fetchForceNextBreak();
@@ -55,17 +59,26 @@ wmsx.Z80 = function() {
     this.setR800Mode = function(state) {
         // console.log("Set R800 mode: " + state);
 
-        if (r800 === !!state) return;
+        if (r800 === state) return;
 
-        r800 = !r800;
+        r800 = state;
         swapModeState();
         updateInstructionSet();
         updateClockMulti();
     };
 
     function updateInstructionSet() {
-        instructionsNoPrefix = r800 ? instructionsNoPrefixR800 : instructionsNoPrefixZ80;
-        instructionsByPrefix = r800 ? instructionsByPrefixR800 : instructionsByPrefixZ80;
+        if (r800) {
+            instructionsNoPrefix = instructionsNoPrefixR800;
+            instructionsByPrefix = instructionsByPrefixR800;
+        } else {
+            instructionsNoPrefix = instructionsNoPrefixZ80;
+            instructionsByPrefix = instructionsByPrefixZ80;
+        }
+    }
+
+    function defineR800InstructionSet() {
+        if (!instructionsNoPrefixR800[0]) defineInstructionSet(instructionsByPrefixR800, true, true);
     }
 
     function updateClockMulti() {
@@ -159,6 +172,7 @@ wmsx.Z80 = function() {
 
     // Main processor mode
     var r800 = false;
+    var r800Present = false;
     var modeBackState = {}, modeFrontState = {};
 
     // Speed Control
@@ -306,7 +320,7 @@ wmsx.Z80 = function() {
         // to.busCycles = busCycles;
         to.ackINT = ackINT;
         to.prefix = prefix;
-        to.T = T; to.W = W; to.opcode = opcode; to.instruction = instruction;
+        to.T = T; to.W = W; to.opcode = opcode;
         to.PC = PC; to.SP = SP; to.I = I; to.R = R; to.IFF1 = IFF1; to.IM = IM;
         to.AF = fromAF(); to.BC = fromBC(); to.DE = DE; to.HL = HL; to.IX = fromIX(); to.IY = fromIY();
         to.AF2 = AF2; to.BC2 = BC2; to.DE2 = DE2; to.HL2 = HL2;
@@ -317,7 +331,7 @@ wmsx.Z80 = function() {
         // busCycles = from.busCycles;
         ackINT = from.ackINT;
         prefix = from.prefix;
-        T = from.T; W = from.W; opcode = from.opcode; instruction = from.instruction;
+        T = from.T; W = from.W; opcode = from.opcode; instruction = undefined;
         PC = from.PC; SP = from.SP; I = from.I; R = from.R; IFF1 = from.IFF1; IM = from.IM;
         toAF(from.AF); toBC(from.BC); DE = from.DE; HL = from.HL; toIX(from.IX); toIY(from.IY);
         AF2 = from.AF2; BC2 = from.BC2; DE2 = from.DE2; HL2 = from.HL2;
@@ -1946,7 +1960,8 @@ wmsx.Z80 = function() {
     var br = 1;         // R800 Deterministic Forced Page Brake (1 wait) in First Memory Read.  DOES NOT include additional page break in next instruction
     var bw = 1;         // R800 Deterministic Forced Page Brake (1 wait) in First Memory Write. DOES NOT include additional page break in next instruction
 
-    function defineAllInstructions(instructionsByPrefix, r8, w8) {
+    function defineInstructionSet(instructionsByPrefix, r8, w8) {
+        //console.log("Z80 Defining Instruction Set:", r8, w8);
 
         var from, to;
         var t = 0, tr = 0;
@@ -3115,7 +3130,7 @@ wmsx.Z80 = function() {
             cc: cpuCycles, bc: busCycles, cbc: cpuToBusCycles,
             T: T, W: W, o: opcode, p: prefix, ai: ackINT, ii: instructionsAll.indexOf(instruction),
             ecr: extCurrRunning, eei: extExtraIter,
-            r8: r800,
+            r8p: r800Present, r8: r800,
             bs: modeBackState,
             tcm: z80ClockMulti,
             rcm: r800ClockMulti
@@ -3125,11 +3140,13 @@ wmsx.Z80 = function() {
     this.loadState = function(s) {
         PC = s.PC; SP = s.SP; A = s.A; F = s.F; B = s.B; C = s.C; DE = s.DE; HL = s.HL; IX = s.IX; IY = s.IY;
         AF2 = s.AF2; BC2 = s.BC2; DE2 = s.DE2; HL2 = s.HL2; I = s.I; R = s.R; R7 = s.R7 || 0; IM = s.IM; IFF1 = s.IFF1;         // Backward compatibility for R7
-        setINT(s.nINT ? s.INT : s.INT ? 0xff : 0xfe);   // Backward compatibility
+        setINT(s.nINT ? s.INT : s.INT ? 0xff : 0xfe);                                                                           // Backward compatibility
         cpuCycles = s.cc || 0; busCycles = s.bc || s.c || 0; cpuToBusCycles = s.cbc || 0;                                       // Backward compatibility
-        T = s.T; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai; instruction = instructionsAll[s.ii] || null;          // Backward compatibility for W
+        T = s.T; W = s.W || 0; opcode = s.o; prefix = s.p; ackINT = s.ai;                                                       // Backward compatibility for W
         extCurrRunning = s.ecr; extExtraIter = s.eei;
-        r800 = !!s.r8;
+        r800Present = !!s.r8p; r800 = !!s.r8;
+        if (r800Present) defineR800InstructionSet();
+        instruction = instructionsAll[s.ii];
         if (s.bs) modeBackState = s.bs;                                     // Backward compatibility
         z80ClockMulti = s.tcm !== undefined ? s.tcm : s.tcs > 0 ? 2 : 1;    // Backward compatibility
         r800ClockMulti = s.rcm !== undefined ? s.rcm : 2;                   // Backward compatibility
