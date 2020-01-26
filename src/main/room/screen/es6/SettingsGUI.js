@@ -55,7 +55,17 @@ wmsx.SettingsGUI.html = function() {
                                 F11
                             </div>
                         </div>
-                        <div class="wmsx-desc">Reset</div>
+                        <div class="wmsx-desc">Reset Machine</div>
+                    </div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            <div class="wmsx-key">
+                                Ctrl
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                F11
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">Pause Machine</div>
                     </div>
                     <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">
@@ -128,6 +138,7 @@ wmsx.SettingsGUI.html = function() {
                         </div>
                         <div class="wmsx-desc">Sprite Modes</div>
                     </div>
+                    <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
                             + <div class="wmsx-key">
@@ -135,17 +146,6 @@ wmsx.SettingsGUI.html = function() {
                             </div>
                         </div>
                         <div class="wmsx-desc">Go back Modes</div>
-                    </div>
-                    <div class="wmsx-full-divider"></div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-command">
-                            <div class="wmsx-key wmsx-key-fixed">
-                                Alt
-                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                G
-                            </div>
-                        </div>
-                        <div class="wmsx-desc">Capture Screen</div>
                     </div>
                 </div>
                 <div class="wmsx-right">
@@ -210,13 +210,15 @@ wmsx.SettingsGUI.html = function() {
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
-                            <div class="wmsx-key wmsx-key-fixed">
+                            <div class="wmsx-key">
+                                F8
+                            </div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
                                 P
                             </div>
                         </div>
-                        <div class="wmsx-desc">Toggle Pause</div>
+                        <div class="wmsx-desc">Pause Emulation</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -230,7 +232,17 @@ wmsx.SettingsGUI.html = function() {
                         </div>
                         <div class="wmsx-desc">Next Frame</div>
                     </div>
-                    <div class="wmsx-divider"></div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            <div class="wmsx-key wmsx-key-fixed">
+                                Alt
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                G
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">Capture Screen</div>
+                    </div>
+                    <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
                             <div class="wmsx-key wmsx-key-fixed">
@@ -253,7 +265,6 @@ wmsx.SettingsGUI.html = function() {
                         </div>
                         <div class="wmsx-desc">Screen Size / Width</div>
                     </div>
-                    <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
                             <div class="wmsx-key wmsx-key-fixed">
@@ -268,8 +279,10 @@ wmsx.SettingsGUI.html = function() {
             </div>
             <div id="wmsx-media">
                 <div class="wmsx-top-left">
-                    <div class="wmsx-hotkey wmsx-heading">
-                        Media Commands:
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-desc wmsx-heading">
+                            Media Loading:
+                        </div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -277,7 +290,7 @@ wmsx.SettingsGUI.html = function() {
                                 F6
                             </div>
                         </div>
-                        <div class="wmsx-desc">Load Drive A / B</div>
+                        <div class="wmsx-desc">Load File (Auto detect)</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -285,38 +298,28 @@ wmsx.SettingsGUI.html = function() {
                                 F7
                             </div>
                         </div>
-                        <div class="wmsx-desc">Load Cartridge 1 / 2</div>
+                        <div class="wmsx-desc">Load URL (Auto detect)</div>
                     </div>
-                    <div class="wmsx-hotkey">
+                    <div class="wmsx-hotkey wmsx-clear">
                         <div class="wmsx-command">
-                            <div class="wmsx-key">
-                                F8
-                            </div>
+                            Drag &amp; Drop Files or URLs
                         </div>
-                        <div class="wmsx-desc">Load Hard Drive / Tape</div>
-                    </div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-command">
-                            <div class="wmsx-key">
-                                Ctrl
-                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                F11
-                            </div>
-                        </div>
-                        <div class="wmsx-desc">Open File (autodetect)</div>
+                        <div class="wmsx-desc">&nbsp;</div>
                     </div>
                 </div>
                 <div class="wmsx-top-right">
-                    <div class="wmsx-hotkey wmsx-heading">
-                        Modifiers for Media Commands:
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-desc wmsx-heading">
+                            Modifiers for Media Commands:
+                        </div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
                             + <div class="wmsx-key">
                                 Shift
-                            </div>
+                            </div> / Right-click:
                         </div>
-                        <div class="wmsx-desc">Drive B / Slot 2 / Tape</div>
+                        <div class="wmsx-desc">On Drive B / Slot 2</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -334,27 +337,18 @@ wmsx.SettingsGUI.html = function() {
                         </div>
                         <div class="wmsx-desc">Remove Media</div>
                     </div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-command">
-                            + <div class="wmsx-key wmsx-key-fixed">
-                                Ctrl
-                            </div>&nbsp;<div class="wmsx-key wmsx-key-fixed">
-                                Alt
-                            </div>
-                        </div>
-                        <div class="wmsx-desc">Save Media File</div>
-                    </div>
                     <div class="wmsx-hotkey wmsx-clear">
-                        <div class="wmsx-desc">
-                            Right-Drag / Ctrl-Click: No Auto-Reset
+                        <div class="wmsx-command">
+                            Right-drag / Ctrl-click:
                         </div>
+                        <div class="wmsx-desc">No Auto-Reset</div>
                     </div>
                 </div>
                 <div class="wmsx-clear"></div>
                 <div class="wmsx-middle-left">
                     <div class="wmsx-hotkey">
                         <div class="wmsx-desc wmsx-heading">
-                            Drag &amp; Drop Files or URLs:
+                            Modifiers for Drag &amp; Drop:
                         </div>
                     </div>
                     <div class="wmsx-hotkey">
@@ -363,7 +357,7 @@ wmsx.SettingsGUI.html = function() {
                                 Ctrl
                             </div>
                         </div>
-                        <div class="wmsx-desc">&nbsp; Load Image Files and Add Disks to Drive (A, B) Stack (up to 10 Disks)
+                        <div class="wmsx-desc">Load Image Files and Add Disks to Drive (A, B) Stack (up to 10 Disks)
                         </div>
                     </div>
                     <div class="wmsx-hotkey">
@@ -372,7 +366,7 @@ wmsx.SettingsGUI.html = function() {
                                 Alt
                             </div>
                         </div>
-                        <div class="wmsx-desc">&nbsp; Add Files or ZIP Contents do Disk
+                        <div class="wmsx-desc">Add Files or ZIP Contents do Disk
                         </div>
                     </div>
                 </div>
@@ -390,6 +384,11 @@ wmsx.SettingsGUI.html = function() {
                     </div>
                 </div>
                 <div class="wmsx-full-divider"></div>
+                <div class="wmsx-hotkey">
+                    <div class="wmsx-desc wmsx-heading">
+                        Media Switching / Control:
+                    </div>
+                </div>
                 <div class="wmsx-bottom-left">
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -398,10 +397,10 @@ wmsx.SettingsGUI.html = function() {
                             </div>&nbsp;<div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                Home
+                                Hom / End
                             </div>
                         </div>
-                        <div class="wmsx-desc">Rewind Tape</div>
+                        <div class="wmsx-desc">Rewind / End Tape</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -558,9 +557,9 @@ wmsx.SettingsGUI.html = function() {
                 <div class="wmsx-right">
                     <ul class="wmsx-quick-options-list">
                         <li><div>Toggle Joysticks mode</div><div id="wmsx-ports-joysticks-mode" class="wmsx-control"><button class="wmsx-control-dec"></button><span>AUTO</span><button class="wmsx-control-inc"></button></div></li>
-                        <li><div>Toggle Joykeys mode</div><div id="wmsx-ports-joykeys-mode" class="wmsx-control"><button class="wmsx-control-dec"></button><span>DISABLED</span><button class="wmsx-control-inc"></button></div></li>                        
-                        <li><div>Toggle Mouse mode</div><div id="wmsx-ports-mouse-mode" class="wmsx-control"><button class="wmsx-control-dec"></button><span>AUTO</span><button class="wmsx-control-inc"></button></div></li>                        
-                        <li><div>Adjust Turbo Fire speed</div><div id="wmsx-ports-turbofire-speed" class="wmsx-control"><button class="wmsx-control-dec"></button><span>OFF</span><button class="wmsx-control-inc"></button></div></li>                        
+                        <li><div>Toggle Joykeys mode</div><div id="wmsx-ports-joykeys-mode" class="wmsx-control"><button class="wmsx-control-dec"></button><span>DISABLED</span><button class="wmsx-control-inc"></button></div></li>
+                        <li><div>Toggle Mouse mode</div><div id="wmsx-ports-mouse-mode" class="wmsx-control"><button class="wmsx-control-dec"></button><span>AUTO</span><button class="wmsx-control-inc"></button></div></li>
+                        <li><div>Adjust Turbo Fire speed</div><div id="wmsx-ports-turbofire-speed" class="wmsx-control"><button class="wmsx-control-dec"></button><span>OFF</span><button class="wmsx-control-inc"></button></div></li>
                     </ul>
                 </div>
                 <div class="wmsx-bottom">
@@ -840,6 +839,7 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-menu #wmsx-back {
     position: absolute;
+    right: 2px;
     width: 40px;
     height: 34px;
     margin: 3px 1px;
@@ -852,8 +852,7 @@ wmsx.SettingsGUI.css = function() {
 
 .wmsx-back-arrow {
     display: block;
-    width: 16px;
-    height: 2px;
+    height: 0;
     border-radius: 1000px;
     background: hsl(0, 0%, 98%);
 }
@@ -861,30 +860,29 @@ wmsx.SettingsGUI.css = function() {
     content: "";
     display: block;
     position: absolute;
-    width: 10px;
+    width: 14px;
     height: 2px;
     border-radius: inherit;
     background: inherit;
     transform: rotate(-45deg);
-    transform-origin: 1px 1px;
+    transform-origin: 7px 1px;
 }
 .wmsx-back-arrow:after {
     content: "";
     display: block;
     position: absolute;
-    width: 10px;
+    width: 14px;
     height: 2px;
     border-radius: inherit;
     background: inherit;
     transform: rotate(45deg);
-    transform-origin: 1px 1px;
+    transform-origin: 7px 1px;
 }
-
 
 #wmsx-menu .wmsx-caption {
     height: 29px;
     margin: 0 -1px;
-    padding: 10px 0 0 48px;
+    padding: 10px 0 0 25px;
     font-size: 18px;
     color: white;
     background: hsl(358, 66%, 50%);
@@ -975,19 +973,23 @@ wmsx.SettingsGUI.css = function() {
     padding-left: 32px;
 }
 
+#wmsx-media .wmsx-full-divider {
+    height: 13px;
+}
+
 #wmsx-media .wmsx-top-left {
     float: left;
-    width: 287px;
+    width: 235px;
 }
 
 #wmsx-media .wmsx-top-right {
     float: left;
-    height: 154px;
+    height: 135px;
 }
 
 #wmsx-media .wmsx-middle-left {
     float: left;
-    width: 287px;
+    width: 284px;
 }
 
 #wmsx-media .wmsx-middle-right {
@@ -997,27 +999,32 @@ wmsx.SettingsGUI.css = function() {
 
 #wmsx-media .wmsx-bottom-left {
     float: left;
-    width: 298px;
+    width: 295px;
 }
 
 #wmsx-media .wmsx-bottom-right {
     float: left;
+    padding-top: 27px;
 }
 
 #wmsx-media .wmsx-top-left .wmsx-command {
-    width: 101px;
+    width: 43px;
 }
 
 #wmsx-media .wmsx-top-right .wmsx-command {
-    width: 96px;
+    width: 154px;
+}
+
+#wmsx-media .wmsx-middle-left .wmsx-command {
+    width: 54px;
 }
 
 #wmsx-media .wmsx-middle-right .wmsx-command {
-    width: 84px;
+    width: 88px;
 }
 
 #wmsx-media .wmsx-bottom-left .wmsx-command {
-    width: 174px;
+    width: 172px;
 }
 
 #wmsx-media .wmsx-bottom-right .wmsx-command {
@@ -1025,7 +1032,7 @@ wmsx.SettingsGUI.css = function() {
 }
 
 #wmsx-media .wmsx-bottom .wmsx-command {
-    width: 174px;
+    width: 172px;
 }
 
 #wmsx-inputs {

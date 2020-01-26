@@ -167,49 +167,19 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.CARTRIDGE_CHOOSE_FORMAT:
                 if (!user || !mediaChangeDisabledWarning(control)) screen.openCartridgeFormatDialog(port, altPower);
                 break;
-            case pc.HARDDISK_LOAD_FILE:
             case pc.TAPE_LOAD_FILE:
-                if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && hasHardDisk) return fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, 2, false);
-                    fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, 0, false);
-                }
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.TAPE, altPower, 0, false);
                 break;
-            case pc.HARDDISK_LOAD_URL:
             case pc.TAPE_LOAD_URL:
-                if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && hasHardDisk) return fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, 2);
-                    fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, 0);
-                }
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.TAPE, altPower, 0);
                 break;
-            case pc.HARDDISK_LOAD_FILES_AS_DISK:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, 2, false);
-                break;
-            case pc.HARDDISK_LOAD_ZIP_AS_DISK:
-                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, 2, false);
-                break;
-            case pc.HARDDISK_REMOVE:
             case pc.TAPE_REMOVE:
-                if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && hasHardDisk) return diskDrive.removeStack(2);
-                    cassetteDeck.userRemoveTape();
-                }
+                if (!user || !mediaChangeDisabledWarning(control)) cassetteDeck.userRemoveTape();
                 break;
-            case pc.HARDDISK_CHOOSE_EMPTY:
             case pc.TAPE_EMPTY:
-                if (!user || !mediaChangeDisabledWarning(control)) {
-                    if (!secPort && hasHardDisk) return diskDrive.openNewHardDiskDialog(altPower, false);
-                    cassetteDeck.userLoadEmptyTape();
-                }
+                if (!user || !mediaChangeDisabledWarning(control)) cassetteDeck.userLoadEmptyTape();
                 break;
-            case pc.HARDDISK_CHOOSE_BOOT:
-                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.openNewHardDiskDialog(altPower, true);
-                break;
-            case pc.HARDDISK_NEW:
-                diskDrive.insertNewDisk(2, data.m, data.b);
-                break;
-            case pc.HARDDISK_SAVE_FILE:
             case pc.TAPE_SAVE_FILE:
-                if (!secPort && hasHardDisk) return diskDrive.saveDiskFile(2);
                 if (!user || !mediaChangeDisabledWarning(control)) cassetteDeck.saveTapeFile();
                 break;
             case pc.TAPE_REWIND:
@@ -224,15 +194,42 @@ wmsx.DOMPeripheralControls = function(room) {
             case pc.TAPE_SEEK_FWD:
                 cassetteDeck.userSeekForward();
                 break;
+            case pc.HARDDISK_LOAD_FILE:
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.DISK, altPower, 2, false);
+                break;
+            case pc.HARDDISK_LOAD_URL:
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openURLChooserDialog(OPEN_TYPE.DISK, altPower, 2);
+                break;
+            case pc.HARDDISK_LOAD_FILES_AS_DISK:
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.FILES_AS_DISK, altPower, 2, false);
+                break;
+            case pc.HARDDISK_LOAD_ZIP_AS_DISK:
+                if (!user || !mediaChangeDisabledWarning(control)) fileLoader.openFileChooserDialog(OPEN_TYPE.ZIP_AS_DISK, altPower, 2, false);
+                break;
+            case pc.HARDDISK_REMOVE:
+                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.removeStack(2);
+                break;
+            case pc.HARDDISK_CHOOSE_EMPTY:
+                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.openNewHardDiskDialog(altPower, false);
+                break;
+            case pc.HARDDISK_CHOOSE_BOOT:
+                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.openNewHardDiskDialog(altPower, true);
+                break;
+            case pc.HARDDISK_NEW:
+                diskDrive.insertNewDisk(2, data.m, data.b);
+                break;
+            case pc.HARDDISK_SAVE_FILE:
+                if (!user || !mediaChangeDisabledWarning(control)) diskDrive.saveDiskFile(2);
+                break;
             case pc.AUTO_LOAD_FILE:
                 if (!user || !mediaChangeDisabledWarning(control)) {
-                    var autoPort = secPort ? -1 : undefined;    // Auto port selection, with "secondary port" intent if asked
+                    var autoPort = secPort ? -1 : undefined;    // undefined or -1 means: Auto port selection (between HD and Drives)
                     fileLoader.openFileChooserDialog(OPEN_TYPE.AUTO, altPower, autoPort, false);
                 }
                 break;
             case pc.AUTO_LOAD_URL:
                 if (!user || !mediaChangeDisabledWarning(control)) {
-                    var autoPort = secPort ? -1 : undefined;    // Auto port selection, with "secondary port" intent if asked
+                    autoPort = secPort ? -1 : undefined;        // undefined or -1 means: Auto port selection (between HD and Drives)
                     fileLoader.openURLChooserDialog(OPEN_TYPE.AUTO, altPower, autoPort, false);
                 }
                 break;
@@ -350,30 +347,16 @@ wmsx.DOMPeripheralControls = function(room) {
     var initKeys = function() {
         var k = domKeys;
 
-        keyCodeMap[KEY_MACHINE_POWER | k.CONTROL] = pc.AUTO_LOAD_FILE;
-        keyCodeMap[KEY_MACHINE_POWER | k.CONTROL | k.ALT] = pc.AUTO_LOAD_URL;
-
         keyCodeMap[KEY_STATE_FILE | k.CONTROL | k.ALT] = pc.MACHINE_SAVE_STATE_FILE;
 
-        keyCodeMap[KEY_DISK] = pc.DISK_LOAD_FILES;
-        keyCodeMap[KEY_DISK | k.CONTROL] = pc.DISK_EMPTY;
-        keyCodeMap[KEY_DISK | k.ALT] = pc.DISK_REMOVE;
-        keyCodeMap[KEY_DISK | k.CONTROL | k.ALT] = pc.DISK_SAVE_FILE;
+        keyCodeMap[KEY_OPEN_FILE] = pc.AUTO_LOAD_FILE;
+        keyCodeMap[KEY_OPEN_URL]  = pc.AUTO_LOAD_URL;
 
         keyCodeMap[KEY_DISK_SELECT | k.ALT]  = pc.DISK_SELECT;
         keyCodeMap[KEY_DISK_SELECT2 | k.ALT] = pc.DISK_SELECT;
         keyCodeMap[KEY_DISK_PREV | k.ALT]    = pc.DISK_PREVIOUS;
         keyCodeMap[KEY_DISK_NEXT | k.ALT]    = pc.DISK_NEXT;
 
-        keyCodeMap[KEY_CART] = pc.CARTRIDGE_LOAD_FILE;
-        keyCodeMap[KEY_CART | k.ALT] = pc.CARTRIDGE_REMOVE;
-        keyCodeMap[KEY_CART | k.CONTROL] = pc.CARTRIDGE_LOAD_DATA_FILE;
-        keyCodeMap[KEY_CART | k.CONTROL | k.ALT] = pc.CARTRIDGE_SAVE_DATA_FILE;
-
-        keyCodeMap[KEY_TAPE]  = pc.TAPE_LOAD_FILE;
-        keyCodeMap[KEY_TAPE | k.CONTROL]  = pc.TAPE_EMPTY;
-        keyCodeMap[KEY_TAPE | k.ALT]  = pc.TAPE_REMOVE;
-        keyCodeMap[KEY_TAPE | k.CONTROL | k.ALT]  = pc.TAPE_SAVE_FILE;
         keyCodeMap[KEY_TAPE_RUN | k.CONTROL | k.ALT]  = pc.TAPE_AUTO_RUN;
 
         keyCodeMap[KEY_TAPE_REW | k.CONTROL | k.ALT]  = pc.TAPE_REWIND;
@@ -394,7 +377,6 @@ wmsx.DOMPeripheralControls = function(room) {
         //keyCodeMap[KEY_CRT_PHOSPHOR | k.ALT]  = pc.SCREEN_CRT_PHOSPHOR;
         //keyCodeMap[KEY_SETTINGS | k.ALT]    	= controls.SCREEN_OPEN_SETTINGS;
         keyCodeMap[KEY_QUICK_OPTIONS | k.ALT] 	= pc.SCREEN_OPEN_QUICK_OPTIONS;
-        keyCodeMap[KEY_TOUCH_CONFIG | k.ALT] 	= pc.SCREEN_OPEN_TOUCH_CONFIG;
 
         keyCodeMap[KEY_FULLSCREEN | k.ALT]  = pc.SCREEN_FULLSCREEN;
 
@@ -492,11 +474,10 @@ wmsx.DOMPeripheralControls = function(room) {
 
     //var KEY_SPEAKER_BUFFER  = domKeys.VK_A.wc;
 
-    var KEY_DISK   = domKeys.VK_F6.wc;
-    var KEY_CART   = domKeys.VK_F7.wc;
-    var KEY_HARDDISK = domKeys.VK_F8.wc;      // Share same key
-    var KEY_TAPE   = domKeys.VK_F8.wc;        // Share same key, sec slot or HardDisk inactive
-    var KEY_TAPE_RUN  = domKeys.VK_F12.wc;
+    var KEY_OPEN_FILE  = domKeys.VK_F6.wc;
+    var KEY_OPEN_URL   = domKeys.VK_F7.wc;
+
+    var KEY_TAPE_RUN   = domKeys.VK_F12.wc;
 
     var KEY_TAPE_REW   = domKeys.VK_HOME.wc;
     var KEY_TAPE_END   = domKeys.VK_END.wc;
@@ -520,8 +501,7 @@ wmsx.DOMPeripheralControls = function(room) {
     var KEY_CRT_SCANLINES  = domKeys.VK_R.wc;
     //var KEY_CRT_PHOSPHOR = domKeys.VK_R.wc;
     //var KEY_SETTINGS     = domKeys.VK_Y.wc;
-    var KEY_QUICK_OPTIONS  = domKeys.VK_U.wc;
-    var KEY_TOUCH_CONFIG   = domKeys.VK_I.wc;
+    var KEY_QUICK_OPTIONS  = domKeys.VK_I.wc;
 
     var KEY_FULLSCREEN  = domKeys.VK_ENTER.wc;
 

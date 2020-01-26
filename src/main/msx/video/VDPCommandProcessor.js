@@ -47,11 +47,9 @@ wmsx.VDPCommandProcessor = function() {
                 POINT(); break;
             case 0x00:
                 STOP(); break;
-            //default:
-            //    wmsx.Util.error("Unsupported V9938 Command: " + val.toString(16));
         }
 
-        // console.log(">>>> VDP Command: " + val.toString(16));
+        // console.log(">>>> V9990 Command: " + val.toString(16));
     };
 
     this.cpuWrite = function(val) {

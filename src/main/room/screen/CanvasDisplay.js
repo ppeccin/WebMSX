@@ -1112,15 +1112,15 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         barMenus.push(null);
 
         menu = [
-            { label: "Load Disk Images",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, needsUIG: true },
-            { label: "Add Disk Images",                control: wmsx.PeripheralControls.DISK_ADD_FILES, needsUIG: true },
-            { label: "Add Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY },
-            { label: "Add Boot Disk",      clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_BOOT },
-            { label: "Import Files to Disk",           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, needsUIG: true },
-            { label: "Expand ZIP to Disk",             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, needsUIG: true },
-            { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, disabled: true },
-            { label: "Save Disk Image",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, disabled: true, needsUIG: true },
-            { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, disabled: true }
+            { label: "Load Disk Images",   clickModif: 0, control: wmsx.PeripheralControls.DISK_LOAD_FILES, secSlot: false, needsUIG: true },
+            { label: "Add Disk Images",                control: wmsx.PeripheralControls.DISK_ADD_FILES, secSlot: false, needsUIG: true },
+            { label: "Add Blank Disk",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_EMPTY, secSlot: false },
+            { label: "Add Boot Disk",      clickModif: KEY_SHIFT_MASK | KEY_CTRL_MASK, control: wmsx.PeripheralControls.DISK_BOOT, secSlot: false },
+            { label: "Import Files to Disk",           control: wmsx.PeripheralControls.DISK_LOAD_FILES_AS_DISK, secSlot: false, needsUIG: true },
+            { label: "Expand ZIP to Disk",             control: wmsx.PeripheralControls.DISK_LOAD_ZIP_AS_DISK, secSlot: false, needsUIG: true },
+            { label: "Select Disk",                    control: wmsx.PeripheralControls.DISK_SELECT, secSlot: false, disabled: true },
+            { label: "Save Disk Image",    clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_SAVE_FILE, secSlot: false, disabled: true, needsUIG: true },
+            { label: "Remove Disk",        clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.DISK_REMOVE, secSlot: false, disabled: true }
         ];
         diskAButton = addPeripheralControlButton("wmsx-bar-diska", -165, -72, true, "Drive A", null, menu, "Drive A", mediaIconsContainer);
         if (!WMSX.EXTENSIONS.DISK) diskAButton.classList.add("wmsx-hidden");    // starting visibility
@@ -1153,11 +1153,11 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (WMSX.EXTENSIONS.HARDDISK !== 2) diskHButton.classList.add("wmsx-hd-first");
 
         menu = [
-            { label: "Load ROM Image",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, needsUIG: true },
-            { label: "Set ROM Format",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_CHOOSE_FORMAT },
-            { label: "Load Data File",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, disabled: true, needsUIG: true },
-            { label: "Save Data File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, disabled: true, needsUIG: true },
-            { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, disabled: true }
+            { label: "Load ROM Image",     clickModif: 0, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_FILE, secSlot: false, needsUIG: true },
+            { label: "Set ROM Format",     clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_CHOOSE_FORMAT, secSlot: false },
+            { label: "Load Data File",     clickModif: KEY_CTRL_MASK, control: wmsx.PeripheralControls.CARTRIDGE_LOAD_DATA_FILE, secSlot: false, disabled: true, needsUIG: true },
+            { label: "Save Data File",     clickModif: KEY_CTRL_MASK | KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_SAVE_DATA_FILE, secSlot: false, disabled: true, needsUIG: true },
+            { label: "Remove Cartridge",   clickModif: KEY_ALT_MASK, control: wmsx.PeripheralControls.CARTRIDGE_REMOVE, secSlot: false, disabled: true }
         ];
         cartridge1Button = addPeripheralControlButton("wmsx-bar-cart1", -78, -72, true, "Cartridge 1", null, menu, "Cartridge 1", mediaIconsContainer);
 
@@ -1363,7 +1363,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             if (option.extension) {
                 if (!extensionChangeDisabledWarning()) peripheralControls.processControlActivated(wmsx.PeripheralControls.EXTENSION_TOGGLE, altPower, secSlot, option.extension);
             } else if (option.control) {
-                secSlot = option.secSlot;
+                secSlot = option.secSlot !== undefined ? option.secSlot : secSlot;
                 closeAllOverlays();
                 peripheralControls.processControlActivated(option.control, altPower, secSlot);
             }

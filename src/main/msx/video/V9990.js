@@ -3,7 +3,7 @@
 // V9990 VDP
 // This implementation is line-accurate
 // Color Bus, B/W Mode, Wait Function not supported
-// Gen-lock with Internal VDP is always active
+// Gen-lock with Internal VDP is always active even in non-superimposing modes
 // Original base clock: 21477270 Hz (XTAL), same as Internal VDP which is 6x CPU clock. Rectified to real 60Hz: 21504960 Hz
 
 wmsx.V9990 = function() {
@@ -446,7 +446,7 @@ wmsx.V9990 = function() {
 
     function updateVRAMSize() {
         var val = register[8] & 0x03;
-        if (val < 2) console.error("V9990 Setting VRAM size < 512K !:", val);
+        if (val < 2) console.warn("Unsupported: V9990 Setting VRAM size < 512K !:", val);
     }
 
     function paletteRAMWrite(entry, val) {
@@ -844,7 +844,7 @@ wmsx.V9990 = function() {
 
     // TODO Only Horizontal INT X = 0 supported for now
     function updateHorizontalIntX() {
-        if ((register[12] & 0x0f) > 0) console.error("V9990 Horizontal INT X > 0 specified!");
+        if ((register[12] & 0x0f) > 0) console.warn("Unsupported: V9990 Horizontal INT X > 0 specified!");
     }
 
     function updateVideoStandardSoft() {

@@ -4,8 +4,6 @@
 // Adds a V9990 VDP with included 512KB VRAM
 // Also responds to the v7040 Superimpose/Mix chip control port, then switchs modes on Monitor
 
-// TODO Implement automatic insertion of V9990 for known ROMs
-
 wmsx.CartridgeV9990 = function(rom) {
 "use strict";
 

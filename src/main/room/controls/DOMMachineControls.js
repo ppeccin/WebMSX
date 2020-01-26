@@ -85,7 +85,9 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         keyCodeNoShiftRefuse[KEY_MIN_SPEED | k.ALT]    = true;
 
 
+        keyCodeMap[KEY_PAUSE]                       = mc.PAUSE;
         keyCodeMap[KEY_PAUSE | k.ALT]               = mc.PAUSE;
+        keyCodeMap[KEY_PAUSEa | k.ALT]              = mc.PAUSE;
         keyCodeMap[KEY_FRAME | k.ALT]               = mc.FRAME;
         keyCodeMap[KEY_FRAMEa | k.ALT]              = mc.FRAME;
         //keyCodeMap[KEY_TRACE | k.ALT]               = mc.TRACE;
@@ -184,7 +186,8 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
     var KEY_NORMAL_SPEED     = domKeys.VK_RIGHT.wc;
     var KEY_MIN_SPEED        = domKeys.VK_LEFT.wc;
 
-    var KEY_PAUSE            = domKeys.VK_P.wc;
+    var KEY_PAUSE            = domKeys.VK_F8.wc;
+    var KEY_PAUSEa           = domKeys.VK_P.wc;
     var KEY_FRAME            = domKeys.VK_O.wc;
     var KEY_FRAMEa           = domKeys.VK_F.wc;
 

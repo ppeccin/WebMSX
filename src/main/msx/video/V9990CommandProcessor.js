@@ -57,8 +57,6 @@ wmsx.V9990CommandProcessor = function() {
                 PSET(); break;
             case 0xf0:
                 ADVN(); break;
-            default:
-                wmsx.Util.error("Unsupported V9990 Command: " + val.toString(16));
         }
     };
 
