@@ -56,6 +56,11 @@ wmsx.Z80 = function() {
         updateInstructionSet();
     };
 
+    // TODO Detect Pause ON only at VBLANK
+    this.setZ80Pause = function(pause) {
+        z80Pause = !!pause;
+    };
+
     this.setR800Mode = function(state) {
         // console.log("Set R800 mode: " + state);
 
@@ -104,6 +109,7 @@ wmsx.Z80 = function() {
             if (T === 1) instruction.operation();
             else {
                 if (W > 0) { --W; continue; }
+                if (z80Pause) continue;
                 if (ackINT)
                     acknowledgeINT();
                 else {
@@ -174,6 +180,7 @@ wmsx.Z80 = function() {
     var r800 = false;
     var r800Present = false;
     var modeBackState = {}, modeFrontState = {};
+    var z80Pause = false;
 
     // Speed Control
     var z80ClockMulti = 1, r800ClockMulti = 2;              // relative to BUS clock

@@ -237,6 +237,15 @@ wmsx.Machine = function() {
         return systemPaused;
     };
 
+    this.cpuPause = function(pause, muteAudio) {
+        if (cpuPaused !== pause) {
+            cpuPaused = !!pause;
+            updateCPUPause();
+            if (cpuPaused && muteAudio) audioSocket.muteAudio();
+            else audioSocket.unMuteAudio();
+        }
+    };
+
     // To be called once and only by Room during Native Video Freq detection
     this.vSynchSetSupported = function(boo) {
         var user = WMSX.userPreferences.current.vSynch;
@@ -329,6 +338,11 @@ wmsx.Machine = function() {
         alternateSpeed = null;
         videoClockUpdateSpeed();
     };
+
+    function updateCPUPause() {
+        cpu.setZ80Pause(cpuPaused);
+        trd.setR800Pause(cpuPaused);
+    }
 
     function getSlot(slotPos) {
         if (typeof slotPos === "number") slotPos = [slotPos];
@@ -442,6 +456,7 @@ wmsx.Machine = function() {
             ps: psg.saveState(),
             vd: vdp.saveState(extended),
             c:  cpu.saveState(),
+            cp: cpuPaused,
             va: videoStandardIsAuto,
             vs: videoStandard.name,
             ctm: z80ClockMode,
@@ -494,6 +509,8 @@ wmsx.Machine = function() {
         syf.loadState(s.sf);
         trd.loadState(s.td);
         bus.loadState(s.b);
+        cpuPaused = !!s.cp;
+        updateCPUPause();
         videoSocket.loadState(s.vm);
         diskDriveSocket.loadState(s.dd);
         cassetteSocket.loadState(s.ct);
@@ -601,6 +618,7 @@ wmsx.Machine = function() {
     var userPaused = false;
     var userPauseMoreFrames = 0;
     var systemPaused = false;
+    var cpuPaused = false;
 
     var machineTypeSocket;
     var videoClockSocket;
@@ -684,13 +702,17 @@ wmsx.Machine = function() {
             case controls.POWER_OFF:
                 if (self.powerIsOn) self.powerOff();
                 break;
+            case controls.PAUSE_CPU:
+                self.cpuPause(!cpuPaused, altFunc);
+                self.showOSD(cpuPaused ? "CPU PAUSE" + (altFunc ? " with AUDIO OFF" : "") : "CPU RESUME", true);
+                break;
             case controls.PAUSE:
                 self.userPause(!userPaused, altFunc);
                 self.showOSD(userPaused ? "PAUSE" + (altFunc ? " with AUDIO ON" : "") : "RESUME", true);
-                return;
+                break;
             case controls.FRAME:
                 if (userPaused) userPauseMoreFrames = 1;
-                return;
+                break;
             case controls.INC_SPEED: case controls.DEC_SPEED: case controls.NORMAL_SPEED: case controls.MIN_SPEED:
                 var speedIndex = SPEEDS.indexOf(speedControl);
                 if (control === controls.INC_SPEED && speedIndex < SPEEDS.length - 1) ++speedIndex;

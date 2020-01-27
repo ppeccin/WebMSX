@@ -72,6 +72,9 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         keyCodeMap[KEY_POWER]                   = mc.POWER;
         keyCodeMap[KEY_POWER | k.ALT]           = mc.POWER;
 
+        keyCodeMap[KEY_POWER | k.CONTROL]         = mc.PAUSE_CPU;
+        keyCodeMap[KEY_POWER | k.CONTROL | k.ALT] = mc.PAUSE_CPU;
+
         keyCodeMap[KEY_SPEED]                   = mc.FAST_SPEED;
         keyCodeMap[KEY_SPEED | k.ALT]           = mc.FAST_SPEED;
 

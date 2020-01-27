@@ -300,6 +300,7 @@ wmsx.VDP = function(machine, cpu) {
         beginFrame();
     };
 
+    // TODO Optimize
     this.updateCycles = function() {
         var busCycles = cpu.getBUSCycles();
         if (busCycles === lastBUSCyclesComputed) return cycles;

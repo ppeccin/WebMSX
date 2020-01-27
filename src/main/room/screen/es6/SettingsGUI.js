@@ -187,30 +187,6 @@ wmsx.SettingsGUI.html = function() {
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
                             <div class="wmsx-key">
-                                F12
-                            </div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key">
-                                Shift
-                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                F12
-                            </div>
-                        </div>
-                        <div class="wmsx-desc">Fast / Slow Speed</div>
-                    </div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-command">
-                            <div class="wmsx-key">
-                                Shift
-                            </div>&nbsp;<div class="wmsx-key wmsx-key-fixed">
-                                Alt
-                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                Arrows
-                            </div>
-                        </div>
-                        <div class="wmsx-desc">Adjust Speed</div>
-                    </div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-command">
-                            <div class="wmsx-key">
                                 F8
                             </div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key wmsx-key-fixed">
                                 Alt
@@ -231,6 +207,30 @@ wmsx.SettingsGUI.html = function() {
                             </div>
                         </div>
                         <div class="wmsx-desc">Next Frame</div>
+                    </div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            <div class="wmsx-key">
+                                F12
+                            </div>&nbsp;&nbsp;/&nbsp;&nbsp;<div class="wmsx-key">
+                                Shift
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                F12
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">Fast / Slow Speed</div>
+                    </div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            <div class="wmsx-key">
+                                Shift
+                            </div>&nbsp;<div class="wmsx-key wmsx-key-fixed">
+                                Alt
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                Arrows
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">Adjust Speed</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -290,7 +290,7 @@ wmsx.SettingsGUI.html = function() {
                                 F6
                             </div>
                         </div>
-                        <div class="wmsx-desc">Load File (Auto detect)</div>
+                        <div class="wmsx-desc">Open File (Auto detect)</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -298,7 +298,7 @@ wmsx.SettingsGUI.html = function() {
                                 F7
                             </div>
                         </div>
-                        <div class="wmsx-desc">Load URL (Auto detect)</div>
+                        <div class="wmsx-desc">Open URL (Auto detect)</div>
                     </div>
                     <div class="wmsx-hotkey wmsx-clear">
                         <div class="wmsx-command">

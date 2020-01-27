@@ -2,8 +2,6 @@
 
 // Turbo R Pause and S1990 devices
 
-// TODO Implement Pause key for TR and 2+
-
 wmsx.TurboRDevices = function(cpu, ledsSocket) {
 "use strict";
 
@@ -90,11 +88,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         updateLeds();
     };
     this.inputA7 = function() {
-        var res = active ? window.TRPAUSE : 0xff;
-
-        // console.log("tR pause read: " + res.toString(16));
-
-        return res;           // bit 0: pause switch (1 = on). turbo R never paused here!
+        return active ? r800Pause : 0xff;
     };
 
     this.outputE4 = function(val) {
@@ -159,6 +153,10 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         return active ? getCounterValue() >> 8 : 0xff;
     };
 
+    this.setR800Pause = function(pause) {
+        r800Pause = pause ? 0x01 : 0x00;
+    };
+
     this.isR800LedOn = function() {
         return (leds & 0x80) !== 0;
     };
@@ -221,6 +219,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     var bus;
     var active = false;
 
+    var r800Pause = 0x00;           // bit 0: R800 pause switch (1 = on)
     var leds = 0x00;                // bit 7: R800 LED (1 = on), bit 1: Z80 pause??? (1 = yes), bit 0: pause LED (1 = on)
     var r800DramLed = 0;
     var registerSelect = 0;
@@ -253,7 +252,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
             return;
         }
 
-        active =  s.a;
+        active = s.a;
         leds = s.ld;
         r800DramLed = s.rl || 0;
         registerSelect = s.rs;
@@ -262,8 +261,5 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
         counterBase = s.cb;
         updateLeds();
     };
-
-
-    window.TRPAUSE = 0;      // TODO Global
 
 };
