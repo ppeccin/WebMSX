@@ -165,7 +165,7 @@ wmsx.TurboRDevices = function(cpu, ledsSocket) {
     }
 
     function updateLeds() {
-        ledsSocket.ledStateChanged(2, (leds & 0x01) || cpuPause ? 1 : 0);
+        ledsSocket.ledStateChanged(2, (leds & 0x01) || (z80Paused && (register6 & 0x20)) ? 1 : 0);
         ledsSocket.ledStateChanged(4, (leds & 0x80) ? 2 + r800DramLed : (register6 & 0x40) ? 0 : 1);
     }
 

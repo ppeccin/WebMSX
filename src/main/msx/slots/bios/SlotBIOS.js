@@ -68,7 +68,9 @@ wmsx.SlotBIOS = function(rom) {
         if (address < topAddress)
             return dramMode ? ramBytes[ramBase + address] : bytes[address];
         else
-            return 0xff;
+            return address === 0xfcb1
+                ? 0x00     // Fake CASPRV initial value. TurboR BIOS reads this location in BIOS slot before initializing RAM, which wrongly makes R800 and Pause led lit at boot!
+                : 0xff;
     };
 
     // this.write = function(address, value) {
