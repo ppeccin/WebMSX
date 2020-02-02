@@ -5,7 +5,7 @@
 // 2K, 8K or 32K SRAM, depending on format
 // 0x4000 - 0xbfff
 
-// TODO Bug in Dires ROM probably related to SRAM
+// TODO Bug in Dires ROM
 
 wmsx.CartridgeASCII8KSRAM = function(rom, format) {
     "use strict";
@@ -19,9 +19,10 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
         sramSizeMask = sramSize - 1;
         sram = wmsx.Util.arrayFill(new Array(sramSize), 0);
         self.sram = sram;
-        var aboveROMBankBit = Math.max(0x20, 1 << Math.ceil(wmsx.Util.log2(numBanks)));         // Bit above max ROM bank number. Starting at bit 5 minimum
+        var aboveROMBankBit = 1 << Math.ceil(wmsx.Util.log2(numBanks));                                         // Bit above max ROM bank number
         romSelectMask = aboveROMBankBit - 1;
-        sramSelectMask = format === wmsx.SlotFormats.Wizardry ? 0x80 : aboveROMBankBit;         // Bits for SRAM Bank Select
+        sramSelectMask = format === wmsx.SlotFormats.Wizardry ? 0x80 : Math.max(0x20, aboveROMBankBit);         // Bit for SRAM Bank Select. Starting at bit 5 minimum
+        koei = format === wmsx.SlotFormats.KoeiSRAM8 || format === wmsx.SlotFormats.KoeiSRAM32;
 
         // console.log(numBanks, romSelectMask.toString(16), sramSelectMask.toString(16), sramSizeMask.toString(16));
         // sramSelectMask = 0xe0;
@@ -64,8 +65,19 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
     };
 
     this.write = function(address, value) {
-        if (address < 0x6000 || address >= 0xc000)
+        if (address < 0x4000 || address >= 0xc000) return;
+
+        // SRAM write bank 1
+        if (address < 0x6000) {
+            if (koei && (bank1 & sramSelectMask)) {
+                sram[(((bank1 & 0x03) << 13) + address - 0x4000) & sramSizeMask] = value;
+                if (!sramModif) {
+                    sramModif = true;
+                    cartridgeSocket.fireCartridgesModifiedStateUpdate();
+                }
+            }
             return;
+        }
         // Bank select
         if (address < 0x6800) {
             bank1 = value;
@@ -84,11 +96,13 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
             return;
         }
         // SRAM write bank 3
-        if (address < 0xa000 && (bank3 & sramSelectMask)) {
-            sram[(((bank3 & 0x03) << 13) + address - 0x8000) & sramSizeMask] = value;
-            if (!sramModif) {
-                sramModif = true;
-                cartridgeSocket.fireCartridgesModifiedStateUpdate();
+        if (address < 0xa000) {
+            if (bank3 & sramSelectMask) {
+                sram[(((bank3 & 0x03) << 13) + address - 0x8000) & sramSizeMask] = value;
+                if (!sramModif) {
+                    sramModif = true;
+                    cartridgeSocket.fireCartridgesModifiedStateUpdate();
+                }
             }
             return;
         }
@@ -104,12 +118,11 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
 
     this.read = function(address) {
         switch (address & 0xe000) {
-            case 0x4000: return bank1 & sramSelectMask
+            case 0x4000: return koei && (bank1 & sramSelectMask)
                 ? sram[(((bank1 & 0x03) << 13) + address - 0x4000) & sramSizeMask]              // SRAM access. Mirror if necessary
                 : bytes[(((bank1 & romSelectMask) % numBanks) << 13) + address - 0x4000];       // ROM  access. Mirror if necessary
-            case 0x6000: return bank2 & sramSelectMask
-                ? sram[(((bank2 & 0x03) << 13) + address - 0x6000) & sramSizeMask]
-                : bytes[(((bank2 & romSelectMask) % numBanks) << 13) + address - 0x6000];
+            case 0x6000: return 0 |
+                  bytes[(((bank2 & romSelectMask) % numBanks) << 13) + address - 0x6000];       // SRAM access not possible
             case 0x8000: return bank3 & sramSelectMask
                 ? sram[(((bank3 & 0x03) << 13) + address - 0x8000) & sramSizeMask]
                 : bytes[(((bank3 & romSelectMask) % numBanks) << 13) + address - 0x8000];
@@ -137,6 +150,7 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
     var sramSizeMask;
     var sramContentName;
     var sramModif = false;
+    var koei = false;
 
     var cartridgeSocket;
 
@@ -175,6 +189,7 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
         bank4 = s.b4;
         numBanks = s.n;
         romSelectMask = s.rsm;
+        koei = this.format === wmsx.SlotFormats.KoeiSRAM8 || this.format === wmsx.SlotFormats.KoeiSRAM32;
         sram = wmsx.Util.uncompressStringBase64ToInt8BitArray(s.s, sram);
         this.sram = sram;
         sramSizeMask = sram.length - 1;
