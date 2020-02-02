@@ -206,7 +206,7 @@ wmsx.CartridgeASCII8KSRAM = function(rom, format) {
 wmsx.CartridgeASCII8KSRAM.prototype = wmsx.Slot.base;
 
 wmsx.CartridgeASCII8KSRAM.recreateFromSaveState = function(state, previousSlot) {
-    var cart = previousSlot || new wmsx.CartridgeASCII8K();
+    var cart = previousSlot || new wmsx.CartridgeASCII8KSRAM();
     cart.loadState(state);
     return cart;
 };
