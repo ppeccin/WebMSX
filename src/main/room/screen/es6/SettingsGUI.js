@@ -57,16 +57,6 @@ wmsx.SettingsGUI.html = function() {
                         </div>
                         <div class="wmsx-desc">Reset Button</div>
                     </div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-command">
-                            <div class="wmsx-key">
-                                Ctrl
-                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                F11
-                            </div>
-                        </div>
-                        <div class="wmsx-desc">Pause Button</div>
-                    </div>
                     <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -76,7 +66,7 @@ wmsx.SettingsGUI.html = function() {
                                 T
                             </div>
                         </div>
-                        <div class="wmsx-desc">CPU Turbo Mode</div>
+                        <div class="wmsx-desc">CPU Turbo Modes</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -86,7 +76,7 @@ wmsx.SettingsGUI.html = function() {
                                 Y
                             </div>
                         </div>
-                        <div class="wmsx-desc">VDP Turbo Mode</div>
+                        <div class="wmsx-desc">VDP Turbo Modes</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -96,7 +86,17 @@ wmsx.SettingsGUI.html = function() {
                                 Q
                             </div>
                         </div>
-                        <div class="wmsx-desc">NTSC/PAL</div>
+                        <div class="wmsx-desc">NTSC / PAL</div>
+                    </div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            <div class="wmsx-key wmsx-key-fixed">
+                                Alt
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                W
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">Colors / Palettes</div>
                     </div>
                     <div class="wmsx-hotkey">
                         <div class="wmsx-command">
@@ -154,7 +154,7 @@ wmsx.SettingsGUI.html = function() {
                             <div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                0 - 9
+                                0-9
                             </div>
                         </div>
                         <div class="wmsx-desc">Load State</div>
@@ -166,22 +166,10 @@ wmsx.SettingsGUI.html = function() {
                             </div>&nbsp;<div class="wmsx-key wmsx-key-fixed">
                                 Alt
                             </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                0 - 9
+                                0-9 / F12
                             </div>
                         </div>
-                        <div class="wmsx-desc">Save State</div>
-                    </div>
-                    <div class="wmsx-hotkey">
-                        <div class="wmsx-command">
-                            <div class="wmsx-key wmsx-key-fixed">
-                                Ctrl
-                            </div>&nbsp;<div class="wmsx-key wmsx-key-fixed">
-                                Alt
-                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
-                                F12
-                            </div>
-                        </div>
-                        <div class="wmsx-desc">Save State File</div>
+                        <div class="wmsx-desc">Save State / File</div>
                     </div>
                     <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">
@@ -241,6 +229,16 @@ wmsx.SettingsGUI.html = function() {
                             </div>
                         </div>
                         <div class="wmsx-desc">Capture Screen</div>
+                    </div>
+                    <div class="wmsx-hotkey">
+                        <div class="wmsx-command">
+                            <div class="wmsx-key wmsx-key-fixed">
+                                Alt
+                            </div>&nbsp;+&nbsp;<div class="wmsx-key">
+                                Z
+                            </div>
+                        </div>
+                        <div class="wmsx-desc">Video Out (V9990)</div>
                     </div>
                     <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">
