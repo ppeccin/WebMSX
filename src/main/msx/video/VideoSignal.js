@@ -24,8 +24,8 @@ wmsx.VideoSignal = function(source, name, shortName) {
     };
 
     // Called back by Monitor
-    this.setColorMode = function(mode) {
-        source.setColorMode(mode);
+    this.setColorAndPaletteMode = function(color, palette) {
+        source.setColorAndPaletteMode(color, palette);
     };
 
     // Called back by Monitor

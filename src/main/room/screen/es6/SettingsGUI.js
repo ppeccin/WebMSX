@@ -169,7 +169,7 @@ wmsx.SettingsGUI.html = function() {
                                 0-9 / F12
                             </div>
                         </div>
-                        <div class="wmsx-desc">Save State / File</div>
+                        <div class="wmsx-desc">Save State / to File</div>
                     </div>
                     <div class="wmsx-full-divider"></div>
                     <div class="wmsx-hotkey">

@@ -6,7 +6,9 @@ wmsx.Monitor = function(display) {
     this.connectInternalVideoSignal = function(videoSignal) {
         intSignal = videoSignal;
         intSignal.connectMonitor(this);
-        setColorMode(WMSX.SCREEN_COLORS);
+        colorMode = WMSX.SCREEN_COLORS >= 0 && WMSX.SCREEN_COLORS <= 3 ? WMSX.SCREEN_COLORS : 0;
+        paletteMode = WMSX.VDP_PALETTE >= 0 && WMSX.VDP_PALETTE <= 5 ? WMSX.VDP_PALETTE : 0;
+        updateColorAndPaletteMode();
         updateOutputMode();
     };
 
@@ -64,15 +66,24 @@ wmsx.Monitor = function(display) {
     }
 
     this.toggleColorMode = function(dec) {
-        if (dec) setColorMode(colorMode <= 0 ? 3 : colorMode - 1);
-        else     setColorMode(colorMode >= 3 ? 0 : colorMode + 1);
+        if (dec) colorMode = colorMode <= 0 ? 3 : colorMode - 1;
+        else     colorMode = colorMode >= 3 ? 0 : colorMode + 1;
+        updateColorAndPaletteMode();
+
+        display.showOSD("Screen Color Mode: " + COLOR_MODE_DESC[colorMode], true);
     };
 
-    function setColorMode(mode) {
-        if (colorMode === mode) return;
-        colorMode = mode;
-        intSignal.setColorMode(mode);
-        if (extSignal) extSignal.setColorMode(mode);
+    this.togglePaletteMode = function(dec) {
+        if (dec) paletteMode = paletteMode <= 0 ? 5 : paletteMode - 1;
+        else     paletteMode = paletteMode >= 5 ? 0 : paletteMode + 1;
+        updateColorAndPaletteMode();
+
+        display.showOSD("MSX1 Palette: " + PALETTE_MODE_DESC[paletteMode], true);
+    };
+
+    function updateColorAndPaletteMode() {
+        intSignal.setColorAndPaletteMode(colorMode, paletteMode);
+        if (extSignal) extSignal.setColorAndPaletteMode(colorMode, paletteMode);
     }
 
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {
@@ -201,18 +212,19 @@ wmsx.Monitor = function(display) {
     this.saveState = function() {
         return {
             m: outputMode, me: outputEffective, ma: outputAuto,
-            cm: colorMode
+            cm: colorMode, pm: paletteMode
         };
     };
 
     this.loadState = function(s) {
         if (s) {
             outputMode = s.m; outputAuto = s.ma;
-            setColorMode(s.cm || 0);
+            colorMode = s.cm || 0; paletteMode = s.pm || 0;
         } else {
             outputMode = -1; outputAuto = 0;
-            setColorMode(0);
+            colorMode = 0; paletteMode = 0;
         }
+        updateColorAndPaletteMode();
         updateOutputMode();
     };
 
@@ -220,11 +232,16 @@ wmsx.Monitor = function(display) {
     var outputMode = -1, outputAuto = 0, outputEffective = 0;
 
     var colorMode = 0;
+    var paletteMode = 0;
 
     var intSignal, extSignal;
 
     var displayAspectX;
     var displayScaleY;
+
+
+    var COLOR_MODE_DESC = [ "Color", "B&W", "Green Phosphor", "Amber Phosphor" ];
+    var PALETTE_MODE_DESC = [ "V9928", "V9918", "WebMSX original", "V9938", "Toshiba", "Fujitsu FM-X" ];
 
 };
 

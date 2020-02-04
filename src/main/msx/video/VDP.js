@@ -242,8 +242,10 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             + ["Normal", "Unlimited", "NO Collisions", "Unlimited, No Collisions"][spriteDebugMode], true);
     };
 
-    this.setColorMode = function(mode) {
-        console.log("VDP SetColorMode:", mode);
+    this.setColorAndPaletteMode = function(color, palette) {
+        wmsx.ColorCache.setColorAndPaletteMode(color, palette);
+        initColorCaches();
+        updateAllPaletteValues();
     };
 
     this.getSpriteDebugModeQuickDesc = function() {
@@ -2290,7 +2292,6 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     }
 
     function initColorCaches() {
-        wmsx.ColorCache.reset();
         colorsV9918Values = wmsx.ColorCache.getColors4bit9918Values();   // Init now, used by V9918 mode
         colors8bitValues =  wmsx.ColorCache.getColors8bit9938Values();   // Init now, used by Backdrop
         colors9bitValues =  wmsx.ColorCache.getColors9bit9938Values();   // Init now, used by normal Palette
@@ -2308,6 +2309,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             colorPalette[c] = value;
             colorPaletteSolid[c] = value;
         }
+        updateBackdropValue();
     }
 
     function initDebugPatternTables() {

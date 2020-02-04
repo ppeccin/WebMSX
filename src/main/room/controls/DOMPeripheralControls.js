@@ -289,6 +289,8 @@ wmsx.DOMPeripheralControls = function(room) {
                 screen.getMonitor().toggleOutputMode(secPort); break;               // secPort for dec
             case pc.SCREEN_COLORS:
                 screen.getMonitor().toggleColorMode(secPort); break;                // secPort for dec
+            case pc.SCREEN_PALETTES:
+                screen.getMonitor().togglePaletteMode(secPort); break;              // secPort for dec
             case pc.KEYBOARD_TOGGLE_HOST_LAYOUT:
                 controllersHub.toggleKeyboardLayout(secPort); break;                // secPort for dec
             case pc.JOYSTICKS_TOGGLE_MODE:
@@ -384,7 +386,8 @@ wmsx.DOMPeripheralControls = function(room) {
 
         keyCodeMap[KEY_VIDEO_OUT_TOGGLE | k.ALT]  = pc.SCREEN_OUTPUT_TOGGLE;
 
-        keyCodeMap[KEY_COLORS_TOGGLE | k.ALT]  = pc.SCREEN_COLORS;
+        keyCodeMap[KEY_COLOR_TOGGLE | k.ALT]  = pc.SCREEN_COLORS;
+        keyCodeMap[KEY_COLOR_TOGGLE | k.CONTROL | k.ALT]  = pc.SCREEN_PALETTES;
 
         keyCodeMap[KEY_UP | k.CONTROL | k.ALT]     = pc.SCREEN_SCALE_MINUS;
         keyCodeMap[KEY_DOWN | k.CONTROL | k.ALT]   = pc.SCREEN_SCALE_PLUS;
@@ -511,7 +514,7 @@ wmsx.DOMPeripheralControls = function(room) {
 
     var KEY_VIDEO_OUT_TOGGLE  = domKeys.VK_Z.wc;
 
-    var KEY_COLORS_TOGGLE  = domKeys.VK_W.wc;
+    var KEY_COLOR_TOGGLE  = domKeys.VK_W.wc;
 
     var KEY_MACHINE_POWER  = domKeys.VK_F11.wc;
     var KEY_STATE_FILE     = domKeys.VK_F12.wc;
@@ -563,7 +566,8 @@ wmsx.DOMPeripheralControls = function(room) {
         pc.SCREEN_OUTPUT_MIXED,
         pc.SCREEN_OUTPUT_TOGGLE,
         pc.SCREEN_OUTPUT_RESET_AUTO,
-        pc.SCREEN_COLORS,
+
+        pc.SCREEN_COLORS, pc.SCREEN_PALETTES,
 
         pc.SPEAKER_BUFFER_TOGGLE,
 

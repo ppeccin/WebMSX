@@ -2,19 +2,25 @@
 
 wmsx.ColorCache = new function() {
 
-    this.reset = function() {
-        PALETTE = WMSX.VDP_PALETTE >= 0 && WMSX.VDP_PALETTE <= 5 ? WMSX.VDP_PALETTE : -1;
-        SCREEN_COLORS = WMSX.SCREEN_COLORS >= 0 && WMSX.SCREEN_COLORS <= 3 ? WMSX.SCREEN_COLORS : 0;
+    this.setColorAndPaletteMode = function(color, palette) {
+        if (colorMode !== color) {
+            colorMode = color;
+            colors4bit9918Values = colors8bit9938Values = colors9bit9938Values =
+            colors8bit9990Values = colors16bitValues = colorsYUVValues = colorsYJKValues = undefined;
+        }
 
-        colors4bit9918Values = colors8bit9938Values = colors9bit9938Values =
-        colors8bit9990Values = colors16bitValues = colorsYUVValues = colorsYJKValues = undefined;
+        if (paletteMode !== palette) {
+            paletteMode = palette;
+            colors4bit9918Values = undefined;
+        }
+
+        //console.log("ColorCache colorMode:", colorMode, ", paletteMode:", paletteMode);
     };
 
     this.getColors4bit9918Values = function() {
         if (!colors4bit9918Values) {
             colors4bit9918Values = new Uint32Array(16);
-            // V9928 palette default for Color Screen, Toshiba palette otherwise
-            var palette = v9918PalettesValues[PALETTE >= 0 ? PALETTE : SCREEN_COLORS === 0 ? 2 : 4];
+            var palette = v9918PalettesValues[paletteMode];
             for (var c = 0; c < 16; ++c) {
                 var v = palette[c];
                 colors4bit9918Values[c] = hexValue((v >> 16) & 255, (v >> 8) & 255, v & 255);
@@ -87,7 +93,7 @@ wmsx.ColorCache = new function() {
 
     function hexValue(b, g, r, a) {
         a = a !== 0 ? 0xff000000 : 0x00000000;
-        switch(SCREEN_COLORS) {
+        switch(colorMode) {
             // Color
             case 0:
                 return a | ((b & 255) << 16) | ((g & 255) << 8) | (r & 255);
@@ -131,28 +137,22 @@ wmsx.ColorCache = new function() {
 
 
     var v9918PalettesValues = [
-        // 0: WebMSX original 9918
-        new Uint32Array([ 0xff000000, 0xff000000, 0xff28ca07, 0xff65e23d, 0xfff04444, 0xfff46d70, 0xff1330d0, 0xfff0e840, 0xff4242f3, 0xff7878f4, 0xff30cad0, 0xff89dcdc, 0xff20a906, 0xffc540da, 0xffbcbcbc, 0xffffffff ]),
+        // 0: 9928
+        new Uint32Array([ 0xff000000, 0xff000000, 0xff4ab740, 0xff7ecf75, 0xffd75659, 0xffef7780, 0xff515fb8, 0xffeedb66, 0xff5a66d9, 0xff7e8afd, 0xff60c3cc, 0xff88d0de, 0xff42a13b, 0xffb467b6, 0xffcccccc, 0xffffffff ]),
         // 1: 9918
         new Uint32Array([ 0xff000000, 0xff000000, 0xff0deb00, 0xff50f340, 0xffff474d, 0xffff6679, 0xff2b45f9, 0xffffff12, 0xff2d45ff, 0xff5069ff, 0xff05cbde, 0xff44d4f0, 0xff0bcb00, 0xffe246e4, 0xffcccccc, 0xffffffff ]),
-        // 2: 9928
-        new Uint32Array([ 0xff000000, 0xff000000, 0xff4ab740, 0xff7ecf75, 0xffd75659, 0xffef7780, 0xff515fb8, 0xffeedb66, 0xff5a66d9, 0xff7e8afd, 0xff60c3cc, 0xff88d0de, 0xff42a13b, 0xffb467b6, 0xffcccccc, 0xffffffff ]),
+        // 2: WebMSX original
+        new Uint32Array([ 0xff000000, 0xff000000, 0xff28ca07, 0xff65e23d, 0xfff04444, 0xfff46d70, 0xff1330d0, 0xfff0e840, 0xff4242f3, 0xff7878f4, 0xff30cad0, 0xff89dcdc, 0xff20a906, 0xffc540da, 0xffbcbcbc, 0xffffffff ]),
         // 3: 9938
         new Uint32Array([ 0xff000000, 0xff000000, 0xff24db24, 0xff6dff6d, 0xffff2424, 0xffff6d49, 0xff2424b6, 0xffffdb49, 0xff2424ff, 0xff6d6dff, 0xff24dbdb, 0xff92dbdb, 0xff249224, 0xffb649db, 0xffb6b6b6, 0xffffffff ]),
         // 4: Toshiba VDP
         new Uint32Array([ 0xff000000, 0xff000000, 0xff66cc66, 0xff88ee88, 0xffdd4444, 0xffff7777, 0xff5555bb, 0xffdddd77, 0xff6666dd, 0xff7777ff, 0xff55cccc, 0xff88eeee, 0xff55aa55, 0xffbb55bb, 0xffcccccc, 0xffffffff ]),
         // 5: Fujitsu FM-X
         new Uint32Array([ 0xff000000, 0xff000000, 0xff00ff00, 0xff00ff00, 0xffff0000, 0xffff0000, 0xff0000ff, 0xffffff00, 0xff0000ff, 0xff0000ff, 0xff00ffff, 0xff00ffff, 0xff00ff00, 0xffff00ff, 0xffffffff, 0xffffffff ]),
-
-        // 6: BW Toshiba VDP
-        new Uint32Array([ 0xff000000, 0xff000000, 0xffafafaf, 0xffd1d1d1, 0xff4f4f4f, 0xff848484, 0xff6b6b6b, 0xffc0c0c0, 0xff7f7f7f, 0xff949494, 0xffc6c6c6, 0xffe7e7e7, 0xff929292, 0xff727272, 0xffcccccc, 0xffffffff ]),
-        // 7: Green Toshiba VDP
-        new Uint32Array([ 0xff000000, 0xff000000, 0xff3aaf3a, 0xff45d145, 0xff1a4f1a, 0xff2c842c, 0xff236b23, 0xff40c040, 0xff2a7f2a, 0xff319431, 0xff42c642, 0xff4de74d, 0xff309230, 0xff267226, 0xff44cc44, 0xff55ff55 ])
     ];
-    this.v9918PalettesValues = v9918PalettesValues;
 
 
-    var PALETTE = 0;
-    var SCREEN_COLORS = 0;
+    var colorMode = 0;
+    var paletteMode = 0;
 
 }();

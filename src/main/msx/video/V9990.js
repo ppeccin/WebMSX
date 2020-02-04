@@ -89,7 +89,7 @@ wmsx.V9990 = function() {
 
     this.powerOn = function() {
         initRAM();
-        initPalette();
+        initColorPalette();
         this.reset();
     };
 
@@ -606,8 +606,9 @@ wmsx.V9990 = function() {
         spriteDebugModeLimit = (spriteDebugMode === 0) || (spriteDebugMode === 2);
     };
 
-    this.setColorMode = function(mode) {
-        console.log("V9990 SetColorMode:", mode);
+    this.setColorAndPaletteMode = function(color, palette) {
+        initColorCaches();
+        updateAllPaletteValues();
     };
 
     function updateSynchronization() {
@@ -1726,7 +1727,7 @@ wmsx.V9990 = function() {
         colorsYJKValues =   undefined;                                  // Lazy, used only by type YJK
     }
 
-    function initPalette() {
+    function initColorPalette() {
         wmsx.Util.arrayFill(paletteRAM, 0);
         for (var c = 0; c < 64; ++c)
             paletteValuesReal[c] = paletteValues[c] = solidBlackValue;
