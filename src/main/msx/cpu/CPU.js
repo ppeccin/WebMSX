@@ -121,6 +121,19 @@ wmsx.CPU = function() {
         }
     };
 
+    //this.busClockPulses = function(busPulses) {
+    //    var quant = (busPulses * clockMulti) | 0;
+    //    for (var i = quant; i > 0; --i) {
+    //        if (--T > 0) continue;
+    //        if (T < 0) {
+    //            if (ackINT) acknowledgeINT();
+    //            else fetchNextInstruction();
+    //        } else
+    //            instruction.operation();
+    //    }
+    //    cpuCycles += quant;
+    //};
+
     // this.busClockPulsesOld = function(busPulses) {
     //     var toCycle = cpuCycles + ((busPulses * clockMulti) | 0);
     //     for (; cpuCycles < toCycle; ++cpuCycles) {
@@ -258,7 +271,7 @@ wmsx.CPU = function() {
 
     var opcode = 0;
     var prefix = 0;
-    var instruction = null;
+    var instruction;
     var ackINT = false;
 
     var fetchLastAddress = 0;
@@ -290,9 +303,9 @@ wmsx.CPU = function() {
     var instructionsAll = [];
     var instructionsAllOld = [];
 
-    var HALTopcode = 0x76;
-
     var instructionsNoPrefix, instructionsByPrefix;
+
+    var instrWait;
 
 
     // Internal operations
@@ -319,7 +332,7 @@ wmsx.CPU = function() {
         ++R;
         IFF1 = 0;
         ackINT = false;
-        if (instruction === instructionsNoPrefix[HALTopcode]) pcInc();                             // To "escape" from HALT, and continue in the next instruction after ISR
+        if (instruction.operation === HALT) pcInc();                                                             // To "escape" from HALT, and continue in the next instruction after ISR
         instruction = IM < 2 ? instructionsNoPrefix[258] : instructionsNoPrefix[259];
         T = instruction.remainCycles;
     }
@@ -357,7 +370,7 @@ wmsx.CPU = function() {
         // busCycles = from.busCycles;
         ackINT = from.ackINT;
         prefix = from.prefix;
-        T = from.T; W = from.W; opcode = from.opcode; instruction = undefined;
+        T = from.T; W = from.W; opcode = from.opcode; instruction = instrWait;
         PC = from.PC; SP = from.SP; I = from.I; R = from.R; IFF1 = from.IFF1; IM = from.IM;
         toAF(from.AF); toBC(from.BC); DE = from.DE; HL = from.HL; toIX(from.IX); toIY(from.IY);
         AF2 = from.AF2; BC2 = from.BC2; DE2 = from.DE2; HL2 = from.HL2;
@@ -897,7 +910,7 @@ wmsx.CPU = function() {
             instr();
             if (F & bPV) {
                 dec2PC();     // Repeat this instruction
-                W += w;
+                T += w; instruction = instrWait;
             }
         }
     }
@@ -922,7 +935,7 @@ wmsx.CPU = function() {
             instr();
             if (F & bPV) {
                 dec2PC();     // Repeat this instruction
-                W += w;
+                T += w; instruction = instrWait;
             }
         }
     }
@@ -950,7 +963,7 @@ wmsx.CPU = function() {
             instr();
             if ((F & bPV) && !(F & bZ)) {
                 dec2PC();                       // Repeat this instruction
-                W += w;
+                T += w; instruction = instrWait;
             }
         }
     }
@@ -978,7 +991,7 @@ wmsx.CPU = function() {
             instr();
             if ((F & bPV) && !(F & bZ)) {
                 dec2PC();     // Repeat this instruction
-                W += w;
+                T += w; instruction = instrWait;
             }
         }
     }
@@ -1126,7 +1139,7 @@ wmsx.CPU = function() {
         B = (B - 1) & 0xff;
         if (B !== 0) {
             PC = sum16Signed(PC, relat);
-            W += 5;
+            T += 5; instruction = instrWait;
         }
     }
     function DJNZ_R800() {
@@ -1134,7 +1147,7 @@ wmsx.CPU = function() {
         B = (B - 1) & 0xff;
         if (B !== 0) {
             PC = sum16Signed(PC, relat);
-            W += 1;
+            T += 1; instruction = instrWait;
         }
     }
 
@@ -1185,7 +1198,7 @@ wmsx.CPU = function() {
             instr();
             if (B !== 0) {
                 dec2PC();                               // Repeat this instruction
-                W += w;
+                T += w; instruction = instrWait;
             }
         }
     }
@@ -1209,7 +1222,7 @@ wmsx.CPU = function() {
             instr();
             if (B !== 0) {
                 dec2PC();                              // Repeat this instruction
-                W += w;
+                T += w; instruction = instrWait;
             }
         }
     }
@@ -1243,7 +1256,7 @@ wmsx.CPU = function() {
         return function OTIR() {
             if (B !== 1) {                              // OUTI below will DEC B. If B !== 0 after OUTI, repeat this instruction
                 dec2PC();
-                W += w;
+                T += w; instruction = instrWait;
             }
             instr();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
         }
@@ -1269,7 +1282,7 @@ wmsx.CPU = function() {
         return function OTDR() {
             if (B !== 1) {                              // OUTD below will DEC B. If B !== 0 after OUTD, repeat this instruction
                 dec2PC();
-                W += w;
+                T += w; instruction = instrWait;
             }
             instr();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
         }
@@ -1729,7 +1742,7 @@ wmsx.CPU = function() {
                 var relat = fetchN();
                 if ((F & flag) === val) {
                     PC = sum16Signed(PC, relat);
-                    W += 5;
+                    T += 5; instruction = instrWait;
                 }
             }
     }
@@ -1743,7 +1756,7 @@ wmsx.CPU = function() {
             if ((F & flag) === val) {
                 push(PC);
                 PC = addr;
-                W += w;
+                T += w; instruction = instrWait;
             }
         }
     }
@@ -1753,13 +1766,13 @@ wmsx.CPU = function() {
             ? function RETcc_R800() {
                 if ((F & flag) === val) {
                     RET_R800();
-                    W += 2 + br;
+                    T += 2 + br; instruction = instrWait;
                 }
             }
             : function RETcc() {
                 if ((F & flag) === val) {
                     RET();
-                    W += 6;
+                    T += 6; instruction = instrWait;
                 }
             }
     }
@@ -3094,7 +3107,7 @@ wmsx.CPU = function() {
 
         opcode = 257;
         instr = NOP;
-        defineInstruction(null, null, opcode, 1, 1, instr, "< ADT CYCLES >", false);       // Dummy, only for backward compatibility in old Savestates
+        instrWait = defineInstruction(null, null, opcode, 1, 1, instr, "< WAIT CYCLES >", false);
 
         opcode = 258;
         instr = r8 ? pINT_IM01_R800 : pINT_IM01;
