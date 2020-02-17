@@ -809,7 +809,7 @@ wmsx.CPU = function() {
     function HALT() {
         //Util.log("HALT!");
         //self.breakpoint("HALT");
-        --PC;    // Keep repeating HALT instruction until an INT or RESET
+        --PC;    // Keep repeating HALT instruction until an INT or RESET. Performance trade-off: does not check for PC underflow
     }
 
     function newLD(to, from) {
@@ -904,10 +904,10 @@ wmsx.CPU = function() {
         }
     }
 
-    function newLDIR(instr, w8) {
+    function newLDIR(ldi, w8) {
         var w = w8 ? 1 : 5;
         return function LDIR() {
-            instr();
+            ldi();
             if (F & bPV) {
                 dec2PC();     // Repeat this instruction
                 T += w; instruction = instrWait;
@@ -929,10 +929,10 @@ wmsx.CPU = function() {
         }
     }
 
-    function newLDDR(instr, w8) {
+    function newLDDR(ldd, w8) {
         var w = w8 ? 1 : 5;
         return function LDDR() {
-            instr();
+            ldd();
             if (F & bPV) {
                 dec2PC();     // Repeat this instruction
                 T += w; instruction = instrWait;
@@ -957,10 +957,10 @@ wmsx.CPU = function() {
         }
     }
 
-    function newCPIR(instr, w8) {
+    function newCPIR(cpi, w8) {
         var w = w8 ? 1 : 5;                     // r800 VERIFY
         return function CPIR() {
-            instr();
+            cpi();
             if ((F & bPV) && !(F & bZ)) {
                 dec2PC();                       // Repeat this instruction
                 T += w; instruction = instrWait;
@@ -985,10 +985,10 @@ wmsx.CPU = function() {
         }
     }
 
-    function newCPDR(instr, w8) {
+    function newCPDR(cpd, w8) {
         var w = w8 ? 1 : 5;
         return function CPDR() {
-            instr();
+            cpd();
             if ((F & bPV) && !(F & bZ)) {
                 dec2PC();     // Repeat this instruction
                 T += w; instruction = instrWait;
@@ -1192,10 +1192,10 @@ wmsx.CPU = function() {
         }
     }
 
-    function newINIR(instr, w8) {
+    function newINIR(ini, w8) {
         var w = w8 ? 1 : 5;                             // r800 VERIFY
         return function INIR() {
-            instr();
+            ini();
             if (B !== 0) {
                 dec2PC();                               // Repeat this instruction
                 T += w; instruction = instrWait;
@@ -1216,10 +1216,10 @@ wmsx.CPU = function() {
         }
     }
 
-    function newINDR(instr, w8) {
+    function newINDR(ind, w8) {
         var w = w8 ? 1 : 5;                            // r800 VERIFY
         return function INDR() {
-            instr();
+            ind();
             if (B !== 0) {
                 dec2PC();                              // Repeat this instruction
                 T += w; instruction = instrWait;
@@ -1251,14 +1251,14 @@ wmsx.CPU = function() {
         }
     }
 
-    function newOTIR(instr, w8) {
+    function newOTIR(outi, w8) {
         var w = w8 ? 1 : 5;                             // r800 VERIFY
         return function OTIR() {
             if (B !== 1) {                              // OUTI below will DEC B. If B !== 0 after OUTI, repeat this instruction
                 dec2PC();
                 T += w; instruction = instrWait;
             }
-            instr();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
+            outi();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
         }
     }
 
@@ -1277,14 +1277,14 @@ wmsx.CPU = function() {
         }
     }
 
-    function newOTDR(instr, w8) {
+    function newOTDR(outd, w8) {
         var w = w8 ? 1 : 5;                             // r800 VERIFY
         return function OTDR() {
             if (B !== 1) {                              // OUTD below will DEC B. If B !== 0 after OUTD, repeat this instruction
                 dec2PC();
                 T += w; instruction = instrWait;
             }
-            instr();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
+            outd();                                    // Must be the last operation on the instruction processing, because of CPU mode switch
         }
     }
 
