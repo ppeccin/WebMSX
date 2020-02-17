@@ -849,7 +849,7 @@ wmsx.V9990 = function() {
 
     // TODO Only Horizontal INT X = 0 supported for now
     function updateHorizontalIntX() {
-        if ((register[12] & 0x0f) > 0) console.warn("Unsupported: V9990 Horizontal INT X > 0 specified!");
+        if (debugMode && (register[12] & 0x0f) > 0) logInfo("Unsupported: V9990 Horizontal INT X > 0 specified!");
     }
 
     function updateVideoStandardSoft() {
@@ -2041,8 +2041,8 @@ wmsx.V9990 = function() {
     init();
 
     function logInfo(text) {
-        var busLineCycles = cpu.getBUSCycles() - debugLineStartBUSCycles;
-        var vdpLineCycles = busLineCycles * 6;
+        //var busLineCycles = cpu.getBUSCycles() - debugLineStartBUSCycles;
+        //var vdpLineCycles = busLineCycles * 6;
         console.log("V9990 " + text
             // + ". Frame: " + frame
             + ", currentScanLine: " + currentScanline

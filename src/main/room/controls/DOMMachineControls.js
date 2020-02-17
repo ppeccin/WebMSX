@@ -69,14 +69,15 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
     var initKeys = function() {
         var k = domKeys;
 
-        keyCodeMap[KEY_POWER]                   = mc.POWER;
-        keyCodeMap[KEY_POWER | k.ALT]           = mc.POWER;
+        keyCodeMap[KEY_POWER]         = mc.POWER;
+        keyCodeMap[KEY_POWER | k.ALT] = mc.POWER;
 
-        keyCodeMap[KEY_POWER | k.CONTROL]         = mc.PAUSE_CPU;
-        keyCodeMap[KEY_POWER | k.CONTROL | k.ALT] = mc.PAUSE_CPU;
+        keyCodeMap[KEY_PAUSE | k.CONTROL]          = mc.PAUSE_CPU;
+        keyCodeMap[KEY_PAUSE | k.CONTROL | k.ALT]  = mc.PAUSE_CPU;
+        keyCodeMap[KEY_PAUSEa | k.CONTROL | k.ALT] = mc.PAUSE_CPU;
 
-        keyCodeMap[KEY_SPEED]                   = mc.FAST_SPEED;
-        keyCodeMap[KEY_SPEED | k.ALT]           = mc.FAST_SPEED;
+        keyCodeMap[KEY_SPEED]         = mc.FAST_SPEED;
+        keyCodeMap[KEY_SPEED | k.ALT] = mc.FAST_SPEED;
 
         keyCodeMap[KEY_INC_SPEED | k.ALT]    = mc.INC_SPEED;
         keyCodeMap[KEY_DEC_SPEED | k.ALT]    = mc.DEC_SPEED;
@@ -88,18 +89,18 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         keyCodeNoShiftRefuse[KEY_MIN_SPEED | k.ALT]    = true;
 
 
-        keyCodeMap[KEY_PAUSE]                       = mc.PAUSE;
-        keyCodeMap[KEY_PAUSE | k.ALT]               = mc.PAUSE;
-        keyCodeMap[KEY_PAUSEa | k.ALT]              = mc.PAUSE;
-        keyCodeMap[KEY_FRAME | k.ALT]               = mc.FRAME;
-        keyCodeMap[KEY_FRAMEa | k.ALT]              = mc.FRAME;
-        //keyCodeMap[KEY_TRACE | k.ALT]               = mc.TRACE;
-        keyCodeMap[KEY_DEBUG | k.ALT]               = mc.DEBUG;
-        keyCodeMap[KEY_SPRITE_MODE | k.ALT]         = mc.SPRITE_MODE;
-        keyCodeMap[KEY_VIDEO_STANDARD | k.ALT]      = mc.VIDEO_STANDARD;
-        //keyCodeMap[KEY_VSYNCH | k.ALT]              = mc.VSYNCH;
-        keyCodeMap[KEY_CPU_CLOCK | k.ALT]           = mc.CPU_CLOCK_MODE;
-        keyCodeMap[KEY_VDP_CLOCK | k.ALT]           = mc.VDP_CLOCK_MODE;
+        keyCodeMap[KEY_PAUSE]                   = mc.PAUSE;
+        keyCodeMap[KEY_PAUSE | k.ALT]           = mc.PAUSE;
+        keyCodeMap[KEY_PAUSEa | k.ALT]          = mc.PAUSE;
+        keyCodeMap[KEY_FRAME | k.ALT]           = mc.FRAME;
+        keyCodeMap[KEY_FRAMEa | k.ALT]          = mc.FRAME;
+        //keyCodeMap[KEY_TRACE | k.ALT]           = mc.TRACE;
+        keyCodeMap[KEY_DEBUG | k.ALT]           = mc.DEBUG;
+        keyCodeMap[KEY_SPRITE_MODE | k.ALT]     = mc.SPRITE_MODE;
+        keyCodeMap[KEY_VIDEO_STANDARD | k.ALT]  = mc.VIDEO_STANDARD;
+        //keyCodeMap[KEY_VSYNCH | k.ALT]          = mc.VSYNCH;
+        keyCodeMap[KEY_CPU_CLOCK | k.ALT]       = mc.CPU_CLOCK_MODE;
+        keyCodeMap[KEY_VDP_CLOCK | k.ALT]       = mc.VDP_CLOCK_MODE;
 
         keyCodeMap[KEY_STATE_0 | k.CONTROL | k.ALT]   = mc.SAVE_STATE_0;
         keyCodeMap[KEY_STATE_0a | k.CONTROL | k.ALT]  = mc.SAVE_STATE_0;

@@ -2576,13 +2576,13 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
     // this.TEST = 0;
 
     function logInfo(text) {
-        var busLineCycles = cpu.getBUSCycles() - debugLineStartBUSCycles;
-        var vdpLineCycles = busLineCycles * 6;
+        //var busLineCycles = cpu.getBUSCycles() - debugLineStartBUSCycles;
+        //var vdpLineCycles = busLineCycles * 6;
         console.log("VDP " + text
             // + ". Frame: " + frame
             + ", currentScanLine: " + currentScanline
             + ", activeRenderScanline: " + (currentScanline - frameStartingActiveScanline)
-            + ", activeHeigh: " + signalActiveHeight
+            + ", activeHeight: " + signalActiveHeight
             // + ", x: " + ((vdpLineCycles - 258) / 4) + ", vdpCycle:" + vdpLineCycles + ", cpuCycle: " + busLineCycles
         );
     }
