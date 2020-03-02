@@ -1123,6 +1123,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
             suppressContextMenu(document.body);
             preventDrag(auxWindow.wmsxLogo);
 
+            fileLoader.registerForDnDReject(auxWindow.wmsxFsElementCenter);
             controllersHub.addKeyInputElement(auxWindow.wmsxFsElementCenter);
 
             auxUpdateCanvasContentSize();

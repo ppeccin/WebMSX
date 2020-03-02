@@ -79,7 +79,7 @@ WMSX = {
     SCREEN_CONTROL_BAR:             1,                          // 0: on hover; 1: always
     SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // -1: auto. Don't change! :-)
     SCREEN_VSYNC_MODE:              -2,                         // -2: user set (default auto); -1: disabled; 0: off; 1: auto (on when available)
-    SCREEN_VIDEO_OUT:               -1,                         // -1: auto; 0: Internal VDP; 1: External V9990; 2: Superimposed; 3: Mixed
+    SCREEN_VIDEO_OUT:               -1,                         // -1: auto; 0: Internal VDP; 1: External V9990; 2: Superimposed; 3: Mixed; 4: Dual
     SCREEN_COLORS:                  0,                          // 0: Color (default); 1: B&W; 2: Green Phosphor; 3: Amber Phosphor
     AUDIO_MONITOR_BUFFER_BASE:      -3,                         // -3: user set (default auto); -2: disable audio; -1: auto; 0: browser default; 1..6: base value. More buffer = more delay
     AUDIO_MONITOR_BUFFER_SIZE:      -1,                         // -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size.     More buffer = more delay. Don't change! :-)
