@@ -97,7 +97,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         // Dual Screen mode? Decide which canvas to paint
         var context;
-        if (videoOutputMode !== 4 || (videoOutputDualPri ^ internal)) {
+        if (videoOutputMode < 4 || ((videoOutputMode === 5) ^ internal)) {
             context = canvasContext || createCanvasContext();
         } else {
             context = auxCanvasContext || auxCreateCanvasContext();
@@ -115,7 +115,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         );
 
         // Paint Scanlines on top. Only if not in Debug and Signal is not Interlaced, also only once for both signals or for each in Dual mode
-        if (crtScanlines && pixelHeight > 1 && !debugMode && (videoOutputMode === 4 || (videoOutputMode <= 1 || !internal))) {
+        if (crtScanlines && pixelHeight > 1 && !debugMode && (videoOutputMode >= 4 || (videoOutputMode <= 1 || !internal))) {
             var oldComposite = context.globalCompositeOperation;
             var oldAlpha = context.globalAlpha;
             context.globalCompositeOperation = "source-over";
@@ -398,7 +398,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.setDebugMode = function(boo) {
         debugMode = !!boo;
-        if (debugMode && videoOutputMode > 1) monitor.setOutputMode(Math.min(1, videoOutputMode), true);        // Return to Internal or External output mode. Superimposed and Mixed not supported in Debug
+        if (debugMode && videoOutputMode > 1 && videoOutputMode < 4) monitor.setOutputMode(Math.min(1, videoOutputMode), true);        // Return to Internal or External output mode. Superimposed and Mixed not supported in Debug
         canvasContext = null;
     };
 
@@ -731,24 +731,23 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     this.videoOutputModeUpdate = function(mode, effectiveMode, autoInternal, autoModeDesc, extDesc, dualPri) {
         videoOutputButton.classList.toggle("wmsx-hidden", !extDesc);
-        videoOutputButton.style.backgroundPosition = "" + videoOutputButton.wmsxBX + "px " + (videoOutputButton.wmsxBY + barButtonBackYOffset * effectiveMode) + "px";
+        videoOutputButton.style.backgroundPosition = "" + videoOutputButton.wmsxBX + "px " + (videoOutputButton.wmsxBY + barButtonBackYOffset * Math.min(effectiveMode, 4)) + "px";
         var menu = videoOutputButton.wmsxMenu;
-        for (var i = 0; i < menu.length; ++i)
+        for (var i = 0; i <= 4; ++i)
             menu[i].checkedOp = mode === (i - 1) ? 1 : 0;
         menu[0].label = autoModeDesc;
         menu[2].label = extDesc;
-        menu[6].checkedOp = mode === 4 ? dualPri + 1 : 0;
+        menu[6].checkedOp = mode >= 4 ? mode - 3 : 0;
         menu[6].disabled = !this.isDualScreenAllowed();
         menu[8].disabled = autoInternal && mode === -1;
         if (barMenuActive === menu) refreshBarMenu(menu);
 
-        videoOutputDualPri = dualPri;
         if (videoOutputMode !== effectiveMode) {
             videoOutputMode = effectiveMode;
             canvasContext = null; auxCanvasContext = null;
         }
 
-        if (videoOutputMode === 4) setupAndShowAuxWindow();
+        if (videoOutputMode >= 4) setupAndShowAuxWindow();
         else closeAuxWindow();
 
         if (barMenuActive === menu) refreshBarMenu(menu);
@@ -997,7 +996,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function updateImageComposition(context) {
         context.globalCompositeOperation = debugMode
             ? "copy"
-            : videoOutputMode <= 1                                          // Internal, External
+            : videoOutputMode <= 1 || videoOutputMode >= 4                  // Internal, External, Dual
                 ? crtPhosphorEffective
                     ? "source-over"
                     : "copy"
@@ -1007,7 +1006,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         context.globalAlpha = debugMode
             ? 1
-            : videoOutputMode <= 1                                          // Internal, External
+            : videoOutputMode <= 1 || videoOutputMode >= 4                  // Internal, External, Dual
                 ? crtPhosphorEffective
                     ? 0.8
                     : 1
@@ -2160,7 +2159,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var machine;
 
     var monitor;
-    var videoOutputMode = 0, videoOutputDualPri = 1;
+    var videoOutputMode = 0;
 
     var machineControls;
     var peripheralControls;
