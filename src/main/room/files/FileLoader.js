@@ -27,6 +27,15 @@ wmsx.FileLoader = function(room) {
         element.addEventListener("drop", onDrop, false);
     };
 
+    this.registerForDnDReject = function (element) {
+        element.addEventListener("dragover", function onDragReject(e) {
+            e.returnValue = false;  // IE
+            e.preventDefault();
+            e.stopPropagation();
+            if (e.dataTransfer) e.dataTransfer.dropEffect = "none";
+        }, false);
+    };
+
     this.registerForFileInputElement = function (element) {
         fileInputElementParent = element;
     };

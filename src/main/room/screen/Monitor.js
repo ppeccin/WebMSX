@@ -48,7 +48,7 @@ wmsx.Monitor = function(display) {
     };
 
     this.setOutputMode = function(mode, skipMes) {
-        outputMode = !extSignal || !display.isDualScreenAllowed() ? -1 : mode < -1 ? -1 : mode > 4 ? 4 : mode;
+        outputMode = !extSignal || !display.isDualScreenAllowed() ? -1 : mode < -1 ? -1 : mode > 5 ? 5 : mode;
         updateOutputMode();
         if (!skipMes) showOutputModeOSD();
     };
@@ -56,12 +56,12 @@ wmsx.Monitor = function(display) {
     this.setOutputModeDual = function() {
         if (!display.isDualScreenAllowed()) return;
 
-        if (outputMode === 4) {
-            outputDualPri ^= 1;     // toggle screens
+        if (outputMode >= 4) {
+            outputMode = outputMode === 4 ? 5 : 4;     // toggle priority
             updateOutputMode();
             showOutputModeOSD();
         } else
-            this.setOutputMode(4);
+            this.setOutputMode(outputEffective === 0 ? 4 : 5);
     };
 
     function updateOutputMode() {
@@ -73,7 +73,7 @@ wmsx.Monitor = function(display) {
         if (outputEffective >= 1) extSignal.refreshDisplayMetrics();    // External Signal takes precedence when displayed
         else intSignal.refreshDisplayMetrics();
 
-        display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalName(), outputDualPri);
+        display.videoOutputModeUpdate(outputMode, outputEffective, outputAuto === 0, getOutputModeShortDesc(-1), extSignal && extSignal.getSignalName());
     }
 
     this.toggleColorMode = function(dec) {
@@ -100,7 +100,7 @@ wmsx.Monitor = function(display) {
     this.newFrame = function(signal, image, sourceX, sourceY, sourceWidth, sourceHeight) {
         // Should we display this signal?
         if (isSignalActive(signal))
-            display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight, (signal === intSignal) | 0);
+            display.refresh(image, sourceX, sourceY, sourceWidth, sourceHeight, signal === intSignal);
     };
 
     this.signalOff = function(signal) {
@@ -194,22 +194,22 @@ wmsx.Monitor = function(display) {
 
     function getOutputModeDesc(mode) {
         switch (mode) {
-            case 0:  return "Internal";
-            case 1:  return extSignal ? extSignal.getSignalName() : "External";
-            case 2:  return "Superimposed";
-            case 3:  return "Mixed";
-            case 4:  var ext = extSignal ? extSignal.getSignalName() : "External"; return "Dual Screen " + (outputDualPri ? "(" + ext + " + Internal)" : "(Internal + " + ext + ")");
+            case 0: return "Internal";
+            case 1: return extSignal ? extSignal.getSignalName() : "External";
+            case 2: return "Superimposed";
+            case 3: return "Mixed";
+            case 4: case 5: var ext = extSignal ? extSignal.getSignalName() : "External"; return "Dual Screen " + (mode === 4 ? "(Internal + " + ext + ")" : "(" + ext + " + Internal)");
             default: return "Auto (" + getOutputModeDesc(outputAuto) + ")";
         }
     }
 
     function getOutputModeShortDesc(mode) {
         switch (mode) {
-            case 0:  return "Internal";
-            case 1:  return extSignal ? extSignal.getSignalName() : "External";
-            case 2:  return "Superimp";
-            case 3:  return "Mixed";
-            case 4:  return "Dual";
+            case 0: return "Internal";
+            case 1: return extSignal ? extSignal.getSignalName() : "External";
+            case 2: return "Superimp";
+            case 3: return "Mixed";
+            case 4: case 5: return "Dual";
             default: return "Auto (" + getOutputModeShortDesc(outputAuto) + ")";
         }
     }
@@ -224,17 +224,17 @@ wmsx.Monitor = function(display) {
 
     this.saveState = function() {
         return {
-            m: outputMode, me: outputEffective, ma: outputAuto, md: outputDualPri,
+            m: outputMode, me: outputEffective, ma: outputAuto,
             cm: colorMode, pm: paletteMode
         };
     };
 
     this.loadState = function(s) {
         if (s) {
-            outputMode = s.m; outputAuto = s.ma; outputDualPri = s.md !== undefined ? s.md : 1;
+            outputMode = s.m; outputAuto = s.ma;
             colorMode = s.cm || 0; paletteMode = s.pm || 0;
         } else {
-            outputMode = -1; outputAuto = 0; outputDualPri = 1;
+            outputMode = -1; outputAuto = 0;
             colorMode = 0; paletteMode = 2;
         }
         updateColorAndPaletteMode();
@@ -242,7 +242,7 @@ wmsx.Monitor = function(display) {
     };
 
 
-    var outputMode = -1, outputAuto = 0, outputEffective = 0, outputDualPri = 1;
+    var outputMode = -1, outputAuto = 0, outputEffective = 0;
 
     var colorMode = 0;
     var paletteMode = 2;
