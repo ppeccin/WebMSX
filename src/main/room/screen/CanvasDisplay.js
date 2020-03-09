@@ -4,6 +4,9 @@
 // TODO Remove "Center" rounding problems as possible. Main screen element centering still remaining
 // TODO Possible to use hotkeys and bypass logo messages
 
+// TODO Review right icons spacing on mobile
+// TODO Text Input keyboard/focus/fullscreen problem on mobile
+
 wmsx.CanvasDisplay = function(room, mainElement) {
 "use strict";
 
