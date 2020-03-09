@@ -453,7 +453,7 @@ wmsx.Util = new function() {
 
         var ua = navigator.userAgent;
         var temp;
-        var m = ua.match(/(opera|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
+        var m = ua.match(/(opera|edge|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i) || [];
         if (/trident/i.test(m[1])) {
             temp = /\brv[ :]+(\d+)/g.exec(ua) || [];
             return this.browserInfoAvailable = { name:'IE', version: (temp[1] || '') };
@@ -466,7 +466,7 @@ wmsx.Util = new function() {
         if ((temp = ua.match(/version\/(\d+)/i)) != null) m.splice(1, 1, temp[1]);
         var name = m[0].toUpperCase();
         return this.browserInfoAvailable = {
-            name: this.isIOSDevice() || name === "NETSCAPE" ? "SAFARI" : name,
+            name: this.isIOSDevice() || name === "NETSCAPE" ? "SAFARI" : name,             // isIOSDevice returns false for modern iPadOS
             version: m[1]
         };
     };
@@ -492,13 +492,17 @@ wmsx.Util = new function() {
     };
 
     this.isMobileDevice = function() {
-        return WMSX.MOBILE_MODE > 0 || (WMSX.MOBILE_MODE !== -1 && this.isTouchDevice() && (
-            (/android|blackberry|iemobile|ipad|iphone|ipod|opera mini|webos/i).test(navigator.userAgent)
+        return WMSX.MOBILE_MODE > 0 || (WMSX.MOBILE_MODE === 0 && this.isTouchDevice() && (
+            (/android|blackberry|iemobile|windows mobile|ipad|iphone|ipod|opera mini|webos/i).test(navigator.userAgent)
             || (navigator.maxTouchPoints > 1 && window.orientation !== undefined && window.orientation !== null)));
     };
 
     this.isIOSDevice = function() {
-        return (/ipad|iphone|ipod/i).test(navigator.userAgent);     // Will return FALSE for new iPadOS browsers
+        return (/ipad|iphone|ipod/i).test(navigator.userAgent);     // Will return false for modern iPadOS
+    };
+
+    this.isAndroidDevice = function() {
+        return (/android/i).test(navigator.userAgent);
     };
 
     this.isBrowserStandaloneMode = function() {

@@ -474,6 +474,8 @@ wmsx.Configurator = {
         JOYSTICKS: "JOYSTICKS_MODE",
         JOYKEYS: "JOYKEYS_MODE",
         MOUSE: "MOUSE_MODE",
+        TOUCH: "TOUCH_MODE",
+        MOBILE: "MOBILE_MODE",
         TURBO: "Z80_CLOCK_MODE",
         CPU_TURBO: "Z80_CLOCK_MODE",
         CPU_TURBO_MODE: "Z80_CLOCK_MODE",

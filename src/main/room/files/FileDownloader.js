@@ -57,7 +57,7 @@ wmsx.FileDownloader = function() {
     };
 
     function setup() {
-        saveType = wmsx.Util.isIOSDevice() ? "DATA" : "BLOB";
+        saveType = wmsx.Util.isIOSDevice() ? "DATA" : "BLOB";           // isIOSDevice returns false for modern iPadOS
 
         downloadLinkElement = document.createElement('a');
         downloadLinkElement.style.display = "none";

@@ -1049,7 +1049,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         // Use mode 1 by default (canvas imageSmoothing OFF and CSS image-rendering set to smooth)
         // iOS browser bug: freezes after some time if imageSmoothing = true. OK if we use the setting above
         // Firefox on Android bug: image looks terrible if imageSmoothing = false. Lets use mode 2 or 3, or let browser default
-        return isMobileDevice && !isIOSDevice && browserName === "FIREFOX" ? 2 : 1;
+        return isMobileDevice && isAndroidDevice && browserName === "FIREFOX" ? 2 : 1;
     }
 
     function setCRTScanlines(level) {
@@ -2307,7 +2307,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
     var isTouchDevice = wmsx.Util.isTouchDevice();
     var isMobileDevice = wmsx.Util.isMobileDevice();
-    var isIOSDevice = wmsx.Util.isIOSDevice();
+    var isAndroidDevice = wmsx.Util.isAndroidDevice();
     var isBrowserStandalone = wmsx.Util.isBrowserStandaloneMode();
     var browserName = wmsx.Util.browserInfo().name;
 

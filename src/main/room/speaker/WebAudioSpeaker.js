@@ -77,17 +77,17 @@ wmsx.WebAudioSpeaker = function(mainElement) {
     };
 
     function determineAutoBufferBaseSize() {
-        // Set bufferBaseSize according to browser and platform
+        // Set bufferBaseSize according to browser and platform. Example values are for host sampling rate around 44100 Hz
         return wmsx.Util.isMobileDevice()
-            ? wmsx.Util.browserInfo().name === "CHROME" && !wmsx.Util.isIOSDevice()
-                ? 4      // for now mobile Chrome needs more buffer, except on iOS
-                : 3      // other mobile scenarios
-            : 2;         // desktop
+            ? wmsx.Util.browserInfo().name === "CHROME" && wmsx.Util.isAndroidDevice()
+                ? 4      // 4096 for now mobile Chrome needs more buffer, only on Android
+                : 3      // 2048 for other mobile scenarios
+            : 2;         // 1024 for desktop
     }
 
     function determineBrowserDefaultBufferBaseSize() {
         // Safari/WebKit does not allow 0 (browser default), so use Auto instead
-        return wmsx.Util.browserInfo().name === "SAFARI" || wmsx.Util.isIOSDevice() ? determineAutoBufferBaseSize() : 0;
+        return wmsx.Util.browserInfo().name === "SAFARI" || wmsx.Util.isIOSDevice() ? determineAutoBufferBaseSize() : 0;     // isIOSDevice returns false for modern iPadOS
     }
 
     var createAudioContext = function() {
