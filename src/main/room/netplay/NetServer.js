@@ -142,7 +142,7 @@ wmsx.NetServer = function(room) {
         var message = JSON.parse(event.data);
 
         if (message.wmsxUpdate) {
-            var client = clients[event.clientNick];
+            var client = clients[message.fromClientNick];
             if (client) onClientNetUpdate(client, message.wmsxUpdate);
             return;
         }
