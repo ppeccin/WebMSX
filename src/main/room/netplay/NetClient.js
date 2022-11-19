@@ -336,11 +336,12 @@ wmsx.NetClient.initKeepAlive = function() {
     if (WMSX.SERVER_ADDRESS && WMSX.SERVER_KEEPALIVE) wmsx.NetClient.sendKeepAlive();
 };
 
-wmsx.NetClient.sendKeepAlive = async function() {
-    try {
-        await fetch("https://" + WMSX.SERVER_ADDRESS + "/keepalive", { mode: "no-cors" });
-    } catch(e) {
-        wmsx.Util.error("Sending KeepAlive: ", e);
-    }
-    if (WMSX.SERVER_KEEPALIVE > 0) setTimeout(wmsx.NetClient.sendKeepAlive, WMSX.SERVER_KEEPALIVE);
+wmsx.NetClient.sendKeepAlive = function() {
+    fetch("https://" + WMSX.SERVER_ADDRESS + "/keepalive", { mode: "no-cors" })
+        .catch(function(e) {
+            wmsx.Util.error("Sending KeepAlive: ", e);
+        })
+        .finally(function() {
+            if (WMSX.SERVER_KEEPALIVE > 0) setTimeout(wmsx.NetClient.sendKeepAlive, WMSX.SERVER_KEEPALIVE);
+        });
 };
