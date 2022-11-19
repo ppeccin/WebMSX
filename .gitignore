@@ -1,5 +1,4 @@
 .idea/
 node_modules/
 temp/
-test/standalone.html
-
+/test/other/

@@ -118,7 +118,8 @@ WMSX = {
     FILE_SEPARATOR_REGEX:           /[\\/?:]/,
     PAGE_BACK_CSS:                  "",                         // CSS to modify page background color. Applied to the body element
 
-    WEB_EXTENSIONS_SERVER:          "webmsx.azurewebsites.net/",    // Server address for NetPlay!
+    SERVER_ADDRESS:                 "webmsx.azurewebsites.net/",
+    SERVER_KEEPALIVE:               0,
 
     STATE_VERSION:                  600,
     STATE_VERSIONS_ACCEPTED:        { 9: true, 50: true, 51: true, 511: true, 520: true, 530: true, 600: true },

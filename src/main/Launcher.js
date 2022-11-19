@@ -30,6 +30,9 @@ WMSX.start = function (machinePowerOn) {
         // Prepare ROM Database
         wmsx.ROMDatabase.uncompress();
 
+        // Init KeepAlive
+        wmsx.NetClient.initKeepAlive();
+
         // NetPlay! auto-join Session?
         var joinSession = WMSX.NETPLAY_JOIN;
 

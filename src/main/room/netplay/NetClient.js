@@ -27,7 +27,7 @@ wmsx.NetClient = function(room) {
         room.enterNetPendingMode(this);
 
         if (!ws) {
-            ws = new WebSocket("wss://" + WMSX.WEB_EXTENSIONS_SERVER);
+            ws = new WebSocket("wss://" + WMSX.SERVER_ADDRESS);
             ws.onmessage = onSessionMessage;
             ws.onopen = onSessionServerConnected;
             ws.onclose = onSessionServerDisconnected;
@@ -330,4 +330,17 @@ wmsx.NetClient = function(room) {
     var DATA_CHANNEL_FRAG_PART = "#@FrgS@#";
     var DATA_CHANNEL_FRAG_END =  "#@FrgE@#";
 
+};
+
+wmsx.NetClient.initKeepAlive = function() {
+    if (WMSX.SERVER_ADDRESS && WMSX.SERVER_KEEPALIVE) wmsx.NetClient.sendKeepAlive();
+};
+
+wmsx.NetClient.sendKeepAlive = async function() {
+    try {
+        await fetch("https://" + WMSX.SERVER_ADDRESS + "/keepalive", { mode: "no-cors" });
+    } catch(e) {
+        wmsx.Util.error("Sending KeepAlive: ", e);
+    }
+    if (WMSX.SERVER_KEEPALIVE > 0) setTimeout(wmsx.NetClient.sendKeepAlive, WMSX.SERVER_KEEPALIVE);
 };

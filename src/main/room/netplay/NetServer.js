@@ -24,7 +24,7 @@ wmsx.NetServer = function(room) {
         wsOnly = wsOnlyAsked;
 
         if (!ws) {
-            ws = new WebSocket("wss://" + WMSX.WEB_EXTENSIONS_SERVER);
+            ws = new WebSocket("wss://" + WMSX.SERVER_ADDRESS);
             ws.onmessage = onSessionMessage;
             ws.onopen = onSessionServerConnected;
             ws.onclose = onSessionServerDisconnected;
