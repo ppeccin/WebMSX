@@ -230,10 +230,12 @@ wmsx.PSGAudio = function(secondary) {
     }
 
     function createVolumeCurve() {
-        for (var v = 0; v < 16; v++)
-            volumeCurve[v] = (Math.pow(CHANNEL_VOLUME_CURVE_POWER, v / 15) - 1) / (CHANNEL_VOLUME_CURVE_POWER - 1) * CHANNEL_MAX_VOLUME;
+        volumeCurve[0] = 0; 
+        for (var v = 1; v < 16; v++) 
+            volumeCurve[v] = Math.pow(2, -(15-v)/2) * CHANNEL_MAX_VOLUME; 
+        }
     }
-
+    
 
     var periodA = 0;
     var periodACount = 0;
