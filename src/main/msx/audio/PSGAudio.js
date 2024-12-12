@@ -229,9 +229,11 @@ wmsx.PSGAudio = function(secondary) {
         return lfsr & 0x01;
     }
 
+    // Thanks to Jaap, Stephan (NOP) and FileHunter for working/testing the volume curve fix!
     function createVolumeCurve() {
-        for (var v = 0; v < 16; v++)
-            volumeCurve[v] = (Math.pow(CHANNEL_VOLUME_CURVE_POWER, v / 15) - 1) / (CHANNEL_VOLUME_CURVE_POWER - 1) * CHANNEL_MAX_VOLUME;
+        volumeCurve[0] = 0;
+        for (var v = 1; v < 16; v++)
+            volumeCurve[v] = Math.pow(2, -(15 - v) / 2) * CHANNEL_MAX_VOLUME;
     }
 
 
@@ -289,7 +291,6 @@ wmsx.PSGAudio = function(secondary) {
     var audioSocket;
 
     var CHANNEL_MAX_VOLUME = 0.25;
-    var CHANNEL_VOLUME_CURVE_POWER = 30;
 
     var MIN_PULSE_ON_CLOCKS = 160;
 
