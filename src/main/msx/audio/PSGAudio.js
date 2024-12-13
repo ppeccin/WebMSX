@@ -298,7 +298,7 @@ wmsx.PSGAudio = function(secondary) {
     var audioSignal;
     var audioSocket;
 
-    var CHANNEL_MAX_VOLUME = 0.30;
+    var CHANNEL_MAX_VOLUME = 0.28;
     var PULSE_CHANNEL_VOLUME = 0.25;
 
     var MIN_PULSE_ON_CLOCKS = 160;
