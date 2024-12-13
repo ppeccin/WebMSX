@@ -542,8 +542,12 @@ wmsx.DiskImages = function(room) {
     this.FORMAT_OPTIONS_MEDIA_TYPES = [ 0xF9, 0xF8 ];
     this.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES = wmsx.DiskImages.HARDDISK_FORMAT_OPTIONS_MEDIA_TYPES;
 
-    // IMPORTANT: In reverse order of size
-    this.MEDIA_TYPE_VALID_SIZES = [ 737280, 655360, 368640, 327680, 184320, 163840 ];      // All supported floppy formats
+    this.MEDIA_TYPE_VALID_SIZES = [
+        737280, 655360, 368640, 327680, 184320, 163840,             // normal supported formats
+        755712, 746496, 671744, 663552, 377856, 373248,             // special 81-82 tracks, 1-2 sides and 8-9 sectors per track
+        335872, 331776, 188928, 186624, 167936, 165888
+    ];
+    this.MEDIA_TYPE_MULTIPLE_DISK_SIZE = 737280;
 
     this.MEDIA_TYPE_BOOT_SECTOR_DOS1 = {
         0xF9: [

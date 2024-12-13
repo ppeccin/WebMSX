@@ -301,8 +301,7 @@ wmsx.FileDiskDrive = function(room) {
         } else {
             // For now accept only multiple 720K images like the other emulators, and only for Floppy Drives
             // for (var i = 0, len = MEDIA_TYPE_VALID_SIZES.length; i < len; ++i) {
-            var i = 0;
-            var size = MEDIA_TYPE_VALID_SIZES[i];
+            var size = MEDIA_TYPE_MULTIPLE_DISK_SIZE;
             if (content.length % size === 0) return (content.length / size) | 0;
             //}
             return 0;
@@ -638,8 +637,8 @@ wmsx.FileDiskDrive = function(room) {
 
     var MAX_STACK = wmsx.FileDiskDrive.MAX_STACK;
 
-    var MEDIA_TYPE_VALID_SIZES = images.MEDIA_TYPE_VALID_SIZES;
-    var MEDIA_TYPE_VALID_SIZES_SET = new Set(MEDIA_TYPE_VALID_SIZES);
+    var MEDIA_TYPE_VALID_SIZES_SET = new Set(images.MEDIA_TYPE_VALID_SIZES);
+    var MEDIA_TYPE_MULTIPLE_DISK_SIZE = images.MEDIA_TYPE_MULTIPLE_DISK_SIZE;
 
     var HARDDISK_MIN_SIZE = (WMSX.HARDDISK_MIN_SIZE_KB || 720) * 1024;
 
