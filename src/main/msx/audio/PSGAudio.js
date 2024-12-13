@@ -91,7 +91,7 @@ wmsx.PSGAudio = function(secondary) {
             var sampleC = amplitudeC === 0 || (toneC && !currentSampleC) || (noiseC && !currentSampleN) ? 0 : amplitudeC;
             var sampleP = 0;
             if (currentSampleP) {
-                sampleP = CHANNEL_MAX_VOLUME;
+                sampleP = PULSE_CHANNEL_VOLUME;
                 if (!pulseSignal && audioSocket.getBUSCycles() - pulseSignalOnClock >= MIN_PULSE_ON_CLOCKS) currentSampleP = 0;
             }
             sampleResult[0] = sampleA * volPanL[0] + sampleB * volPanL[1] + sampleC * volPanL[2] + sampleP * volPanL[3];
@@ -103,7 +103,7 @@ wmsx.PSGAudio = function(secondary) {
                            (amplitudeB === 0 || (toneB && !currentSampleB) || (noiseB && !currentSampleN) ? 0 : amplitudeB) +
                            (amplitudeC === 0 || (toneC && !currentSampleC) || (noiseC && !currentSampleN) ? 0 : amplitudeC);
             if (currentSampleP) {
-                mSampleResult += CHANNEL_MAX_VOLUME;
+                mSampleResult += PULSE_CHANNEL_VOLUME;
                 if (!pulseSignal && audioSocket.getBUSCycles() - pulseSignalOnClock >= MIN_PULSE_ON_CLOCKS) currentSampleP = 0;
             }
             return mSampleResult;
@@ -236,6 +236,13 @@ wmsx.PSGAudio = function(secondary) {
             volumeCurve[v] = Math.pow(2, -(15 - v) / 2) * CHANNEL_MAX_VOLUME;
     }
 
+    // OLD, more smooth curve, apparently wrong (different from real HW)
+    // function createVolumeCurve() {
+    //     for (var v = 0; v < 16; v++)
+    //         volumeCurve[v] = (Math.pow(CHANNEL_VOLUME_CURVE_POWER, v / 15) - 1) / (CHANNEL_VOLUME_CURVE_POWER - 1) * CHANNEL_MAX_VOLUME;
+    // }
+    // var CHANNEL_VOLUME_CURVE_POWER = 30;
+
 
     var periodA = 0;
     var periodACount = 0;
@@ -283,6 +290,7 @@ wmsx.PSGAudio = function(secondary) {
     var sampleResult = [ 0, 0 ];
 
     var volumeCurve = new Array(16);
+    this.volumeCurve = volumeCurve;
 
     var volPanL =  new Array(4);
     var volPanR =  new Array(4);
@@ -290,7 +298,8 @@ wmsx.PSGAudio = function(secondary) {
     var audioSignal;
     var audioSocket;
 
-    var CHANNEL_MAX_VOLUME = 0.25;
+    var CHANNEL_MAX_VOLUME = 0.30;
+    var PULSE_CHANNEL_VOLUME = 0.25;
 
     var MIN_PULSE_ON_CLOCKS = 160;
 
