@@ -18,4 +18,5 @@ interface ApplicationCache extends EventTarget {
 
 interface Window {
     applicationCache?: ApplicationCache;
+    onhelp?: ((this: Window, ev: Event) => any) | null;
 }
