@@ -205,317 +205,274 @@
 
 // WebMSX C-BIOS version 6.0.6
 // Copyright 2015 by Paulo Augusto Peccin. See license.txt distributed with this file.
-
 // Main Emulator parameters for C-BIOS variation. No FloppyDrive, Kanji and Moonsound support. Experimental HardDrive support.
 // May be overridden dynamically by JS code, external Config File or URL query parameters
-
 WMSX = {
-
     // Main Setup
-    ENVIRONMENT:                   101,                         // 101: C-BIOS Built-in Emulator Environment
-    CONFIG_URL:                     "",                         // Configuration file to merge. Processed before URL parameters
-    MACHINE:                        "",                         // Machine Type. See Machine Configuration. Leave blank for auto-detection
-    PRESETS:                        "",                         // Configuration Presets to apply. See Presets Configuration
-
+    ENVIRONMENT: 101, // 101: C-BIOS Built-in Emulator Environment
+    CONFIG_URL: "", // Configuration file to merge. Processed before URL parameters
+    MACHINE: "", // Machine Type. See Machine Configuration. Leave blank for auto-detection
+    PRESETS: "", // Configuration Presets to apply. See Presets Configuration
     // Full or relative URL of Media files to load
-    CARTRIDGE1_URL:                 "",                         // ROM file
-    CARTRIDGE2_URL:                 "",
-    DISKA_URL:                      "",                         // Disk Image file
-    DISKB_URL:                      "",
-    HARDDISK_URL:                   "",
-    DISKA_FILES_URL:                "",                         // File to load into a Disk. For several files, use a ZIP file
-    DISKB_FILES_URL:                "",
-    HARDDISK_FILES_URL:             "",
-    TAPE_URL:                       "",                         // Disk Image file
-    STATE_URL:                      "",                         // Save State file
-    AUTODETECT_URL:                 "",                         // Open any file in auto-detect mode
-
+    CARTRIDGE1_URL: "", // ROM file
+    CARTRIDGE2_URL: "",
+    DISKA_URL: "", // Disk Image file
+    DISKB_URL: "",
+    HARDDISK_URL: "",
+    DISKA_FILES_URL: "", // File to load into a Disk. For several files, use a ZIP file
+    DISKB_FILES_URL: "",
+    HARDDISK_FILES_URL: "",
+    TAPE_URL: "", // Disk Image file
+    STATE_URL: "", // Save State file
+    AUTODETECT_URL: "", // Open any file in auto-detect mode
     // Forcing ROM formats
-    CARTRIDGE1_FORMAT:              "",                         // Normal, ASCII8, ASCII16, Konami, KonamiSCC, KonamiSCCI, FMPAC, etc...
-    CARTRIDGE2_FORMAT:              "",
-
+    CARTRIDGE1_FORMAT: "", // Normal, ASCII8, ASCII16, Konami, KonamiSCC, KonamiSCCI, FMPAC, etc...
+    CARTRIDGE2_FORMAT: "",
     // BASIC loading/typing commands. Not needed for AUTOEXEC.BAS, AUTOEXEC.BAT or Tape Images
-    BASIC_RUN:                      "",
-    BASIC_LOAD:                     "",
-    BASIC_BRUN:                     "",
-    BASIC_BLOAD:                    "",
-    BASIC_TYPE:                     "",
-    BASIC_ENTER:                    "",
-
+    BASIC_RUN: "",
+    BASIC_LOAD: "",
+    BASIC_BRUN: "",
+    BASIC_BLOAD: "",
+    BASIC_TYPE: "",
+    BASIC_ENTER: "",
     // Boot Options
-    BOOT_KEYS:                      "",                         // Keys to keep pressed at every boot, comma separated
-    BOOT_KEYS_ONCE:                 "",                         // Same as above, but only on first boot (do not use both)
-    BOOT_KEYS_FRAMES:               -1,                         // -1: auto; > 0: number of frames for Boot Keys
-    FAST_BOOT:                       0,                         // 0: off; 1: auto (same as Boot Keys frames); > 1: number of frames for 10x speed at boot
-
+    BOOT_KEYS: "", // Keys to keep pressed at every boot, comma separated
+    BOOT_KEYS_ONCE: "", // Same as above, but only on first boot (do not use both)
+    BOOT_KEYS_FRAMES: -1, // -1: auto; > 0: number of frames for Boot Keys
+    FAST_BOOT: 0, // 0: off; 1: auto (same as Boot Keys frames); > 1: number of frames for 10x speed at boot
     // NetPlay
-    NETPLAY_JOIN:                   "",                         // Join NetPlay! Session automatically
-    NETPLAY_NICK:                   "",                         // NetPlay! Nickname, optional
-
+    NETPLAY_JOIN: "", // Join NetPlay! Session automatically
+    NETPLAY_NICK: "", // NetPlay! Nickname, optional
     // Internal Machine configuration
-    BIOS_SLOT:                      [0],                        // Slot to use when loading ROM of type
-    CARTRIDGE1_SLOT:                [1],
-    CARTRIDGE2_SLOT:                [2],
-    EXPANSION1_SLOT:                [3, 3],
-    EXPANSION2_SLOT:                [2, 3],
-    BIOSEXT_SLOT:                   [3, 1],
-    RAMMAPPER_SIZE:                 512,                        // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB when active
-    RAMNORMAL_SIZE:                 64,                         // 16..64: Normal RAM size in KB when active
-    MEGARAM_SIZE:                   2048,                       // 256, 512, 1024, 2048: MegaRAM size in KB
-    EXTENSIONS:                     { },                        // Extensions active. See Extensions Configuration. Use Presets to activate/deactivate
-    RTC_ACTIVE:                     -1,                         // -1: auto; 0: not present; 1: present
-    VDP_TYPE:                       -1,                         // -1: auto; 1: V9918; 2: V9938; 3: V9958
-    VDP_PALETTE:                    2,                          // 0: WebMSX Original; 1: V9918; 2: V9928; 3: V9938; 4: Toshiba; 5: Fujitsu FM-X
-
+    BIOS_SLOT: [0], // Slot to use when loading ROM of type
+    CARTRIDGE1_SLOT: [1],
+    CARTRIDGE2_SLOT: [2],
+    EXPANSION1_SLOT: [3, 3],
+    EXPANSION2_SLOT: [2, 3],
+    BIOSEXT_SLOT: [3, 1],
+    RAMMAPPER_SIZE: 512, // 64, 128, 256, 512, 1024, 2048, 4096: RAM Mapper size in KB when active
+    RAMNORMAL_SIZE: 64, // 16..64: Normal RAM size in KB when active
+    MEGARAM_SIZE: 2048, // 256, 512, 1024, 2048: MegaRAM size in KB
+    EXTENSIONS: {}, // Extensions active. See Extensions Configuration. Use Presets to activate/deactivate
+    RTC_ACTIVE: -1, // -1: auto; 0: not present; 1: present
+    VDP_TYPE: -1, // -1: auto; 1: V9918; 2: V9938; 3: V9958
+    VDP_PALETTE: 2, // 0: WebMSX Original; 1: V9918; 2: V9928; 3: V9938; 4: Toshiba; 5: Fujitsu FM-X
     // General options
-    VOL:                            1.0,                        // Master Volume factor
-    SPEED:                          100,                        // Default emulation speed (in %)
-    AUTO_START:                     true,
-    AUTO_POWER_ON_DELAY:            1200,                       // -1: no auto Power-ON; >= 0: wait specified milliseconds before Power-ON
-    MEDIA_CHANGE_DISABLED:          false,                      // Prevents user form changing Machine Type, Extensions and Medias (Disks, Carts, Tapes)
-    SCREEN_RESIZE_DISABLED:         false,
-    SCREEN_ELEMENT_ID:              "wmsx-screen",
-    SCREEN_FULLSCREEN_MODE:         -1,                         // -2: disabled; -1: auto; 0: off; 1: on (Full Screen); 2: on (Full Windowed)
-    SCREEN_FILTER_MODE:             -3,                         // -3: user set (default auto); -2: browser default; -1: auto; 0..3: smoothing level
-    SCREEN_CRT_SCANLINES:           -1,                         // -1: user set (default off); 0: off; 1..10: level
-    SCREEN_CRT_PHOSPHOR:            -1,                         // -1: auto; 0: off; 1: on
-    SCREEN_DEFAULT_SCALE:           -1,                         // -1: auto; 0.5..N in 0.05 steps: scale
-    SCREEN_DEFAULT_ASPECT:          1.14,                       // in 0.01 steps
-    SCREEN_CONTROL_BAR:             1,                          // 0: on hover; 1: always
-    SCREEN_FORCE_HOST_NATIVE_FPS:   -1,                         // -1: auto. Don't change! :-)
-    SCREEN_VSYNC_MODE:              -2,                         // -2: user set (default auto); -1: disabled; 0: off; 1: auto (on when available)
-    SCREEN_VIDEO_OUT:               -1,                         // -1: auto; 0: Internal VDP; 1: External V9990; 2: Superimposed; 3: Mixed; 4: Dual (main: Internal); 5: Dual (main: V9990)
-    SCREEN_COLORS:                  0,                          // 0: Color (default); 1: B&W; 2: Green Phosphor; 3: Amber Phosphor
-    AUDIO_MONITOR_BUFFER_BASE:      -3,                         // -3: user set (default auto); -2: disable audio; -1: auto; 0: browser default; 1..6: base value. More buffer = more delay
-    AUDIO_MONITOR_BUFFER_SIZE:      -1,                         // -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size.     More buffer = more delay. Don't change! :-)
-    AUDIO_SIGNAL_BUFFER_RATIO:      2,                          // Internal Audio Signal buffer based on Monitor buffer
-    AUDIO_SIGNAL_ADD_FRAMES:        3,                          // Additional frames in internal Audio Signal buffer based on Monitor buffer
-    JOYSTICKS_MODE:                 0,                          // -1: disabled; 0: auto; 1: auto (swapped)
-    JOYKEYS_MODE:                   -1,                         // -1: disabled; 0: enabled at port 1; 1: enabled at port 2; 2: enabled at both ports; 3: enabled at both ports (swapped)
-    MOUSE_MODE:                     -1,                         // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
-    TOUCH_MODE:                     0,                          // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
-    MOBILE_MODE:                    0,                          // -1: disabled; 0: auto; 1: enabled (forced)
-    Z80_CLOCK_MODE:                 0,                          // 0: auto (soft-turbo possible); (0..8]: Z80 CPU clock multiplier;
-    VDP_CLOCK_MODE:                 0,                          // 0: auto (soft-turbo possible); (0..8]: VDP Command Engine clock multiplier; 9: instantaneous
-    Z80_SOFT_TURBO_MULTI:           1.5,                        // 1..8 Z80 CPU clock multiplier when in AUTO mode and activated by software or CPU_SOFT_TURBO_AUTO_ON
-    VDP_SOFT_TURBO_MULTI:           1,                          // 1..9 VDP Command Engine clock multiplier when in AUTO mode and activated by software or CPU_SOFT_TURBO_AUTO_ON
-    CPU_SOFT_TURBO_AUTO_ON:         0,                          // 0: off, 1: on. Automatically activate the CPU Soft Turbo when supported by machine
-    CPU_FAKE_TR_TURBO:              -1,                         // -1: auto; 0: off; 1: on. Simulated tR CHGCPU Turbo activation. Auto ON for 2+, never for tR
-    KEYBOARD_JAPAN_LAYOUT:          1,                          // 0: ANSI; 1: JIS
-    DEBUG_MODE:                     0,                          // 0: off; 1..7: debug mode. Don't change! :-)
-    SPRITES_DEBUG_MODE:             0,                          // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
-    ROM_MAX_HASH_SIZE_KB:           5120,                       // Maximum ROM size for Hash calculation
-    HARDDISK_MIN_SIZE_KB:           720,                        // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
-    DISK_ROM_START_PAGE:            0,                          // 0..1: Change starting page for ROMs > 16KB when format is DiskPatch
-    LIGHT_STATES:                   true,
-
-    PSG_VOL:                        "f",                        // 0..f (hex digit):       PSG Volume adjust. Set globally or for each channel (4 values)
-    PSG_PAN:                        "8",                        // 0; 1..8..f (hex digit): PSG PanPot adjust. Set globally or for each channel (4 values)
-    SCC_VOL:                        "f",                        // SCC Volume adjust. Same as above (5 values)
-    SCC_PAN:                        "8",                        // SCC PanPot adjust. Same as above (5 values)
-    OPLL_VOL:                       "f",                        // OPLL Volume adjust. Same as above (14 values)
-    OPLL_PAN:                       "8",                        // OPLL PanPot adjust. Same as above (14 values)
-
-    IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
-    FILE_SEPARATOR_REGEX:           /[\\/?:]/,
-    PAGE_BACK_CSS:                  "",                         // CSS to modify page background color. Applied to the body element
-
-    SERVER_ADDRESS:                 "webmsx.azurewebsites.net/",
-    SERVER_KEEPALIVE:               0,
-
-    STATE_VERSION:                  600,
-    STATE_VERSIONS_ACCEPTED:        { 530: true, 600: true },
-
-    ALLOW_URL_PARAMETERS:           true                        // Allows user to override any of these parameters via URL query parameters
-
+    VOL: 1.0, // Master Volume factor
+    SPEED: 100, // Default emulation speed (in %)
+    AUTO_START: true,
+    AUTO_POWER_ON_DELAY: 1200, // -1: no auto Power-ON; >= 0: wait specified milliseconds before Power-ON
+    MEDIA_CHANGE_DISABLED: false, // Prevents user form changing Machine Type, Extensions and Medias (Disks, Carts, Tapes)
+    SCREEN_RESIZE_DISABLED: false,
+    SCREEN_ELEMENT_ID: "wmsx-screen",
+    SCREEN_FULLSCREEN_MODE: -1, // -2: disabled; -1: auto; 0: off; 1: on (Full Screen); 2: on (Full Windowed)
+    SCREEN_FILTER_MODE: -3, // -3: user set (default auto); -2: browser default; -1: auto; 0..3: smoothing level
+    SCREEN_CRT_SCANLINES: -1, // -1: user set (default off); 0: off; 1..10: level
+    SCREEN_CRT_PHOSPHOR: -1, // -1: auto; 0: off; 1: on
+    SCREEN_DEFAULT_SCALE: -1, // -1: auto; 0.5..N in 0.05 steps: scale
+    SCREEN_DEFAULT_ASPECT: 1.14, // in 0.01 steps
+    SCREEN_CONTROL_BAR: 1, // 0: on hover; 1: always
+    SCREEN_FORCE_HOST_NATIVE_FPS: -1, // -1: auto. Don't change! :-)
+    SCREEN_VSYNC_MODE: -2, // -2: user set (default auto); -1: disabled; 0: off; 1: auto (on when available)
+    SCREEN_VIDEO_OUT: -1, // -1: auto; 0: Internal VDP; 1: External V9990; 2: Superimposed; 3: Mixed; 4: Dual (main: Internal); 5: Dual (main: V9990)
+    SCREEN_COLORS: 0, // 0: Color (default); 1: B&W; 2: Green Phosphor; 3: Amber Phosphor
+    AUDIO_MONITOR_BUFFER_BASE: -3, // -3: user set (default auto); -2: disable audio; -1: auto; 0: browser default; 1..6: base value. More buffer = more delay
+    AUDIO_MONITOR_BUFFER_SIZE: -1, // -1: auto; 256, 512, 1024, 2048, 4096, 8192, 16384: buffer size.     More buffer = more delay. Don't change! :-)
+    AUDIO_SIGNAL_BUFFER_RATIO: 2, // Internal Audio Signal buffer based on Monitor buffer
+    AUDIO_SIGNAL_ADD_FRAMES: 3, // Additional frames in internal Audio Signal buffer based on Monitor buffer
+    JOYSTICKS_MODE: 0, // -1: disabled; 0: auto; 1: auto (swapped)
+    JOYKEYS_MODE: -1, // -1: disabled; 0: enabled at port 1; 1: enabled at port 2; 2: enabled at both ports; 3: enabled at both ports (swapped)
+    MOUSE_MODE: -1, // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
+    TOUCH_MODE: 0, // -1: disabled; 0: auto; 1: enabled at port 1; 2: enabled at port 2
+    MOBILE_MODE: 0, // -1: disabled; 0: auto; 1: enabled (forced)
+    Z80_CLOCK_MODE: 0, // 0: auto (soft-turbo possible); (0..8]: Z80 CPU clock multiplier;
+    VDP_CLOCK_MODE: 0, // 0: auto (soft-turbo possible); (0..8]: VDP Command Engine clock multiplier; 9: instantaneous
+    Z80_SOFT_TURBO_MULTI: 1.5, // 1..8 Z80 CPU clock multiplier when in AUTO mode and activated by software or CPU_SOFT_TURBO_AUTO_ON
+    VDP_SOFT_TURBO_MULTI: 1, // 1..9 VDP Command Engine clock multiplier when in AUTO mode and activated by software or CPU_SOFT_TURBO_AUTO_ON
+    CPU_SOFT_TURBO_AUTO_ON: 0, // 0: off, 1: on. Automatically activate the CPU Soft Turbo when supported by machine
+    CPU_FAKE_TR_TURBO: -1, // -1: auto; 0: off; 1: on. Simulated tR CHGCPU Turbo activation. Auto ON for 2+, never for tR
+    KEYBOARD_JAPAN_LAYOUT: 1, // 0: ANSI; 1: JIS
+    DEBUG_MODE: 0, // 0: off; 1..7: debug mode. Don't change! :-)
+    SPRITES_DEBUG_MODE: 0, // 0: off; 1: unlimited; 2: no collisions; 3: both. May cause problems :-)
+    ROM_MAX_HASH_SIZE_KB: 5120, // Maximum ROM size for Hash calculation
+    HARDDISK_MIN_SIZE_KB: 720, // Minimum file size to be accepted as HardDisk image (besides all valid Floppy formats)
+    DISK_ROM_START_PAGE: 0, // 0..1: Change starting page for ROMs > 16KB when format is DiskPatch
+    LIGHT_STATES: true,
+    PSG_VOL: "f", // 0..f (hex digit):       PSG Volume adjust. Set globally or for each channel (4 values)
+    PSG_PAN: "8", // 0; 1..8..f (hex digit): PSG PanPot adjust. Set globally or for each channel (4 values)
+    SCC_VOL: "f", // SCC Volume adjust. Same as above (5 values)
+    SCC_PAN: "8", // SCC PanPot adjust. Same as above (5 values)
+    OPLL_VOL: "f", // OPLL Volume adjust. Same as above (14 values)
+    OPLL_PAN: "8", // OPLL PanPot adjust. Same as above (14 values)
+    IMAGES_PATH: window.WMSX_IMAGES_PATH || "images/",
+    FILE_SEPARATOR_REGEX: /[\\/?:]/,
+    PAGE_BACK_CSS: "", // CSS to modify page background color. Applied to the body element
+    SERVER_ADDRESS: "webmsx.azurewebsites.net/",
+    SERVER_KEEPALIVE: 0,
+    STATE_VERSION: 600,
+    STATE_VERSIONS_ACCEPTED: { 530: true, 600: true },
+    ALLOW_URL_PARAMETERS: true // Allows user to override any of these parameters via URL query parameters
 };
-
 WMSX.MACHINES_CONFIG = {
-    MSX2P:   { DESCX: "MSX2+ Auto Detect",    AUTO_TYPE: 3 },
-    MSX2:    { DESCX: "MSX2 Auto Detect",     AUTO_TYPE: 2 },
-    MSX1:    { DESCX: "MSX Auto Detect",      AUTO_TYPE: 1 },
-    MSX2PA:  { DESC:  "MSX2+ America (NTSC)", TYPE: 3, PRESETS: "_MSX2PA" },
-    MSX2PE:  { DESC:  "MSX2+ Europe (PAL)",   TYPE: 3, PRESETS: "_MSX2PE" },
-    MSX2PJ:  { DESC:  "MSX2+ Japan (NTSC)",   TYPE: 3, PRESETS: "_MSX2PJ",  LANG: "ja" },
-    MSX2A:   { DESC:  "MSX2 America (NTSC)",  TYPE: 2, PRESETS: "_MSX2A" },
-    MSX2E:   { DESC:  "MSX2 Europe (PAL)",    TYPE: 2, PRESETS: "_MSX2E" },
-    MSX2J:   { DESC:  "MSX2 Japan (NTSC)",    TYPE: 2, PRESETS: "_MSX2J",   LANG: "ja" },
-    MSX1A:   { DESC:  "MSX America (NTSC)",   TYPE: 1, PRESETS: "_MSX1A" },
-    MSX1E:   { DESC:  "MSX Europe (PAL)",     TYPE: 1, PRESETS: "_MSX1E" },
-    MSX1J:   { DESC:  "MSX Japan (NTSC)",     TYPE: 1, PRESETS: "_MSX1J",   LANG: "ja" },
-    EMPTY2P: { DESCX: "MSX2+ Empty (NTSC)",   TYPE: 3, PRESETS: "_EMPTY" },
-    EMPTY2:  { DESCX: "MSX2 Empty (NTSC)",    TYPE: 2, PRESETS: "_EMPTY" },
-    EMPTY1:  { DESCX: "MSX Empty (NTSC)",     TYPE: 1, PRESETS: "_EMPTY" }
+    MSX2P: { DESCX: "MSX2+ Auto Detect", AUTO_TYPE: 3 },
+    MSX2: { DESCX: "MSX2 Auto Detect", AUTO_TYPE: 2 },
+    MSX1: { DESCX: "MSX Auto Detect", AUTO_TYPE: 1 },
+    MSX2PA: { DESC: "MSX2+ America (NTSC)", TYPE: 3, PRESETS: "_MSX2PA" },
+    MSX2PE: { DESC: "MSX2+ Europe (PAL)", TYPE: 3, PRESETS: "_MSX2PE" },
+    MSX2PJ: { DESC: "MSX2+ Japan (NTSC)", TYPE: 3, PRESETS: "_MSX2PJ", LANG: "ja" },
+    MSX2A: { DESC: "MSX2 America (NTSC)", TYPE: 2, PRESETS: "_MSX2A" },
+    MSX2E: { DESC: "MSX2 Europe (PAL)", TYPE: 2, PRESETS: "_MSX2E" },
+    MSX2J: { DESC: "MSX2 Japan (NTSC)", TYPE: 2, PRESETS: "_MSX2J", LANG: "ja" },
+    MSX1A: { DESC: "MSX America (NTSC)", TYPE: 1, PRESETS: "_MSX1A" },
+    MSX1E: { DESC: "MSX Europe (PAL)", TYPE: 1, PRESETS: "_MSX1E" },
+    MSX1J: { DESC: "MSX Japan (NTSC)", TYPE: 1, PRESETS: "_MSX1J", LANG: "ja" },
+    EMPTY2P: { DESCX: "MSX2+ Empty (NTSC)", TYPE: 3, PRESETS: "_EMPTY" },
+    EMPTY2: { DESCX: "MSX2 Empty (NTSC)", TYPE: 2, PRESETS: "_EMPTY" },
+    EMPTY1: { DESCX: "MSX Empty (NTSC)", TYPE: 1, PRESETS: "_EMPTY" }
 };
-
 WMSX.EXTENSIONS_CONFIG = {
-    HARDDISK:  {                      URL: "@[Nextor16Patch].rom", SLOT: [2],             CHANGE: { RAMMAPPER: 1, SCCI: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
-    RAMMAPPER: { DESC: "RAM Mapper",  URL: "@[RAMMapper].rom",     SLOT: [3],             MUTUAL: "RAMNORMAL" },
-    RAMNORMAL: {                      URL: "@[RAMNormal].rom",     SLOT: [3],             MUTUAL: "RAMMAPPER" },
-    V9990:     { DESC: "V9990 Video", URL: "@[V9990].rom",         SLOT: [4, 3] },
-    MSXMUSIC:  { DESC: "MSX-MUSIC",   URL: "@cbios_music[MSXMUSIC].rom", SLOT: [3, 3] },
-    DOUBLEPSG: { DESC: "Double PSG",  URL: "@[ExtraPSG].rom",      SLOT: [4, 0] },
-    SCCI:      { DESC: "Konami SCC+", URL: "@[SCCIExpansion].rom", SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
-    SCC:       {                      URL: "@[SCCExpansion].rom",  SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCCI: 0, PAC: 0, MEGARAM: 0 } },
-    PAC:       { DESC: "PAC SRAM",    URL: "@[PACExpansion].rom",  SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCCI: 0, SCC: 0, MEGARAM: 0 } },
-    MEGARAM:   { DESC: "MegaRAM",     URL: "@[MegaRAM].rom",       SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCCI: 0, SCC: 0, PAC: 0 } }
+    HARDDISK: { URL: "@[Nextor16Patch].rom", SLOT: [2], CHANGE: { RAMMAPPER: 1, SCCI: 0, SCC: 0, PAC: 0, MEGARAM: 0 } },
+    RAMMAPPER: { DESC: "RAM Mapper", URL: "@[RAMMapper].rom", SLOT: [3], MUTUAL: "RAMNORMAL" },
+    RAMNORMAL: { URL: "@[RAMNormal].rom", SLOT: [3], MUTUAL: "RAMMAPPER" },
+    V9990: { DESC: "V9990 Video", URL: "@[V9990].rom", SLOT: [4, 3] },
+    MSXMUSIC: { DESC: "MSX-MUSIC", URL: "@cbios_music[MSXMUSIC].rom", SLOT: [3, 3] },
+    DOUBLEPSG: { DESC: "Double PSG", URL: "@[ExtraPSG].rom", SLOT: [4, 0] },
+    SCCI: { DESC: "Konami SCC+", URL: "@[SCCIExpansion].rom", SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCC: 0, PAC: 0, MEGARAM: 0 } },
+    SCC: { URL: "@[SCCExpansion].rom", SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCCI: 0, PAC: 0, MEGARAM: 0 } },
+    PAC: { DESC: "PAC SRAM", URL: "@[PACExpansion].rom", SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCCI: 0, SCC: 0, MEGARAM: 0 } },
+    MEGARAM: { DESC: "MegaRAM", URL: "@[MegaRAM].rom", SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCCI: 0, SCC: 0, PAC: 0 } }
 };
-
 WMSX.PRESETS_CONFIG = {
-
     // Extensions Options Presets. Must be specified in this order
-
     // Hard Disk: Nextor Removable Device
-    HARDDISK:   { "EXTENSIONS.HARDDISK": 1, _INCLUDE: "RAMMAPPER" },
+    HARDDISK: { "EXTENSIONS.HARDDISK": 1, _INCLUDE: "RAMMAPPER" },
     NOHARDDISK: { "EXTENSIONS.HARDDISK": 0 },
-
     // RAM type
     RAMMAPPER: { "EXTENSIONS.RAMMAPPER": 1, "EXTENSIONS.RAMNORMAL": 0 },
     RAMNORMAL: { "EXTENSIONS.RAMMAPPER": 0, "EXTENSIONS.RAMNORMAL": 1 },
-
     // V9990 Video
-    V9990: { "EXTENSIONS.V9990":  1 },
-
+    V9990: { "EXTENSIONS.V9990": 1 },
     // Sound Devices
-    MSXMUSIC:   { "EXTENSIONS.MSXMUSIC": 1 },
+    MSXMUSIC: { "EXTENSIONS.MSXMUSIC": 1 },
     NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": 0 },
-    DOUBLEPSG:  { "EXTENSIONS.DOUBLEPSG": 1 },
-
+    DOUBLEPSG: { "EXTENSIONS.DOUBLEPSG": 1 },
     // Other Cartridge extensions
-
-    SCCI:  { "EXTENSIONS.SCCI": 1 },
+    SCCI: { "EXTENSIONS.SCCI": 1 },
     SCCI2: { "EXTENSIONS.SCCI": 2 },
-
-    SCC:  { "EXTENSIONS.SCC": 1 },
+    SCC: { "EXTENSIONS.SCC": 1 },
     SCC2: { "EXTENSIONS.SCC": 2 },
-
-    PAC:  { "EXTENSIONS.PAC": 1 },
+    PAC: { "EXTENSIONS.PAC": 1 },
     PAC2: { "EXTENSIONS.PAC": 2 },
-
-    MEGARAM:  { "EXTENSIONS.MEGARAM": 1 },
+    MEGARAM: { "EXTENSIONS.MEGARAM": 1 },
     MEGARAM2: { "EXTENSIONS.MEGARAM": 2 },
-
     // Configuration Helper Presets
-
-    RAM128:      { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 128 },
-    RAM256:      { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 256 },
-    RAM512:      { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 512 },
-    RAM1024:     { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 1024 },
-    RAM2048:     { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 2048 },
-    RAM4096:     { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 4096 },
-    NORAMMAPPER: { _INCLUDE: "RAMNORMAL"},
-
-    MEGARAM256:  { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 256 },
-    MEGARAM512:  { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 512 },
+    RAM128: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 128 },
+    RAM256: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 256 },
+    RAM512: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 512 },
+    RAM1024: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 1024 },
+    RAM2048: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 2048 },
+    RAM4096: { _INCLUDE: "RAMMAPPER", RAMMAPPER_SIZE: 4096 },
+    NORAMMAPPER: { _INCLUDE: "RAMNORMAL" },
+    MEGARAM256: { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 256 },
+    MEGARAM512: { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 512 },
     MEGARAM1024: { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 1024 },
     MEGARAM2048: { _INCLUDE: "MEGARAM", MEGARAM_SIZE: 2048 },
-
     VSYNCDISABLED: { SCREEN_VSYNC_MODE: -1 },
-    VSYNCOFF:      { SCREEN_VSYNC_MODE: 0 },
-    VSYNCON:       { SCREEN_VSYNC_MODE: 1 },
-
-    PSGSTEREO:  { PSG_PAN: "4c8" },
+    VSYNCOFF: { SCREEN_VSYNC_MODE: 0 },
+    VSYNCON: { SCREEN_VSYNC_MODE: 1 },
+    PSGSTEREO: { PSG_PAN: "4c8" },
     PSGSTEREO2: { PSG_PAN: "8c4" },
-    SCCSTEREO:  { SCC_PAN: "8c4c4" },
+    SCCSTEREO: { SCC_PAN: "8c4c4" },
     SCCSTEREO2: { PSG_PAN: "4c4c8" },
     OPLLSTEREO: { OPLL_PAN: "4c4c4c4c488888" },
-    ALLSTEREO:  { _INCLUDE: "PSGSTEREO,  SCCSTEREO,  OPLLSTEREO" },
+    ALLSTEREO: { _INCLUDE: "PSGSTEREO,  SCCSTEREO,  OPLLSTEREO" },
     ALLSTEREO2: { _INCLUDE: "PSGSTEREO2, SCCSTEREO2, OPLLSTEREO" },
-
     // Boosted Machine Preset
     BOOSTED: { Z80_CLOCK_MODE: 3, VDP_CLOCK_MODE: 3, BOOT_DURATION_AUTO: 165, _INCLUDE: "HARDDISK" },
-
     // Alternate Slot Configuration: try to keep RAM alone on primary Slot 3
     ALTSLOTCONFIG: {
-        EXPANSION1_SLOT:                       [2, 3],
-        EXPANSION2_SLOT:                       [3, 3],
-        "EXTENSIONS_CONFIG.MSXMUSIC.SLOT":     [2, 2]
+        EXPANSION1_SLOT: [2, 3],
+        EXPANSION2_SLOT: [3, 3],
+        "EXTENSIONS_CONFIG.MSXMUSIC.SLOT": [2, 2]
     },
-
     // MSX2+ Machine Presets. Do not use directly
     _MSX2PA: {
-        _INCLUDE:           "_MSX2PBASE",
-        SLOT0_URL:          "@cbios_main_msx2+.rom | @cbios_logo_msx2+.rom",
-        SLOT31_URL:         "@cbios_sub.rom",
+        _INCLUDE: "_MSX2PBASE",
+        SLOT0_URL: "@cbios_main_msx2+.rom | @cbios_logo_msx2+.rom",
+        SLOT31_URL: "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PE: {
-        _INCLUDE:           "_MSX2PBASE",
-        SLOT0_URL:          "@cbios_main_msx2+_eu.rom | @cbios_logo_msx2+.rom",
-        SLOT31_URL:         "@cbios_sub.rom",
+        _INCLUDE: "_MSX2PBASE",
+        SLOT0_URL: "@cbios_main_msx2+_eu.rom | @cbios_logo_msx2+.rom",
+        SLOT31_URL: "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 395
     },
     _MSX2PJ: {
-        _INCLUDE:           "_MSX2PBASE",
-        SLOT0_URL:          "@cbios_main_msx2+_jp.rom | @cbios_logo_msx2+.rom",
-        SLOT31_URL:         "@cbios_sub.rom",
+        _INCLUDE: "_MSX2PBASE",
+        SLOT0_URL: "@cbios_main_msx2+_jp.rom | @cbios_logo_msx2+.rom",
+        SLOT31_URL: "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 380
     },
     _MSX2PBASE: {
-        _INCLUDE:           "_MSX2BASE"
+        _INCLUDE: "_MSX2BASE"
     },
-
     // MSX2 Machine Presets. Do not use directly
     _MSX2A: {
-        _INCLUDE:           "_MSX2BASE",
-        SLOT0_URL:          "@cbios_main_msx2.rom | @cbios_logo_msx2.rom",
-        SLOT31_URL:         "@cbios_sub.rom",
+        _INCLUDE: "_MSX2BASE",
+        SLOT0_URL: "@cbios_main_msx2.rom | @cbios_logo_msx2.rom",
+        SLOT31_URL: "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 385
     },
     _MSX2E: {
-        _INCLUDE:           "_MSX2BASE",
-        SLOT0_URL:          "@cbios_main_msx2_eu.rom | @cbios_logo_msx2.rom",
-        SLOT31_URL:         "@cbios_sub.rom",
+        _INCLUDE: "_MSX2BASE",
+        SLOT0_URL: "@cbios_main_msx2_eu.rom | @cbios_logo_msx2.rom",
+        SLOT31_URL: "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 400
     },
     _MSX2J: {
-        _INCLUDE:           "_MSX2BASE",
-        SLOT0_URL:          "@cbios_main_msx2_jp.rom | @cbios_logo_msx2.rom",
-        SLOT31_URL:         "@cbios_sub.rom",
+        _INCLUDE: "_MSX2BASE",
+        SLOT0_URL: "@cbios_main_msx2_jp.rom | @cbios_logo_msx2.rom",
+        SLOT31_URL: "@cbios_sub.rom",
         BOOT_DURATION_AUTO: 360
     },
     _MSX2BASE: {
-        _INCLUDE:           "_BASE, RAMMAPPER, MSXMUSIC"
+        _INCLUDE: "_BASE, RAMMAPPER, MSXMUSIC"
     },
-
     // MSX1 Machine Presets. Do not use directly
     _MSX1A: {
-        _INCLUDE:           "_MSX1BASE",
-        SLOT0_URL:          "@cbios_main_msx1.rom | @cbios_logo_msx1.rom",
+        _INCLUDE: "_MSX1BASE",
+        SLOT0_URL: "@cbios_main_msx1.rom | @cbios_logo_msx1.rom",
         BOOT_DURATION_AUTO: 375
     },
     _MSX1E: {
-        _INCLUDE:           "_MSX1BASE",
-        SLOT0_URL:          "@cbios_main_msx1_eu.rom | @cbios_logo_msx1.rom",
+        _INCLUDE: "_MSX1BASE",
+        SLOT0_URL: "@cbios_main_msx1_eu.rom | @cbios_logo_msx1.rom",
         BOOT_DURATION_AUTO: 375
     },
     _MSX1J: {
-        _INCLUDE:           "_MSX1BASE",
-        SLOT0_URL:          "@cbios_main_msx1_jp.rom | @cbios_logo_msx1.rom",
+        _INCLUDE: "_MSX1BASE",
+        SLOT0_URL: "@cbios_main_msx1_jp.rom | @cbios_logo_msx1.rom",
         BOOT_DURATION_AUTO: 230
     },
     _MSX1BASE: {
-        _INCLUDE:           "_BASE, RAMNORMAL, NOHARDDISK, NOMSXMUSIC",
-        SLOT31_URL :        ""      // MSX1 has no BIOS Extension
+        _INCLUDE: "_BASE, RAMNORMAL, NOHARDDISK, NOMSXMUSIC",
+        SLOT31_URL: "" // MSX1 has no BIOS Extension
     },
-
     // Base Machines Presets. Do not use directly
     _EMPTY: {
-        _INCLUDE:           "_BASE",
-        EXTENSIONS:         null,
-        SLOT0P_URL:         "",
-        SLOT1P_URL:         "",
-        SLOT2P_URL:         "",
-        SLOT3P_URL:         "",
-        SLOT4P_URL:         ""       // MSX1 has no BIOS Extension on slot 3-1, clear
+        _INCLUDE: "_BASE",
+        EXTENSIONS: null,
+        SLOT0P_URL: "",
+        SLOT1P_URL: "",
+        SLOT2P_URL: "",
+        SLOT3P_URL: "",
+        SLOT4P_URL: "" // MSX1 has no BIOS Extension on slot 3-1, clear
     },
     _BASE: {}
-
 };
-
-WMSX.params = {};                   // Additional parameter overrides
-
-wmsx = window.wmsx || {};           // Namespace
+WMSX.params = {}; // Additional parameter overrides
+wmsx = window.wmsx || {}; // Namespace
 
 function onUpdateReady(){alert("A new version is available!\nWebMSX will restart..."),window.applicationCache.swapCache(),window.location.reload()}WMSXFullScreenSetup={apply:function(){if(!this.cssApplied){var a=document.createElement("style");a.type="text/css",a.innerHTML=this.css,document.head.appendChild(a),this.cssApplied=!0}document.documentElement.classList.toggle("wmsx-full-screen",this.shouldStartInFullScreen())},shouldStartInFullScreen:function(){return window.WMSX?WMSX.SCREEN_FULLSCREEN_MODE>=1||-1===WMSX.SCREEN_FULLSCREEN_MODE&&this.isBrowserStandaloneMode():this.isBrowserStandaloneMode()},isBrowserStandaloneMode:function(){return navigator.standalone||window.matchMedia("(display-mode: standalone)").matches},css:"html.wmsx-full-screen, html.wmsx-full-screen body {   background: black;}html.wmsx-full-screen .wmsx-full-screen-hidden {   display: none;}html:not(.wmsx-full-screen) .wmsx-full-screen-only {   display: none;}"},WMSXFullScreenSetup.apply(),wmsx.Util=new function(){"use strict";function a(a,b){return a.name<b.name?-1:a.name>b.name?1:0}function b(a){return a.stopPropagation(),a.cancelable&&a.preventDefault(),!1}this.log=function(a){var b=[">> wmsx:"];Array.prototype.push.apply(b,arguments),console.log.apply(console,b)},this.warning=function(a){var b=[">> wmsx Warning:"];Array.prototype.push.apply(b,arguments),console.warn.apply(console,b)},this.error=function(a){var b=[">> wmsx Error:"];Array.prototype.push.apply(b,arguments),console.error.apply(console,b)},this.message=function(a){console.info(a),alert(a)},this.asNormalArray=function(a,b,c){return!c&&a instanceof Array?a:c?this.arrayCopy(a,b,new Array(c)):this.arrayCopy(a,0,new Array(a.length))},this.arrayFill=function(a,b,c,d){if(a.fill)return a.fill(b,c,d);void 0===c&&(c=0);for(var e=(void 0===d?a.length:d)-1;e>=c;e-=1)a[e]=b;return a},this.arrayCopy=function(a,b,c,d,e){d=d||0;for(var f=e?b+e:a.length;b<f;)c[d++]=a[b++];return c},this.arrayAdd=function(a,b){return a[a.length]=b,a},this.arrayRemoveAllElement=function(a,b){for(var c;(c=a.indexOf(b))>=0;)a.splice(c,1);return a},this.arraysConcatAll=function(a){for(var b=0,c=0;c<a.length;++c)b+=a[c].length;var d=new a[0].constructor(b),e=0;for(c=0;c<a.length;++c)this.arrayCopy(a[c],0,d,e),e+=a[c].length;return d},this.int8BitArrayToByteString=function(a,b,c){if(null===a||void 0==a)return a;void 0===b&&(b=0),void 0===c&&(c=a.length-b);for(var d="",e=b,f=b+c;e<f;e+=1)d+=String.fromCharCode(255&a[e]);return d},this.byteStringToInt8BitArray=function(a,b){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a){for(var c=a.length,d=b&&b.length===c?b:new(b?b.constructor:Array)(c),e=0;e<c;e+=1)d[e]=255&a.charCodeAt(e);return d}},this.byteStringToSignedInt8BitArray=function(a,b){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a){for(var c=a.length,d=b&&b.length===c?b:new(b?b.constructor:Array)(c),e=0;e<c;e+=1){var f=255&a.charCodeAt(e);d[e]=f<128?f:f-256}return d}},this.int16BitArrayToByteString=function(a,b,c){if(null===a||void 0==a)return a;void 0===b&&(b=0),void 0===c&&(c=a.length-b);for(var d="",e=b,f=b+c;e<f;e+=1)d+=String.fromCharCode(255&a[e])+String.fromCharCode(a[e]>>8&255);return d},this.byteStringToInt16BitArray=function(a,b){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a){for(var c=a.length/2|0,d=b&&b.length===c?b:new(b?b.constructor:Array)(c),e=0,f=0;e<c;e+=1,f+=2)d[e]=255&a.charCodeAt(f)|(255&a.charCodeAt(f+1))<<8;return d}},this.byteStringToSignedInt16BitArray=function(a,b){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a){for(var c=a.length/2|0,d=b&&b.length===c?b:new(b?b.constructor:Array)(c),e=0,f=0;e<c;e+=1,f+=2){var g=255&a.charCodeAt(f)|(255&a.charCodeAt(f+1))<<8;d[e]=g<32768?g:g-65536}return d}},this.int32BitArrayToByteString=function(a,b,c){if(null===a||void 0==a)return a;void 0===b&&(b=0),void 0===c&&(c=a.length-b);for(var d="",e=b,f=b+c;e<f;e+=1)d+=String.fromCharCode(255&a[e])+String.fromCharCode(a[e]>>8&255)+String.fromCharCode(a[e]>>16&255)+String.fromCharCode(a[e]>>24&255);return d},this.byteStringToInt32BitArray=function(a,b){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a){for(var c=a.length/4|0,d=b&&b.length===c?b:new(b?b.constructor:Array)(c),e=0,f=0;e<c;e+=1,f+=4)d[e]=255&a.charCodeAt(f)|(255&a.charCodeAt(f+1))<<8|(255&a.charCodeAt(f+2))<<16|(255&a.charCodeAt(f+3))<<24;return d}},this.storeInt8BitArrayToStringBase64=function(a){return null===a||void 0===a?a:0===a.length?"":btoa(this.int8BitArrayToByteString(a))},this.restoreStringBase64ToInt8BitArray=function(a,b){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a)return""==a?[]:this.byteStringToInt8BitArray(atob(a),b)},this.restoreStringBase64ToSignedInt8BitArray=function(a,b){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a)return""==a?[]:this.byteStringToSignedInt8BitArray(atob(a),b)},this.compressInt8BitArrayToStringBase64=function(a,b,c){return null===a||void 0===a?a:0===a.length?"":(b||(b=a.length),c|=0,c||b<a.length?btoa(this.int8BitArrayToByteString(JSZip.compressions.DEFLATE.compress(a.slice(c,c+b)))):btoa(this.int8BitArrayToByteString(JSZip.compressions.DEFLATE.compress(a))))},this.uncompressStringBase64ToInt8BitArray=function(a,b,c,d,e){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a){if(""==a)return[];var f=JSZip.compressions.DEFLATE.uncompress(atob(a));return b&&(c||b.length===f.length)?this.arrayCopy(f,0,b,e):this.arrayCopy(f,0,new(d||(b?b.constructor:Array))(f.length),e)}},this.storeInt16BitArrayToStringBase64=function(a){return null===a||void 0===a?a:0===a.length?"":btoa(this.int16BitArrayToByteString(a))},this.restoreStringBase64ToInt16BitArray=function(a,b){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a)return""==a?[]:this.byteStringToInt16BitArray(atob(a),b)},this.restoreStringBase64ToSignedInt16BitArray=function(a,b){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a)return""==a?[]:this.byteStringToSignedInt16BitArray(atob(a),b)},this.storeInt32BitArrayToStringBase64=function(a){return null===a||void 0===a?a:0===a.length?"":btoa(this.int32BitArrayToByteString(a))},this.restoreStringBase64ToInt32BitArray=function(a,b){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a)return""==a?[]:this.byteStringToInt32BitArray(atob(a),b)},this.compressStringToStringBase64=function(a){return null===a||void 0===a?a:0===a.length?a:btoa(this.int8BitArrayToByteString(JSZip.compressions.DEFLATE.compress(a)))},this.uncompressStringBase64ToString=function(a){if(null===a||void 0===a)return a;if("null"==a)return null;if("undefined"!=a)return""==a?a:this.int8BitArrayToByteString(JSZip.compressions.DEFLATE.uncompress(atob(a)))},this.toHex2=function(a){if(null===a||void 0===a)return a;var b=a.toString(16);return a>=0&&b.length%2?"0"+b:b},this.toHex4=function(a){return this.toHexN(a,4)},this.toHexN=function(a,b){if(null===a||void 0===a)return a;var c=a.toString(16);return a<0?c:(b>=0||(b=2),"00000000".substr(0,b-c.length)+c)},this.escapeHtml=function(a){return a.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;").replace(/\//g,"&#047;").replace(/\?/g,"&#063;").replace(/\-/g,"&#045;").replace(/\|/g,"&#0124;")},this.arrayFind=function(a,b){if(a.find)return a.find(b);for(var c=0,d=a.length;c<d;++c)if(b(a[c],c,a))return a[c]},this.arrayFindIndex=function(a,b){if(a.findIndex)return a.findIndex(b);for(var c=0,d=a.length;c<d;++c)if(b(a[c],c,a))return c;return-1},this.arrayIndexOfSubArray=function(a,b,c,d){var e=b.length,f=a.length,g=d||1;a:for(var h=c;h>=0&&h<f;h+=g){for(var i=0;i<e;i+=1)if(a[h+i]!==b[i])continue a;return h}return-1},this.stringCountOccurrences=function(a,b){for(var c=0,d=0,e=a.length;d<e;++d)a[d]==b&&++c;return c},
 this.stringStartsWith=function(a,b){return a.startsWith?a.startsWith(b):a.substr(0,b.length)===b},this.stringEndsWith=function(a,b){return a.endsWith?a.endsWith(b):a.substr(a.length-b.length)===b},this.checkContentIsZIP=function(a){if(a&&80===a[0]&&75===a[1])try{return new JSZip(a)}catch(a){}return null},this.getZIPFilesSorted=function(b){var c=b.file(/.+/);return c.sort(a),c},this.checkContentIsGZIP=function(a){if(!a||31!==a[0]||139!==a[1]||8!==a[2])return null;try{var b=a[3],c=2&b,d=4&b,e=8&b,f=16&b,g=10;if(d){var h=a[g++]|a[g++]<<8;g+=h}if(e)for(;0!==a[g++];);if(f)for(;0!==a[g++];);return c&&(g+=2),JSZip.compressions.DEFLATE.uncompress(a.slice(g,a.length-8))}catch(a){return null}},this.leafFilename=function(a){if(!a)return"";for(var b=a.split(WMSX.FILE_SEPARATOR_REGEX),c=b.length-1;c>=0;--c){var d=b[c].trim();if(d)return d}return""},this.leafFilenameNoExtension=function(a){var b=this.leafFilename(a),c=b.lastIndexOf(".");return c<=0?b:b.substr(0,c).trim()},this.leafFilenameOnlyExtension=function(a){var b=this.leafFilename(a),c=b.lastIndexOf(".");return c<=0?"":b.substr(c+1).trim()},this.dump=function(a,b,c,d){var e="",f=b||0;d=d||a.length,c=c||d;for(var g=0;g<d;){for(var h=0;h<c&&g<d;h++,g++){var i=a[f++];e+=void 0!=i?this.toHex2(i)+" ":"?? "}e+="\n"}console.log(e)},this.dumpN=function(a,b,c,d,e){var f="",g=c||0;e=e||a.length,d=d||e;for(var h=0;h<e;){for(var i=0;i<d&&h<e;i++,h++){var j=a[g++];f+=void 0!=j?this.toHexN(j,b)+" ":"?? "}f+="\n"}console.log(f)},this.dumpSlot=function(a,b,c,d){var e="",f=b||0;d=d||1;for(var g=0;g<d;g++){for(var h=0;h<c;h++){var i=a.read(f++);e+=void 0!=i?this.toHex2(i)+" ":"?? "}e+="\n"}console.log(e)},this.browserInfo=function(){if(this.browserInfoAvailable)return this.browserInfoAvailable;var a,b=navigator.userAgent,c=b.match(/(opera|edge|chrome|safari|firefox|msie|trident(?=\/))\/?\s*(\d+)/i)||[];if(/trident/i.test(c[1]))return a=/\brv[ :]+(\d+)/g.exec(b)||[],this.browserInfoAvailable={name:"IE",version:a[1]||""};if("Chrome"===c[1]&&null!=(a=b.match(/\bOPR\/(\d+)/)))return this.browserInfoAvailable={name:"Opera",version:a[1]};c=c[2]?[c[1],c[2]]:[navigator.appName,navigator.appVersion,"-?"],null!=(a=b.match(/version\/(\d+)/i))&&c.splice(1,1,a[1]);var d=c[0].toUpperCase();return this.browserInfoAvailable={name:this.isIOSDevice()||"NETSCAPE"===d?"SAFARI":d,version:c[1]}},this.userLanguage=function(){return(navigator.languages&&navigator.languages[0]||navigator.language||navigator.userLanguage||"en-US").trim()},this.browserCurrentURL=function(){return window.location.origin+window.location.pathname},this.isOfficialHomepage=function(){var a=window.location;return a&&"webmsx.org"===a.hostname.toLowerCase()&&(""===a.port||"80"===a.port)},this.isTouchDevice=function(){return WMSX.TOUCH_MODE>0||"ontouchstart"in window||navigator.maxTouchPoints>0||navigator.msMaxTouchPoints>0},this.isMobileDevice=function(){return WMSX.MOBILE_MODE>0||0===WMSX.MOBILE_MODE&&this.isTouchDevice()&&(/android|blackberry|iemobile|windows mobile|ipad|iphone|ipod|opera mini|webos/i.test(navigator.userAgent)||navigator.maxTouchPoints>1&&void 0!==window.orientation&&null!==window.orientation)},this.isIOSDevice=function(){return/ipad|iphone|ipod/i.test(navigator.userAgent)},this.isAndroidDevice=function(){return/android/i.test(navigator.userAgent)},this.isBrowserStandaloneMode=function(){return navigator.standalone||window.matchMedia("(display-mode: standalone)").matches},this.onTapOrMouseDown=function(a,b){this.addEventsListener(a,this.isTouchDevice()?"touchstart mousedown":"mousedown",b)},this.onTapOrMouseDownWithBlock=function(a,c){function d(a){return c(a),b(a)}this.addEventsListener(a,this.isTouchDevice()?"touchstart mousedown":"mousedown",d)},this.onTapOrMouseUpWithBlock=function(a,c){function d(a){return c(a),b(a)}this.addEventsListener(a,this.isTouchDevice()?"touchstart mouseup":"mouseup",d)},this.onTapOrMouseDownWithBlockUIG=function(a,c){function d(a){if("touchend"===a.type&&!a.target.wmsxNeedsUIG)return b(a);var d="touchstart"===a.type&&a.target.wmsxNeedsUIG,e="touchend"===a.type;return c(a,d,e),b(a)}this.addEventsListener(a,this.isTouchDevice()?"touchstart touchend mousedown":"mousedown",d)},this.blockEvent=b,this.addEventsListener=function(a,b,c,d){b=b.split(" ");for(var e=0;e<b.length;++e)b[e]&&a.addEventListener(b[e],c,d)},this.removeEventsListener=function(a,b,c,d){b=b.split(" ");for(var e=0;e<b.length;++e)b[e]&&a.removeEventListener(b[e],c,d)},this.insertCSS=function(a,b){var c=a.createElement("style");c.type="text/css",c.innerHTML=b,a.head.appendChild(c)},this.scaleToFitParentHeight=function(a,b,c){var d=b.clientHeight-c-20,e=a.clientHeight,f=e<d?1:d/e;a.style.transform="translateY(-"+(c/2|0)+"px) scale("+f.toFixed(4)+")"},this.scaleToFitParentWidth=function(a,b,c){var d=b.clientWidth-(2*c|0),e=a.clientWidth,f=e<d?1:d/e,g=e*f|0,h=Math.floor((d-g)/2+c);a.style.left=h+"px",a.style.right="initial",a.style.transform="scale("+f.toFixed(4)+")"},this.log2=function(a){return Math.log(a)/Math.log(2)},this.exp2=function(a){return Math.pow(2,a)},this.performanceNow=function(){return c?Date.now()-c:window.performance.now()},this.applyPatchObject=function(a,b){if(!a||a.constructor!==Object||b.constructor!==Object)return b;b._clear&&(a={});for(var c in b)if("_clear"!==c){var d=b[c];null===d?delete a[c]:a[c]=this.applyPatchObject(a[c],d)}return a};var c=window.performance&&window.performance.now?void 0:Date.now()},wmsx.Util.sha1Generator={hex_chr:"0123456789abcdef",hex:function(a){for(var b="",c=7;c>=0;c--)b+=this.hex_chr.charAt(a>>4*c&15);return b},str2blks_SHA1:function(a){for(var b=1+(a.length+8>>6),c=new Array(16*b),d=0;d<16*b;d++)c[d]=0;for(d=0;d<a.length;d++)c[d>>2]|=a.charCodeAt(d)<<24-d%4*8;return c[d>>2]|=128<<24-d%4*8,c[16*b-1]=8*a.length,c},add:function(a,b){var c=(65535&a)+(65535&b);return(a>>16)+(b>>16)+(c>>16)<<16|65535&c},rol:function(a,b){return a<<b|a>>>32-b},ft:function(a,b,c,d){return a<20?b&c|~b&d:a<40?b^c^d:a<60?b&c|b&d|c&d:b^c^d},kt:function(a){return a<20?1518500249:a<40?1859775393:a<60?-1894007588:-899497514},calcSHA1FromByteArray:function(a){for(var b="",c=0;c<a.length;c++)b+=String.fromCharCode(a[c]);return this.calcSHA1(b)},calcSHA1:function(a){if(""!=a){for(var b,c=this.str2blks_SHA1(a),d=new Array(80),e=1732584193,f=-271733879,g=-1732584194,h=271733878,i=-1009589776,j=0;j<c.length;j+=16){for(var k=e,l=f,m=g,n=h,o=i,p=0;p<80;p++)d[p]=p<16?c[j+p]:this.rol(d[p-3]^d[p-8]^d[p-14]^d[p-16],1),b=this.add(this.add(this.rol(e,5),this.ft(p,f,g,h)),this.add(this.add(i,d[p]),this.kt(p))),i=h,h=g,g=this.rol(f,30),f=e,e=b;e=this.add(e,k),f=this.add(f,l),g=this.add(g,m),h=this.add(h,n),i=this.add(i,o)}return this.hex(e)+this.hex(f)+this.hex(g)+this.hex(h)+this.hex(i)}return""}},function(a){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=a();else if("function"==typeof define&&define.amd)define([],a);else{var b;"undefined"!=typeof window?b=window:"undefined"!=typeof global?b=global:"undefined"!=typeof self&&(b=self),b.JSZip=a()}}(function(){return function a(b,c,d){function e(g,h){if(!c[g]){if(!b[g]){var i="function"==typeof require&&require;if(!h&&i)return i(g,!0);if(f)return f(g,!0);throw new Error("Cannot find module '"+g+"'")}var j=c[g]={exports:{}};b[g][0].call(j.exports,function(a){var c=b[g][1][a];return e(c||a)},j,j.exports,a,b,c,d)}return c[g].exports}for(var f="function"==typeof require&&require,g=0;g<d.length;g++)e(d[g]);return e}({1:[function(a,b,c){"use strict";var d="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";c.encode=function(a){for(var b,c,e,f,g,h,i,j="",k=0;k<a.length;)b=a.charCodeAt(k++),c=a.charCodeAt(k++),e=a.charCodeAt(k++),f=b>>2,g=(3&b)<<4|c>>4,h=(15&c)<<2|e>>6,i=63&e,isNaN(c)?h=i=64:isNaN(e)&&(i=64),j=j+d.charAt(f)+d.charAt(g)+d.charAt(h)+d.charAt(i);return j},c.decode=function(a){var b,c,e,f,g,h,i,j="",k=0
