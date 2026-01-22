@@ -265,7 +265,7 @@ wmsx.NetServer = function(room) {
             dropClient(clients[cID], false);
     }
 
-    function dropClient(client, showMessage, wasError, userMessage) {
+    function dropClient(client, showMessage, wasError?, userMessage?) {
         if (showMessage) {
             room.showOSD(userMessage || 'NetPlay client "' + client.nick + '" left', true, wasError);
             (wasError ? wmsx.Util.error : wmsx.Util.log) (userMessage || 'NetPlay client "' + client.nick + '" left');
