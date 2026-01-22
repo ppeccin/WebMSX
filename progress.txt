@@ -537,5 +537,23 @@
 - The fix maintains consistency between `renderSpritesLineMode2` (normal width) and `renderSpritesLineMode2Stretched` (doubled width) functions
 - When multiple related functions share a similar pattern, it's important to keep their signatures consistent for maintainability
 
+### Fix 34: Include extended state properties in VDP saveState object literal
+- **Error**: `Property 'dm' does not exist on type '{ v1: any; v3: any; ... }'.` (TS2339) and similar for `sd`
+- **Location**: `src/main/msx/video/VDP.ts` lines 2527-2528
+- **Solution**: Moved the extended state properties (`dm` and `sd`) from conditional assignment after object creation into the initial object literal with conditional values (`dm: extended ? debugMode : undefined, sd: extended ? spriteDebugMode : undefined`)
+- **Result**: Fixed 2 TS2339 errors in VDP.ts
+- **Remaining errors**: 455
+- **Commit**: 8309d4fe
+
+### Learnings
+- This is the same pattern as Fix 29 (V9990.ts): TypeScript infers object type from the initial object literal and doesn't allow adding new properties afterward
+- The `saveState` function serializes VDP video chip state for save/load functionality
+- The `extended` parameter controls whether to include additional debug state (debug mode and sprite debug mode)
+- When `extended` is not passed (undefined/falsy), the conditional expressions `extended ? value : undefined` evaluate to `undefined`
+- The `loadState` function checks `if (s.dm !== undefined)` and `if (s.sd !== undefined)` before using these values, so `undefined` is the appropriate fallback
+- Properties `dm` (debug mode) and `sd` (sprite debug mode) are only saved/loaded in extended save states for debugging purposes
+- The VDP (Video Display Processor) is the TMS9918-derived video chip family used in MSX computers (V9918, V9938, V9958)
+- This pattern appears in multiple video chip modules (V9990 and VDP), showing consistent architecture across the emulator's video subsystems
+
 ### Next error to fix
 Check with `npx tsc --noEmit 2>&1 | head -50` for the next error.
