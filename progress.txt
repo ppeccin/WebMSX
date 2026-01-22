@@ -104,7 +104,9 @@
 
 **Fix 55: netUpdate object initialization** (18fc977f) - Added `ch`, `pc`, and `po` properties to netUpdate object literal initialization in NetServer.ts. These properties are assigned later in the code for network synchronization: `ch` tracks controllers hub info, `pc` tracks peripheral controls, and `po` tracks peripheral operations. Fixed 3 errors.
 
-**Remaining errors: 211**
+**Fix 56: ES2018 lib** (9bc136ea) - Added `"ES2018"` to tsconfig.json lib array for Promise.prototype.finally support. The finally method is used in NetClient.ts for cleanup after fetch keepalive requests. Fixed 1 error.
+
+**Remaining errors: 210**
 
 ---
 
