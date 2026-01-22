@@ -340,7 +340,7 @@ wmsx.NetServer = function(room) {
     var diskDrive = room.diskDrive;
     var cassetteDeck = room.cassetteDeck;
 
-    var netUpdate = { c: undefined, k: undefined, cp: undefined };
+    var netUpdate = { c: undefined, k: undefined, cp: undefined, ch: undefined, pc: undefined, po: undefined };
     var nextUpdateFull = false;
 
     var ws;
