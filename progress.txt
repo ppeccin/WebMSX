@@ -94,7 +94,9 @@
 
 **Fix 50: stopRecursion parameter** (66ade958) - Added missing `stopRecursion` parameter (false) to checkFileHasValidImages call in FileDiskDrive.ts line 74. Function expects 4 parameters (file, hardDisk, anyContent, stopRecursion) to prevent recursive decompression of nested ZIP files. Fixed 1 error.
 
-**Remaining errors: 224**
+**Fix 51: Default parameters in FileDiskDrive** (5f3f58ca) - Made `appendMessage`, `sendNetOp`, `resetDelay`, and `oldDisk` parameters optional with `undefined` defaults in loadStack, replaceCurrentDisk, motorOff, and deserializeDisk functions. These parameters control optional behaviors like network synchronization messages and buffer reuse. Fixed 7 errors.
+
+**Remaining errors: 217**
 
 ---
 
