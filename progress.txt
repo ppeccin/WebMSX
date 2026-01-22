@@ -120,7 +120,9 @@
 
 **Fix 63: Optional keepTextEntry parameter** (ed39cb4b) - Made `keepTextEntry = false` default parameter in closeAllOverlays function in CanvasDisplay.ts. The parameter controls whether to keep netPlayDialog and textEntryDialog open when closing other overlays. Most call sites (19 of 20) use the default behavior of closing all overlays including text entry. Only one call site passes true to preserve text entry dialogs when switching between UI states. Fixed 19 errors.
 
-**Remaining errors: 172**
+**Fix 64: Optional parameters in display adjustment functions** (269bfdaf) - Made `now?` and `keepFocus?` optional in requestReadjust, and `force?` and `byWindow?` optional in auxReadjustAll functions in CanvasDisplay.ts. Call sites show three patterns: no arguments (default behavior), single argument (immediate execution or force flag), or both arguments (full control). Using optional parameters preserves all existing call patterns without requiring changes. Fixed 9 errors.
+
+**Remaining errors: 163**
 
 ---
 
