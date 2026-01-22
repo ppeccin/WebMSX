@@ -20,3 +20,12 @@ interface Window {
     applicationCache?: ApplicationCache;
     onhelp?: ((this: Window, ev: Event) => any) | null;
 }
+
+// Vendor-prefixed Pointer Lock API (legacy browser support)
+interface Document {
+    onmozpointerlockchange?: ((this: Document, ev: Event) => any) | null;
+    mozExitPointerLock?: () => void;
+    webkitExitPointerLock?: () => void;
+    readonly mozPointerLockElement?: Element | null;
+    readonly webkitPointerLockElement?: Element | null;
+}
