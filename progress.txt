@@ -464,5 +464,24 @@
 - Properties `dm` (debug mode) and `sd` (sprite debug mode) are only saved/loaded in extended save states for debugging purposes
 - The V9990 is Yamaha's advanced video chip used in the MSX TurboR GT, providing higher resolution and color depth than the standard MSX VDP
 
+### Fix 30: Make V9990CommandProcessor finish stop parameter optional
+- **Error**: `Expected 1 arguments, but got 0.` (TS2554)
+- **Location**: `src/main/msx/video/V9990CommandProcessor.ts` lines 81, 323, 413, 487, 843, 1190
+- **Solution**: Changed `function finish(stop)` to `function finish(stop = false)` to make the parameter optional
+- **Result**: Fixed 6 TS2554 errors in V9990CommandProcessor.ts
+- **Remaining errors**: 473
+- **Commit**: 8f18d177
+
+### Learnings
+- This is the same pattern as Fix 14, 16, 19, 21, 26, 27, and 28: a function parameter that is sometimes omitted at call sites needs a default value
+- The `finish` function completes V9990 graphics command execution and cleans up internal state
+- The `stop` parameter controls whether to trigger the command completion interrupt
+- When `stop` is falsy (including the default `false`), the function triggers the interrupt: `if (!stop) v9990.triggerCommandCompletionInterrupt();`
+- When `stop` is `true` (line 891), it skips the interrupt, used when stopping/aborting a command
+- Most command completions (normal end of copy, fill, line, etc.) should trigger the interrupt to notify the MSX software
+- Only explicit command stops/aborts should skip the interrupt to avoid spurious notifications
+- The V9990CommandProcessor handles graphics commands for the V9990 video chip (used in MSX TurboR GT)
+- Using `= false` as default preserves the original JavaScript behavior where `undefined` is falsy and the interrupt triggers
+
 ### Next error to fix
 Check with `npx tsc --noEmit 2>&1 | head -50` for the next error.
