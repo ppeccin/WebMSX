@@ -50,7 +50,7 @@ wmsx.MultiDownloader = function (urlSpecs, onAllSuccess, onAnyError, timeout) {
             if ((req.status === 200 || req.status === 0) && req.response)
                 loadSuccess(urlSpec, f, new Uint8Array(req.response));
             else
-                req.onerror();
+                loadError(urlSpec, "" + req.status + " " + req.statusText);
         };
         req.onerror = req.ontimeout = function () {
             loadError(urlSpec, "" + req.status + " " + req.statusText);
