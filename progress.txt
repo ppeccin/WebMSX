@@ -116,7 +116,9 @@
 
 **Fix 61: Boolean bitwise operations in CanvasDisplay.ts** (2663b295) - Wrapped boolean expressions with `Number()` for bitwise operations. Line 55: `Number(FULLSCREEN_MODE !== 2) & Number(isMobileDevice)` for bitwise AND checking fullscreen mode and mobile device. Line 101: `Number(videoOutputMode === 5) ^ Number(internal)` for XOR operation determining which canvas to paint in dual-screen mode. Fixed 2 errors.
 
-**Remaining errors: 198**
+**Fix 62: Optional forceBar parameter** (56004c4c) - Made `forceBar = false` default parameter in showCursorAndBar function in CanvasDisplay.ts. The function is called in many places without arguments to show cursor and bar with default behavior (bar shown unless mouse pointer is locked). When called with `true`, forces bar to show regardless of mouse lock state. Fixed 7 errors.
+
+**Remaining errors: 191**
 
 ---
 
