@@ -2046,7 +2046,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         if (textEntryDialog) textEntryDialog.hide();
     }
 
-    function closeAllOverlays(keepTextEntry) {
+    function closeAllOverlays(keepTextEntry = false) {
         hideBarMenu();
         if (pasteDialog) pasteDialog.hide();
         if (machineSelectDialog) machineSelectDialog.hide();
