@@ -140,7 +140,9 @@
 
 **Fix 73: Navigator.standalone property** (d60988d6) - Added optional `standalone` property to Navigator interface in globals.d.ts. This Safari-specific property indicates whether a web app is running in standalone mode (saved to home screen on iOS). Used in FullScreenSetup.ts and Util.ts for PWA (Progressive Web App) detection via `navigator.standalone` check alongside standard `matchMedia("(display-mode: standalone)")` API. Fixed 2 errors.
 
-**Remaining errors: 9** (excluding ZIP.ts and JSZip-related errors)
+**Fix 74: Vendor-prefixed Web Audio API** (a72b5678) - Extended Window interface in globals.d.ts with `webkitAudioContext` and `WebkitAudioContext` properties (both typed as `typeof AudioContext`). These vendor-prefixed constructors were used by Safari/WebKit browsers before the Web Audio API was standardized. The codebase uses a fallback pattern: `window.AudioContext || window.webkitAudioContext || window.WebkitAudioContext` in WebAudioSpeaker.ts line 99 to support legacy browsers. Fixed 2 errors.
+
+**Remaining errors: 7** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
