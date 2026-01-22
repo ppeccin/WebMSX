@@ -114,7 +114,9 @@
 
 **Fix 60: WMSXFullScreenSetup global declaration** (21d18973) - Added `declare var WMSXFullScreenSetup: any` to globals.d.ts. This global object provides full-screen setup functionality including CSS application and detection of browser standalone mode for PWA/fullscreen features. Used in Room.ts and CanvasDisplay.ts to determine if the app should start in fullscreen mode. Fixed 2 errors.
 
-**Remaining errors: 202**
+**Fix 61: Boolean bitwise operations in CanvasDisplay.ts** (2663b295) - Wrapped boolean expressions with `Number()` for bitwise operations. Line 55: `Number(FULLSCREEN_MODE !== 2) & Number(isMobileDevice)` for bitwise AND checking fullscreen mode and mobile device. Line 101: `Number(videoOutputMode === 5) ^ Number(internal)` for XOR operation determining which canvas to paint in dual-screen mode. Fixed 2 errors.
+
+**Remaining errors: 198**
 
 ---
 
