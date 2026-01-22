@@ -1222,7 +1222,7 @@ wmsx.V9990CommandProcessor = function() {
         readHandler();
     }
 
-    function finish(stop) {
+    function finish(stop = false) {
         CE = 0;
         v9990.setStatusCE(CE);
         if (!stop) v9990.triggerCommandCompletionInterrupt();
