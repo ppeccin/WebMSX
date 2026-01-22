@@ -211,7 +211,7 @@ wmsx.ImageDiskDriver = function(dos2) {
         return { F: F & ~1, B: (res === true ? 0xff : 0), extraIterations: spinTime };
     }
 
-    function GETDPB(F, A, B, C, HL, fromChoice) {
+    function GETDPB(F, A, B, C, HL, fromChoice = false) {
         // var pri = bus.getPrimarySlotConfig();
         // wmsx.Util.log("GETDPB: " + wmsx.Util.toHex2(A) + ", " + wmsx.Util.toHex2(B) + ", " + wmsx.Util.toHex2(C) + ", " + wmsx.Util.toHex4(HL)
         //     + " Slots: " + wmsx.Util.toHex2(pri)
