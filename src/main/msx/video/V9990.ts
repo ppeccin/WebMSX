@@ -889,7 +889,7 @@ wmsx.V9990 = function() {
         // logInfo("Update Signal Metrics: " + force + ", activeHeight: " + signalActiveHeight);
     }
 
-    function updateRenderMetrics(force) {
+    function updateRenderMetrics(force = false) {
         var newRenderWidth, newRenderHeight, pixelHeightDiv, changed = false, clean = false;
 
         newRenderWidth = modeData.width + modeData.hasBorders * 8 * 2 * modeData.pixelWidthDiv;
