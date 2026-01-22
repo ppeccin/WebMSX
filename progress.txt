@@ -148,7 +148,9 @@
 
 **Fix 77: FileReader result type assertion** (03125de0) - Added `as ArrayBuffer` type assertion to `event.target.result` in MultiFileReader.ts line 36. FileReader.readAsArrayBuffer() guarantees result is ArrayBuffer, but TypeScript types it as `string | ArrayBuffer` union since different read methods return different types. Same pattern as Fix 52 in FileLoader.ts. Fixed 1 error.
 
-**Remaining errors: 4** (excluding ZIP.ts and JSZip-related errors)
+**Fix 78: Legacy Navigator properties** (63a8c6c0) - Extended Navigator interface in globals.d.ts with `userLanguage?: string` (IE-specific language property) and `msMaxTouchPoints?: number` (Microsoft-prefixed touch points). Used in Util.ts for backward-compatible language detection via `navigator.languages[0] || navigator.language || navigator.userLanguage` fallback chain and touch device detection via `navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0` check. Fixed 2 errors.
+
+**Remaining errors: 2** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
