@@ -368,7 +368,7 @@ wmsx.FileLoader = function(room) {
         }
 
         var wasPaused = machine.systemPause(true);
-        var resume = function (s) {
+        var resume = function (s = undefined) {
             if (!wasPaused) machine.systemPause(false);
         };
 
@@ -472,7 +472,7 @@ wmsx.FileLoader = function(room) {
         // Try to get local file/files if present
         var files = e.dataTransfer && e.dataTransfer.files;
         var wasPaused = machine.systemPause(true);
-        var resume = function (s) {
+        var resume = function (s = undefined) {
             if (!wasPaused) machine.systemPause(false);
         };
         if (files && files.length > 0) {
