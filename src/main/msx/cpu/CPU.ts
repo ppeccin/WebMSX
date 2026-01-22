@@ -834,7 +834,7 @@ wmsx.CPU = function() {
         // Flags
         F = (F & 0x01)                      // H = 0; N = 0; C = C
             | (A & 0xA8)                    // S = A is negative; f5, f3 copied from A
-            | ((A === 0) << nZ)             // Z = A is 0
+            | (Number(A === 0) << nZ)             // Z = A is 0
             | (IFF1 << nPV);                // PV = IFF2 (same as IFF1)
     }
 
@@ -843,7 +843,7 @@ wmsx.CPU = function() {
         // Flags
         F = (F & 0x01)                      // H = 0; N = 0; C = C
             | (A & 0xA8)                    // S = A is negative; f5, f3 copied from A
-            | ((A === 0) << nZ)             // Z = A is 0
+            | (Number(A === 0) << nZ)             // Z = A is 0
             | (IFF1 << nPV);                // PV = IFF2 (same as IFF1)
     }
 
@@ -910,7 +910,7 @@ wmsx.CPU = function() {
             if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
             // Flags
             F = (F & 0xc1)                        // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
-                | ((B + C !== 0) << nPV);         // PV = BC != 0
+                | (Number(B + C !== 0) << nPV);         // PV = BC != 0
             // Verify: Undocumented f5/f3 behavior for all LD block instructions, not implemented. Left 0
         }
     }
@@ -936,7 +936,7 @@ wmsx.CPU = function() {
             if (--C < 0) { C = 0xff; B = (B - 1) & 0xff; }     // BC--
             // Flags
             F = (F & 0xc1)                      // S = S; Z = Z; f5 = ?; H = 0; f3 = ?; N = 0; C = C;
-                | ((B + C !== 0) << nPV);       // PV = BC != 0
+                | (Number(B + C !== 0) << nPV);       // PV = BC != 0
         }
     }
 
@@ -962,9 +962,9 @@ wmsx.CPU = function() {
             var compare = A ^ val ^ res;
             F = (F & bC) | bN                   // N = 1; C = C
                 | (res & 0xa8)                  // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)           // Z = res is 0
+                | (Number(res === 0) << nZ)           // Z = res is 0
                 | (compare & bH)                // H = borrow from bit 4
-                | ((B + C !== 0) << nPV);       // PV = BC != 0
+                | (Number(B + C !== 0) << nPV);       // PV = BC != 0
         }
     }
 
@@ -990,9 +990,9 @@ wmsx.CPU = function() {
             var compare = A ^ val ^ res;
             F = (F & bC) | bN                   // N = 1; C = C
                 | (res & 0xa8)                  // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)           // Z = res is 0
+                | (Number(res === 0) << nZ)           // Z = res is 0
                 | (compare & bH)                // H = borrow from bit 4
-                | ((B + C !== 0) << nPV);       // PV = BC != 0
+                | (Number(B + C !== 0) << nPV);       // PV = BC != 0
         }
     }
 
@@ -1022,10 +1022,10 @@ wmsx.CPU = function() {
         // Flags
         F = (F & 0x03)                            // N = N; C = C
             | (res & 0xa8)                        // S = res has bit 7 set; f5, f3 copied from res
-            | ((res === 0) << nZ)                 // Z = res (as will be set to A) is 0
+            | (Number(res === 0) << nZ)                 // Z = res (as will be set to A) is 0
             | ((A ^ res) & bH)                    // H = bit 4 changed after adjust
             | parities[res]                       // P = parity of A
-            | (A > 0x99);                         // C = carry from decimal range
+            | Number(A > 0x99);                         // C = carry from decimal range
         A = res;
     }
 
@@ -1042,10 +1042,10 @@ wmsx.CPU = function() {
         // Flags
         F = bN                                        // N = 1
             | (A & 0xa8)                              // S = A is negative; f5, f3 copied from A
-            | ((A === 0) << nZ)                       // Z = A is 0
-            | (((before & 0x0f) !== 0) << nH)         // H = borrow from bit 4
-            | ((before === 0x80) << nPV)              // PV = A was 0x80 before
-            | (before !== 0);                         // C = A was not 0 before
+            | (Number(A === 0) << nZ)                       // Z = A is 0
+            | (Number((before & 0x0f) !== 0) << nH)         // H = borrow from bit 4
+            | (Number(before === 0x80) << nPV)              // PV = A was 0x80 before
+            | Number(before !== 0);                         // C = A was not 0 before
     }
 
     function CCF() {
@@ -1116,7 +1116,7 @@ wmsx.CPU = function() {
             // Flags
             F = (F & bC)                               // H = 0; N = 0; C = C
                 | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
-                | ((A === 0) << nZ)                    // Z = A is 0
+                | (Number(A === 0) << nZ)                    // Z = A is 0
                 | parities[A];                         // P = parity of A
         }
     }
@@ -1131,7 +1131,7 @@ wmsx.CPU = function() {
             // Flags
             F = (F & bC)                               // H = 0; N = 0; C = C
                 | (A & 0xa8)                           // S = A is negative; f5, f3 copied from A
-                | ((A === 0) << nZ)                    // Z = A is 0
+                | (Number(A === 0) << nZ)                    // Z = A is 0
                 | parities[A];                         // P = parity of A
         }
     }
@@ -1198,7 +1198,7 @@ wmsx.CPU = function() {
             B = (B - 1) & 0xff;
             // Flags
             F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-                | ((B === 0) << nZ);                   // Z = B is 0
+                | (Number(B === 0) << nZ);                   // Z = B is 0
             // Verify: Undocumented S/f5/H/f3/PV behavior for all IN/OUT block instructions, not implemented. Left 0
         }
     }
@@ -1223,7 +1223,7 @@ wmsx.CPU = function() {
             B = (B - 1) & 0xff;
             // Flags
             F = (F & bC) | bN                          // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-                | ((B === 0) << nZ);                   // Z = B is 0
+                | (Number(B === 0) << nZ);                   // Z = B is 0
         }
     }
 
@@ -1256,7 +1256,7 @@ wmsx.CPU = function() {
             HL = (HL + 1) & 0xffff;
             // Flags
             F = (F & bC) | bN                           // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-                | ((B === 0) << nZ);                    // Z = B is 0
+                | (Number(B === 0) << nZ);                    // Z = B is 0
 
             output(fromBC(), val);                      // Must be the last operation on the instruction processing, because of CPU mode switch
         }
@@ -1282,7 +1282,7 @@ wmsx.CPU = function() {
             HL = (HL - 1) & 0xffff;
             // Flags
             F = (F & bC) | bN                           // S = ?; f5 = ?; H = ?; f3 = ?; PV = ?; N = 1; C = C
-                | ((B === 0) << nZ);                    // Z = B is 0
+                | (Number(B === 0) << nZ);                    // Z = B is 0
 
             output(fromBC(), val);                      // Must be the last operation on the instruction processing, because of CPU mode switch
         }
@@ -1327,7 +1327,7 @@ wmsx.CPU = function() {
             // Flags
             F =                                                 // N = 0
                 (A & 0xa8)                                      // S = A is negative; f5, f3 copied from A
-                | ((A === 0) << nZ)                             // Z = A is 0
+                | (Number(A === 0) << nZ)                             // Z = A is 0
                 | (compare & bH)                                // H = carry from bit 3
                 | (((compare >>> 6) ^ (compare >>> 5)) & bPV)   // V = overflow
                 | ((res >>> 8) & bC);                           // C = carry from bit 7
@@ -1343,7 +1343,7 @@ wmsx.CPU = function() {
             // Flags
             F =                                                 // N = 0
                 (A & 0xa8)                                      // S = A is negative; f5, f3 copied from A
-                | ((A === 0) << nZ)                             // Z = A is 0
+                | (Number(A === 0) << nZ)                             // Z = A is 0
                 | (compare & bH)                                // H = carry from bit 3
                 | (((compare >>> 6) ^ (compare >>> 5)) & bPV)   // V = overflow
                 | ((res >>> 8) & bC);                           // C = carry from bit 7
@@ -1359,7 +1359,7 @@ wmsx.CPU = function() {
             // Flags
             F = (bN)                                             // N = 1
                 | (A & 0xa8)                                     // S = A is negative; f5, f3 copied from A
-                | ((A === 0) << nZ)                              // Z = A is 0
+                | (Number(A === 0) << nZ)                              // Z = A is 0
                 | (compare & bH)                                 // H = borrow from bit 4
                 | (((compare >>> 6) ^ (compare >>> 5)) & bPV)    // V = overflow
                 | ((res >>> 8) & bC);                            // C = borrow
@@ -1375,7 +1375,7 @@ wmsx.CPU = function() {
             // Flags
             F = (bN)                                             // N = 1
                 | (A & 0xa8)                                     // S = A is negative; f5, f3 copied from A
-                | ((A === 0) << nZ)                              // Z = A is 0
+                | (Number(A === 0) << nZ)                              // Z = A is 0
                 | (compare & bH)                                 // H = borrow from bit 4
                 | (((compare >>> 6) ^ (compare >>> 5)) & bPV)    // V = overflow
                 | ((res >>> 8) & bC);                            // C = borrow
@@ -1388,7 +1388,7 @@ wmsx.CPU = function() {
             // Flags
             F = bH                          // H = 1; N = 0; C = 0;
                 | (A & 0xa8)                // S = A is negative; f5, f3 copied from A
-                | ((A === 0) << nZ)         // Z = A is 0
+                | (Number(A === 0) << nZ)         // Z = A is 0
                 | parities[A];              // P = parity of A
         };
     }
@@ -1399,7 +1399,7 @@ wmsx.CPU = function() {
             // Flags
             F =                             // H = 0; N = 0; C = 0;
                 (A & 0xa8)                  // S = A is negative; f5, f3 copied from A
-                | ((A === 0) << nZ)         // Z = A is 0
+                | (Number(A === 0) << nZ)         // Z = A is 0
                 | parities[A];              // P = parity of A
         };
     }
@@ -1410,7 +1410,7 @@ wmsx.CPU = function() {
             // Flags
             F =                             // H = 0; N = 0; C = 0;
                 (A & 0xa8)                  // S = A is negative; f5, f3 copied from A
-                | ((A === 0) << nZ)         // Z = A is 0
+                | (Number(A === 0) << nZ)         // Z = A is 0
                 | parities[A];              // P = parity of A
         };
     }
@@ -1424,7 +1424,7 @@ wmsx.CPU = function() {
             F = (bN)                                             // N = 1
                 | (res & bS)                                     // S = res is negative
                 | (val & 0x28)                                   // f5, f3 copied from val (operand)
-                | ((res === 0) << nZ)                            // Z = res (as would be set to A) is 0
+                | (Number(res === 0) << nZ)                            // Z = res (as would be set to A) is 0
                 | (compare & bH)                                 // H = borrow from bit 4
                 | (((compare >>> 6) ^ (compare >>> 5)) & bPV)    // V = overflow
                 | ((res >>> 8) & bC);                            // C = borrow
@@ -1438,9 +1438,9 @@ wmsx.CPU = function() {
             // Flags
             F = (F & bC)                              // N = 0; C = C
                 | (res & 0xa8)                        // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                 // Z = res is 0
-                | (((res & 0x0f) === 0) << nH)        // H = carry from bit 3
-                | ((res === 0x80) << nPV);            // V = overflow
+                | (Number(res === 0) << nZ)                 // Z = res is 0
+                | (Number((res & 0x0f) === 0) << nH)        // H = carry from bit 3
+                | (Number(res === 0x80) << nPV);            // V = overflow
         };
     }
 
@@ -1453,9 +1453,9 @@ wmsx.CPU = function() {
             // Flags
             F = (F & bC)                              // N = 0; C = C
                 | (res & 0xa8)                        // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                 // Z = res is 0
-                | (((res & 0x0f) === 0) << nH)        // H = carry from bit 3
-                | ((res === 0x80) << nPV);            // V = overflow
+                | (Number(res === 0) << nZ)                 // Z = res is 0
+                | (Number((res & 0x0f) === 0) << nH)        // H = carry from bit 3
+                | (Number(res === 0x80) << nPV);            // V = overflow
         };
     }
 
@@ -1466,9 +1466,9 @@ wmsx.CPU = function() {
             // Flags
             F = (F & bC) | bN                             // N = 1; C = C
                 | (res & 0xa8)                            // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                     // Z = res is 0
-                | (((res & 0x0f) === 0x0f) << nH)         // H = borrow from bit 4
-                | ((res === 0x7f) << nPV);                // V = overflow
+                | (Number(res === 0) << nZ)                     // Z = res is 0
+                | (Number((res & 0x0f) === 0x0f) << nH)         // H = borrow from bit 4
+                | (Number(res === 0x7f) << nPV);                // V = overflow
         };
     }
 
@@ -1481,9 +1481,9 @@ wmsx.CPU = function() {
             // Flags
             F = (F & bC) | bN                             // N = 1; C = C
                 | (res & 0xa8)                            // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                     // Z = res is 0
-                | (((res & 0x0f) === 0x0f) << nH)         // H = borrow from bit 4
-                | ((res === 0x7f) << nPV);                // V = overflow
+                | (Number(res === 0) << nZ)                     // Z = res is 0
+                | (Number((res & 0x0f) === 0x0f) << nH)         // H = borrow from bit 4
+                | (Number(res === 0x7f) << nPV);                // V = overflow
         };
     }
 
@@ -1522,7 +1522,7 @@ wmsx.CPU = function() {
             var compare = (valA ^ valB ^ res) >>> 8;
             F =                                                 // N = 0
                 ((res >>> 8) & 0xa8)                            // S = res is negative; f5, f3 copied from high byte of res
-                | (((res & 0xffff) === 0) << nZ)                // Z = res (as set to destination) is 0
+                | (Number((res & 0xffff) === 0) << nZ)                // Z = res (as set to destination) is 0
                 | (compare & bH)                                // H = carry from bit 11
                 | (((compare >>> 6) ^ (compare >>> 5)) & bPV)   // V = overflow
                 | ((res >>> 16) & bC);                          // C = carry from bit 15
@@ -1539,7 +1539,7 @@ wmsx.CPU = function() {
             var compare = (valA ^ valB ^ res) >>> 8;
             F = bN                                              // N = 1
                 | ((res >>> 8) & 0xa8)                          // S = res is negative; f5, f3 copied from high byte of res
-                | (((res & 0xffff) === 0) << nZ)                // Z = res (as set to destination) is 0
+                | (Number((res & 0xffff) === 0) << nZ)                // Z = res (as set to destination) is 0
                 | (compare & bH)                                // H = borrow from bit 12
                 | (((compare >>> 6) ^ (compare >>> 5)) & bPV)   // V = overflow
                 | ((res >>> 16) & bC);                          // C = borrow
@@ -1567,7 +1567,7 @@ wmsx.CPU = function() {
             // Flags
             F =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                  // Z = res is 0
+                | (Number(res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
                 | (res & bC);                          // C = bit 7 of val before
         }
@@ -1582,7 +1582,7 @@ wmsx.CPU = function() {
             // Flags
             F =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                  // Z = res is 0
+                | (Number(res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
                 | ((val >>> 7) & bC);                  // C = bit 7 of val before
         }
@@ -1597,7 +1597,7 @@ wmsx.CPU = function() {
             // Flags
             F =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                  // Z = res is 0
+                | (Number(res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
                 | (val & bC);                          // C = bit 0 of val before
         }
@@ -1612,7 +1612,7 @@ wmsx.CPU = function() {
             // Flags
             F =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                  // Z = res is 0
+                | (Number(res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
                 | (val & bC);                          // C = bit 0 of val before
         }
@@ -1627,7 +1627,7 @@ wmsx.CPU = function() {
             // Flags
             F =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                  // Z = res is 0
+                | (Number(res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
                 | ((val >>> 7) & bC);                  // C = bit 7 of val before
         }
@@ -1642,7 +1642,7 @@ wmsx.CPU = function() {
             // Flags
             F =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                  // Z = res is 0
+                | (Number(res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
                 | (val & bC);                          // C = bit 0 of val before
         }
@@ -1658,7 +1658,7 @@ wmsx.CPU = function() {
             // Flags
             F =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                  // Z = res is 0
+                | (Number(res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
                 | ((val >>> 7) & bC);                  // C = bit 7 of val before
         }
@@ -1673,7 +1673,7 @@ wmsx.CPU = function() {
             // Flags
             F =                                        // H = 0; N = 0
                 (res & 0xa8)                           // S = res is negative; f5, f3 copied from res
-                | ((res === 0) << nZ)                  // Z = res is 0
+                | (Number(res === 0) << nZ)                  // Z = res is 0
                 | parities[res]                        // P = parity of res
                 | (val & bC);                          // C = bit 0 of val before
         }
@@ -1808,7 +1808,7 @@ wmsx.CPU = function() {
             // Flags
             F = (F & bC)                               // H = 0; N = 0; C = C
                 | (val & 0xa8)                         // S = val is negative; f5, f3 copied from res
-                | ((val === 0) << nZ)                  // Z = res is 0
+                | (Number(val === 0) << nZ)                  // Z = res is 0
                 | parities[val];                       // P = parity of res
         }
     }
@@ -1829,8 +1829,8 @@ wmsx.CPU = function() {
             // Flags
             F = (F & 0x12)                                      // H = H, N = N, S = 0, PV = 0, V = 0
                 | (res & 0x28)                                  // f5, f3 copied from res
-                | ((res === 0) << nZ)                           // Z = res is 0
-                | (res > 0xff);                                 // C = res > 8bits
+                | (Number(res === 0) << nZ)                           // Z = res is 0
+                | Number(res > 0xff);                                 // C = res > 8bits
         };
     }
 
@@ -1841,8 +1841,8 @@ wmsx.CPU = function() {
             // Flags
             F = (F & 0x12)                                      // H = H, N = N, S = 0, PV = 0, V = 0
                 | (res & 0x28)                                  // f5, f3 copied from res
-                | ((res === 0) << nZ)                           // Z = res is 0
-                | (res > 0xffff);                               // C = res > 16bits
+                | (Number(res === 0) << nZ)                           // Z = res is 0
+                | Number(res > 0xffff);                               // C = res > 16bits
         };
     }
 
@@ -1857,7 +1857,7 @@ wmsx.CPU = function() {
         // Flags
         F = (F & bC)                               // H = 0; N = 0; C = C
             | (val & 0xa8)                         // S = val is negative; f5, f3 copied from res
-            | ((val === 0) << nZ)                  // Z = res is 0
+            | (Number(val === 0) << nZ)                  // Z = res is 0
             | parities[val];                       // P = parity of res
     }
     function uIN_C_R800() {                  // Like the normal IN r, (C) but does not store the data
@@ -1865,7 +1865,7 @@ wmsx.CPU = function() {
         // Flags
         F = (F & bC)                               // H = 0; N = 0; C = C
             | (val & 0xa8)                         // S = val is negative; f5, f3 copied from res
-            | ((val === 0) << nZ)                  // Z = res is 0
+            | (Number(val === 0) << nZ)                  // Z = res is 0
             | parities[val];                       // P = parity of res
     }
 
