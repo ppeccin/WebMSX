@@ -80,7 +80,9 @@
 
 **Fix 43: Optional forcePort parameter** (c1a23c33) - Made `forcePort?` optional in updateMode function in DOMMouseControls.ts. Fixed 2 errors.
 
-**Remaining errors: 246**
+**Fix 44: Vendor-prefixed Pointer Lock API** (95be88c9) - Extended Document interface with Mozilla and WebKit prefixed properties (`onmozpointerlockchange`, `mozExitPointerLock`, `webkitExitPointerLock`, `mozPointerLockElement`, `webkitPointerLockElement`) in globals.d.ts. Fixed 4 errors.
+
+**Remaining errors: 242**
 
 ---
 
@@ -142,8 +144,9 @@
 
 ### Deprecated APIs
 - When dealing with deprecated browser APIs (like `applicationCache`), add custom type declarations
-- Extend built-in interfaces like `Window` in `.d.ts` files via declaration merging
+- Extend built-in interfaces like `Window` or `Document` in `.d.ts` files via declaration merging
 - Optional properties (`prop?`) indicate features may not exist in modern environments
+- Vendor-prefixed APIs (`moz*`, `webkit*`) follow same pattern for legacy browser support
 
 ### Consistency Patterns
 - When multiple related functions share similar patterns, keep signatures consistent
