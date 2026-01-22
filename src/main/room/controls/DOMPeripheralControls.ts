@@ -76,7 +76,7 @@ wmsx.DOMPeripheralControls = function(room) {
         applyControlActivated (control, altPower, secPort, data, true);     // user-initiated
     };
 
-    function applyControlActivated (control, altPower, secPort, data, user) {
+    function applyControlActivated (control, altPower: boolean | number = false, secPort: boolean | number = false, data = undefined, user: boolean | number = false) {
         // All controls are Press-only and repeatable
         var port = secPort ? 1 : 0;
         switch(control) {
