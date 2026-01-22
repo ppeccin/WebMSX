@@ -92,7 +92,9 @@
 
 **Fix 49: rootDir object initialization** (70a87b88) - Added `availableEntries: [] as number[]` and `usedNames: new Set<string>()` to rootDir object literal in DiskImages.ts. Properties were previously set by helper functions after initialization, but TypeScript requires all properties in initial object literal for type inference. Fixed 1 error.
 
-**Remaining errors: 225**
+**Fix 50: stopRecursion parameter** (66ade958) - Added missing `stopRecursion` parameter (false) to checkFileHasValidImages call in FileDiskDrive.ts line 74. Function expects 4 parameters (file, hardDisk, anyContent, stopRecursion) to prevent recursive decompression of nested ZIP files. Fixed 1 error.
+
+**Remaining errors: 224**
 
 ---
 
