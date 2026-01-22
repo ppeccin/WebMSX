@@ -122,7 +122,9 @@
 
 **Fix 64: Optional parameters in display adjustment functions** (269bfdaf) - Made `now?` and `keepFocus?` optional in requestReadjust, and `force?` and `byWindow?` optional in auxReadjustAll functions in CanvasDisplay.ts. Call sites show three patterns: no arguments (default behavior), single argument (immediate execution or force flag), or both arguments (full control). Using optional parameters preserves all existing call patterns without requiring changes. Fixed 9 errors.
 
-**Remaining errors: 163**
+**Fix 65: auxOsd.style object initialization** (4740a001) - Initialized `auxOsd` dummy object with `style: { transition: "", top: "", opacity: 0 }` in CanvasDisplay.ts. TypeScript inferred `style: {}` as empty object type, causing errors when assigning to `transition`, `top`, and `opacity` properties in hideOSDs function. The dummy object is used when AuxWindow is not open, and its properties are assigned via chained assignment with the real `osd.style` from HTMLElement. Fixed 3 errors.
+
+**Remaining errors: 160**
 
 ---
 
