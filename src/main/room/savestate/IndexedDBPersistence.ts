@@ -14,7 +14,7 @@ wmsx.IndexedDBPersistence = function() {
 
         openReq.onupgradeneeded = function (e) {
             try {
-                var db = e.target.result;
+                var db = (e.target as IDBOpenDBRequest).result;
                 if (!db.objectStoreNames.contains("WebMSX")) {
                     wmsx.Util.log("Creating IndexedDB persistence...");
                     db.createObjectStore("MainStore");
@@ -25,7 +25,7 @@ wmsx.IndexedDBPersistence = function() {
         };
 
         openReq.onsuccess = function (e) {
-            self.db = e.target.result;
+            self.db = (e.target as IDBOpenDBRequest).result;
             wmsx.Util.log("Using IndexedDB persistence");
             onSuccess(self.db);
         };
