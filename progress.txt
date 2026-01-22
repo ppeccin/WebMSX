@@ -124,7 +124,9 @@
 
 **Fix 65: auxOsd.style object initialization** (4740a001) - Initialized `auxOsd` dummy object with `style: { transition: "", top: "", opacity: 0 }` in CanvasDisplay.ts. TypeScript inferred `style: {}` as empty object type, causing errors when assigning to `transition`, `top`, and `opacity` properties in hideOSDs function. The dummy object is used when AuxWindow is not open, and its properties are assigned via chained assignment with the real `osd.style` from HTMLElement. Fixed 3 errors.
 
-**Remaining errors: 160**
+**Fix 66: BarMenuItem type definition** (13e21b09) - Defined `BarMenuItem` type with all optional properties (`clickModif`, `control`, `divider`, `needsUIG`, `secSlot`, `disabled`, `toggle`, `radio`) in CanvasDisplay.ts. Explicitly typed menu arrays as `BarMenuItem[]` to allow TypeScript to recognize all properties. Made `media`, `tooltip`, `control`, `menu`, `menuTitle`, and `parent` parameters optional in `addPeripheralControlButton` function since it's called with 3-9 parameters depending on button type (LEDs vs regular buttons vs buttons with menus). Fixed 53 errors.
+
+**Remaining errors: 107**
 
 ---
 
@@ -168,6 +170,9 @@
 - This pattern is critical for CPU instruction objects and state serialization
 - Use object spread `{ ...source }` to copy objects instead of `for...in` loops for better type inference
 - Pattern `var obj = {}; for (k in src) obj[k] = src[k];` should be replaced with `var obj = { ...src };`
+- For arrays of objects with many optional properties, define an explicit type to avoid complex union inference
+- Pattern: `type ItemType = { prop1: type; prop2?: type; prop3?: type }; var items: ItemType[] = [...]`
+- TypeScript infers array element types as union of all shapes, which can exclude properties not in all elements
 
 ### Optional Parameters
 - Use `param?` for optional parameters where `undefined` behavior is significant
