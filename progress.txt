@@ -483,5 +483,24 @@
 - The V9990CommandProcessor handles graphics commands for the V9990 video chip (used in MSX TurboR GT)
 - Using `= false` as default preserves the original JavaScript behavior where `undefined` is falsy and the interrupt triggers
 
+### Fix 31: Make V9990CommandProcessor start infinite parameter optional
+- **Error**: `Expected 4 arguments, but got 3.` (TS2554)
+- **Location**: `src/main/msx/video/V9990CommandProcessor.ts` lines 356, 451, 541, 582, 630, 674, 705, 757, 811, 867, 885 (11 occurrences)
+- **Solution**: Changed `function start(timing, pixels, lines, infinite)` to `function start(timing, pixels, lines, infinite = false)` to make the parameter optional
+- **Result**: Fixed 11 TS2554 errors in V9990CommandProcessor.ts
+- **Remaining errors**: 462
+- **Commit**: d6c32ba9
+
+### Learnings
+- This is the same pattern as Fix 14, 16, 19, 21, 26, 27, 28, and 30: a function parameter that is sometimes omitted at call sites needs a default value
+- The `start` function initiates V9990 graphics command execution and estimates the command duration
+- The `infinite` parameter controls whether a command has finite duration (graphics commands like LMMV, LMMM) or runs indefinitely (CPU-driven commands like LMCM, LMMC)
+- When `infinite` is `false` (the default), the command duration is calculated based on timing, pixels, lines, and turbo multiplier
+- When `infinite` is `true` (lines 1207, 1215), the command runs until the CPU completes all writes/reads: `finishingCycle = -1`
+- Most graphics commands (LMMV, LMMM, BMXL, BMLX, BMLL, LINE, POINT search) are finite operations that should complete after processing a specific number of pixels
+- CPU-driven commands (LMCM for CPU-to-VRAM transfer, LMMC for VRAM-to-CPU transfer) are infinite because they're driven by individual CPU writes/reads, not by a predetermined pixel count
+- Using `= false` as default is appropriate because finite commands are far more common than infinite commands (11 calls vs 2 calls)
+- This preserves the original JavaScript behavior where `undefined` is falsy and evaluates to `false` in the conditional `if (infinite)`
+
 ### Next error to fix
 Check with `npx tsc --noEmit 2>&1 | head -50` for the next error.
