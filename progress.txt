@@ -110,7 +110,9 @@
 
 **Fix 58: Optional parameters in dropClient** (72809f70) - Made `wasError?` and `userMessage?` parameters optional in dropClient function in NetServer.ts. These parameters are only used when `showMessage` is true to display OSD messages and log errors. The `dropAllClients` function calls `dropClient` with only the `client` and `showMessage` (false) arguments, making the error reporting parameters unnecessary for that call path. Fixed 1 error.
 
-**Remaining errors: 206**
+**Fix 59: IDBOpenDBRequest type assertions** (ad082c6a) - Added `as IDBOpenDBRequest` type assertions for `e.target` in onupgradeneeded and onsuccess event handlers in IndexedDBPersistence.ts. IndexedDB open request events have `IDBOpenDBRequest` as the target (which includes the `result` property), but TypeScript conservatively types `e.target` as `EventTarget`. Fixed 2 errors.
+
+**Remaining errors: 204**
 
 ---
 
