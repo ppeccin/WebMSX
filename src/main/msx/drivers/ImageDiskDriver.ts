@@ -127,7 +127,7 @@ wmsx.ImageDiskDriver = function(dos2) {
         bytes[patchBase + driverStart + 16 + 15 + 1] = 0xea;
     };
 
-    function INIHRD(F, HL) {
+    function INIHRD() {
         // wmsx.Util.log("INIHRD");
         // no real initialization required
     }
