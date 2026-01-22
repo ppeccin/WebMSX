@@ -555,5 +555,24 @@
 - The VDP (Video Display Processor) is the TMS9918-derived video chip family used in MSX computers (V9918, V9938, V9958)
 - This pattern appears in multiple video chip modules (V9990 and VDP), showing consistent architecture across the emulator's video subsystems
 
+### Fix 35: Use number 0 instead of boolean false for CE and TR flags
+- **Error**: `Type 'number' is not assignable to type 'boolean'.` (TS2322) and `The left/right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.` (TS2362/TS2363)
+- **Location**: `src/main/msx/video/VDPCommandProcessor.ts` lines 59, 67, 76 (left and right), 775, 799, 813, 820
+- **Solution**: Changed `var CE = false, TR = false;` to `var CE = 0, TR = 0;` on line 841
+- **Result**: Fixed 8 errors in VDPCommandProcessor.ts
+- **Remaining errors**: 447
+- **Commit**: 65aaca49
+
+### Learnings
+- This is the same pattern as Fix 7 (`channel5` in SCCIAudio.ts): variables declared as boolean but used as numbers (0/1) throughout the code
+- `CE` (Command Executing) and `TR` (Transfer Ready) are status flags in the VDP command processor
+- Both flags are used in bitwise operations: `status[2] = (status[2] & ~0x81) | (TR << 7) | CE;` at line 76
+- The expression `(TR << 7)` shifts TR left by 7 bits to position it in bit 7 of the status register
+- The expression `| CE` ORs CE directly into bit 0 of the status register
+- For bitwise operations to work correctly, these flags must be numeric (0 or 1), not boolean (false or true)
+- JavaScript coerces booleans in arithmetic contexts, but TypeScript requires explicit numeric types for type safety
+- The VDPCommandProcessor handles graphics commands for the VDP (Video Display Processor) in MSX computers
+- When variables are used in bitwise operations (`<<`, `|`, `&`), they should be declared as numbers, not booleans
+
 ### Next error to fix
 Check with `npx tsc --noEmit 2>&1 | head -50` for the next error.
