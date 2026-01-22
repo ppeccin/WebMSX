@@ -1284,7 +1284,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         auxWindow.removeEventListener("beforeunload", auxWindowUnload);
         auxWindow.close();
         auxWindow = auxFsElementCenter = auxLogo = auxCanvas = auxCanvasContext = undefined;
-        auxOsd = { style: {} };         // Dummy for use when AuxWindow is not open
+        auxOsd = { style: { transition: "", top: "", opacity: 0 } };         // Dummy for use when AuxWindow is not open
     }
 
     function auxWindowUpdateTitle() {
@@ -2403,7 +2403,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     var auxScaleY = 1.1;
     var auxTargetWidth = targetWidth, auxScrTargetWidth = scrTargetWidth, auxTargetHeight = targetHeight;
     var auxLogo, auxFsElementCenter;
-    var auxOsd = { style: {} };         // Dummy for use when AuxWindow is not open
+    var auxOsd = { style: { transition: "", top: "", opacity: 0 } };         // Dummy for use when AuxWindow is not open
 
     var powerButton;
     var mediaIconsContainer;
