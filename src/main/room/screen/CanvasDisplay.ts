@@ -867,7 +867,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     };
 
-    function requestReadjust(now, keepFocus) {
+    function requestReadjust(now?, keepFocus?) {
         if (now)
             readjustAll(true, keepFocus);
         else {
@@ -2151,7 +2151,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         return true;
     }
 
-    function auxReadjustAll(force, byWindow) {
+    function auxReadjustAll(force?, byWindow?) {
         if (auxReadjustScreeSizeChanged(force || byWindow)) {
             if (auxIsMaxed() || byWindow) {
                 auxDisplayScale(auxAspectX, auxDisplayOptimalScaleY(auxReadjustScreenSize.w, auxReadjustScreenSize.h));
