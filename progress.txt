@@ -397,5 +397,21 @@
 - The ColorCache module generates lookup tables for converting various MSX video chip color formats (4-bit palette, 8-bit GRB, 9-bit GRB, 16-bit RGB, YUV, YJK) to 32-bit ABGR values for rendering
 - This is a common pattern in emulators: pre-computing color conversions in lookup tables for performance
 
+### Fix 26: Make updateMode forceRenderMetrics parameter optional
+- **Error**: `Expected 1 arguments, but got 0.` (TS2554)
+- **Location**: `src/main/msx/video/V9990.ts` lines 264, 480, 486
+- **Solution**: Changed `function updateMode(forceRenderMetrics)` to `function updateMode(forceRenderMetrics = false)` to make the parameter optional
+- **Result**: Fixed 3 TS2554 errors in V9990.ts
+- **Remaining errors**: 485
+- **Commit**: 3778d103
+
+### Learnings
+- The `updateMode` function updates the V9990 video chip mode based on register settings
+- The `forceRenderMetrics` parameter is passed to `updateRenderMetrics(force)` to control whether rendering metrics should be forcibly updated
+- Most calls to `updateMode()` don't need to force render metrics updates (when registers change naturally)
+- Only calls from initialization or explicit mode changes pass `true` to force updates (lines 373, 2049)
+- Using `= false` as the default value preserves the original behavior where most mode updates don't force render metric recalculation
+- This is a common pattern: optional force/override parameters that default to false for normal operation but can be set to true for special cases
+
 ### Next error to fix
-`src/main/msx/video/V9990.ts(264,13): error TS2554: Expected 1 arguments, but got 0.`
+`src/main/msx/video/V9990.ts(324,13): error TS2554: Expected 1 arguments, but got 0.`
