@@ -136,13 +136,14 @@ wmsx.SlotCreator = function () {
     };
 
     function cloneInfo(info) {
-        var i = {};
-        if (info.n) i.n = info.n;
-        if (info.h) i.h = info.h;
-        if (info.f) i.f = info.f;
-        if (info.t) i.t = info.t;
-        if (info.l) i.l = info.l;
-        if (info.e) i.e = info.e;
+        var i = {
+            ...(info.n ? { n: info.n } : {}),
+            ...(info.h ? { h: info.h } : {}),
+            ...(info.f ? { f: info.f } : {}),
+            ...(info.t ? { t: info.t } : {}),
+            ...(info.l ? { l: info.l } : {}),
+            ...(info.e ? { e: info.e } : {})
+        };
         return i;
     }
 
