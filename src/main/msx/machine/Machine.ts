@@ -466,14 +466,12 @@ wmsx.Machine = function() {
             vm: videoSocket.saveState(),
             dd: diskDriveSocket.saveState(),
             ct: cassetteSocket.saveState(),
-            cs: controllersSocket.saveState()
+            cs: controllersSocket.saveState(),
+            vy: extended ? vSynchMode : undefined,
+            pw: extended ? self.powerIsOn : undefined,
+            up: extended ? userPaused : undefined,
+            upf: extended ? userPauseMoreFrames : undefined
         };
-        if (extended) {
-            s.vy = vSynchMode;
-            s.pw = self.powerIsOn;
-            s.up = userPaused;
-            s.upf = userPauseMoreFrames;
-        }
         return s;
     }
     this.saveState = saveState;
