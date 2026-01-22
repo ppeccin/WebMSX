@@ -58,7 +58,7 @@ wmsx.OPL4AudioFM = function(opl4) {
 
         timer1Counter = timer2Counter = 0;
         timer1Active = timer2Active = false;
-        timer1Masked = timer2Masked = 0;
+        timer1Masked = timer2Masked = false;
 
 
         // -----------------------------------------
