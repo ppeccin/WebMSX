@@ -82,7 +82,9 @@
 
 **Fix 44: Vendor-prefixed Pointer Lock API** (95be88c9) - Extended Document interface with Mozilla and WebKit prefixed properties (`onmozpointerlockchange`, `mozExitPointerLock`, `webkitExitPointerLock`, `mozPointerLockElement`, `webkitPointerLockElement`) in globals.d.ts. Fixed 4 errors.
 
-**Remaining errors: 242**
+**Fix 45: Control flow narrowing for pointer lock events** (0eb75138) - Changed `else if` to separate `if` for `mozpointerlockchange` event registration in DOMMouseControls.ts. TypeScript's control flow analysis incorrectly narrowed `document` type to `never` in mutually exclusive `else if` branch. Fixed 1 error.
+
+**Remaining errors: 241**
 
 ---
 
@@ -147,6 +149,13 @@
 - Extend built-in interfaces like `Window` or `Document` in `.d.ts` files via declaration merging
 - Optional properties (`prop?`) indicate features may not exist in modern environments
 - Vendor-prefixed APIs (`moz*`, `webkit*`) follow same pattern for legacy browser support
+
+### Control Flow Analysis
+- TypeScript performs type narrowing based on conditional checks (`if`, `else if`, `in` operator)
+- `else if` creates mutually exclusive branches that can over-narrow types to `never` in edge cases
+- When checking for independent optional properties, use separate `if` statements instead of `else if`
+- Pattern: `if ("prop1" in obj) {...} if ("prop2" in obj) {...}` works better than `else if` for optional features
+- This is especially important for vendor-prefixed browser APIs where multiple prefixes can exist independently
 
 ### Consistency Patterns
 - When multiple related functions share similar patterns, keep signatures consistent
