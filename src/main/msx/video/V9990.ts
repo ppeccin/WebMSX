@@ -703,7 +703,7 @@ wmsx.V9990 = function() {
         }
     }
 
-    function updateMode(forceRenderMetrics) {
+    function updateMode(forceRenderMetrics = false) {
         var newMode;
         switch (register[6] >>  6) {                                    // DSPM
             case 3: newMode = modes.SBY; break;
