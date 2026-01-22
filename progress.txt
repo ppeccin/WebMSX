@@ -592,5 +592,21 @@
 - Using `= false` as default is appropriate because finite commands are more common than infinite ones
 - The VDPCommandProcessor handles graphics commands for the TMS9918-derived VDP chip family (V9918, V9938, V9958)
 
+### Fix 37: Make seekHeader from parameter optional with default value
+- **Error**: `Expected 2 arguments, but got 1.` (TS2554)
+- **Location**: `src/main/room/cassette/FileCassetteDeck.ts` line 228
+- **Solution**: Changed `function seekHeader(dir, from)` to `function seekHeader(dir, from = 0)` to make the from parameter optional
+- **Result**: Fixed 1 TS2554 error in FileCassetteDeck.ts
+- **Remaining errors**: 437
+- **Commit**: 9ec01c4a
+
+### Learnings
+- The `seekHeader` function searches for cassette tape headers in forward or backward direction
+- The `from` parameter specifies an offset from the current `tapePosition` to start searching, defaulting to `0`
+- Most calls to `seekHeader` don't specify the offset (line 228), while explicit seeking (lines 76, 84) use `1` or `-1` offsets
+- The original code used `from = from || 0;` to handle the missing parameter, which is a common JavaScript pattern
+- Using `= 0` as the default parameter value preserves the original behavior while satisfying TypeScript's type checking
+- The FileCassetteDeck module emulates cassette tape operations for MSX computers, handling CAS file format operations
+
 ### Next error to fix
 Check with `npx tsc --noEmit 2>&1 | head -50` for the next error.
