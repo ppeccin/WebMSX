@@ -900,7 +900,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         cursorHideFrameCountdown = -1;
     }
 
-    function showCursorAndBar(forceBar) {
+    function showCursorAndBar(forceBar = false) {
         showCursor();
         if (forceBar || !mousePointerLocked) showBar();
         cursorHideFrameCountdown = CURSOR_HIDE_FRAMES;
