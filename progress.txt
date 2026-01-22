@@ -126,7 +126,9 @@
 
 **Fix 66: BarMenuItem type definition** (13e21b09) - Defined `BarMenuItem` type with all optional properties (`clickModif`, `control`, `divider`, `needsUIG`, `secSlot`, `disabled`, `toggle`, `radio`) in CanvasDisplay.ts. Explicitly typed menu arrays as `BarMenuItem[]` to allow TypeScript to recognize all properties. Made `media`, `tooltip`, `control`, `menu`, `menuTitle`, and `parent` parameters optional in `addPeripheralControlButton` function since it's called with 3-9 parameters depending on button type (LEDs vs regular buttons vs buttons with menus). Fixed 53 errors.
 
-**Remaining errors: 107**
+**Fix 67: Custom DOM properties** (536b89aa) - Extended `Element`, `HTMLElement`, `EventTarget`, and `File` interfaces in globals.d.ts with custom `wmsx*` properties used throughout the codebase. The codebase dynamically adds properties to DOM elements for UI state tracking (e.g., `wmsxBarElementType` for button type, `wmsxMenu` for menu data, `wmsxKey` for virtual keyboard mapping, `wmsxControl` for control binding). Extended both `Element` (for `document.elementFromPoint()` return type) and `HTMLElement` (for created elements) to cover all usage patterns. Added `wmsxSuccess` and `wmsxError` to `File` interface for tracking multi-file read operations. Extended `EventTarget` with `wmsxIgnoreEnterFS`, `wmsxNeedsUIG`, and `parentElement` properties used in event handlers. Fixed 82 errors (from 107 to 25 remaining, excluding ZIP.ts/JSZip errors).
+
+**Remaining errors: 25** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
@@ -190,11 +192,16 @@
 - Both `false` and `null` are falsy, but `null` documents intent better for non-boolean uses
 - Explicit type annotations (`var name: type`) clearly document variable intent
 
-### Deprecated APIs
+### Deprecated APIs and Custom Properties
 - When dealing with deprecated browser APIs (like `applicationCache`), add custom type declarations
 - Extend built-in interfaces like `Window` or `Document` in `.d.ts` files via declaration merging
 - Optional properties (`prop?`) indicate features may not exist in modern environments
 - Vendor-prefixed APIs (`moz*`, `webkit*`) follow same pattern for legacy browser support
+- For custom properties added to DOM elements at runtime, extend appropriate DOM interfaces
+- Extend both `Element` and `HTMLElement` when properties are used on elements from different sources
+- `document.elementFromPoint()` returns `Element`, while `document.createElement()` returns specific element types
+- Extended `EventTarget` can include DOM-specific properties like `parentElement` used in event handlers
+- Custom properties on browser objects (`File`, `Error`, etc.) follow same interface extension pattern
 
 ### Control Flow Analysis
 - TypeScript performs type narrowing based on conditional checks (`if`, `else if`, `in` operator)
