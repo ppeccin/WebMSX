@@ -443,6 +443,7 @@ wmsx.Machine = function() {
 
     function saveState(extended?) {
         var s = {
+            v: WMSX.STATE_VERSION,
             cfg: wmsx.Configurator.saveState(),
             mn: self.machineName,
             mt: self.machineType,
@@ -1222,7 +1223,6 @@ wmsx.Machine = function() {
             var wasPaused = self.systemPause(true);
             self.showOSD("Saving State " + slot, true);
             var state = saveState();
-            state.v = VERSION;
             // ASSYNC call!
             media.persistState(slot, state, function then(success) {
                 if (success) self.showOSD("State " + slot + " saved", true);
@@ -1255,7 +1255,6 @@ wmsx.Machine = function() {
             var wasPaused = self.systemPause(true);
             self.showOSD("Saving State File", true);
             var state = saveState();
-            state.v = VERSION;
             media.saveStateFile(state);
             if (!wasPaused) self.systemPause(false);
         };
