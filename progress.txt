@@ -134,7 +134,9 @@
 
 **Fix 70: Bitwise OR assignment with boolean** (20fee284) - Changed `secSlot |= true` to `secSlot = true` in barMenuItemTouchEndOrMouseUp in CanvasDisplay.ts. TypeScript requires arithmetic/bitwise operations to have numeric operands, not booleans. The original code used `|=` (bitwise OR assignment) with a boolean value, which is invalid. Since the intent is simply to set `secSlot` to `true` when the touch activation time exceeds `TOUCH_EXT_SLOT2_TIME`, a simple assignment is both clearer and correct. The `secSlot` variable is used as a boolean flag passed to `processControlActivated`. Fixed 1 error.
 
-**Remaining errors: 16** (excluding ZIP.ts and JSZip-related errors)
+**Fix 71: Vendor-prefixed Fullscreen API** (3f70e1b1) - Extended `Document` interface in globals.d.ts with standard and vendor-prefixed (webkit, moz) Fullscreen API methods and properties: `exitFullscreen`, `webkitExitFullscreen`, `mozCancelFullScreen` for exiting fullscreen; `fullscreenElement`, `webkitFullscreenElement`, `mozFullScreenElement` for querying fullscreen element; `onfullscreenchange`, `onwebkitfullscreenchange`, `onmozfullscreenchange` for event handlers. Extended `Element` and `HTMLElement` interfaces with `requestFullscreen`, `webkitRequestFullscreen`, `webkitRequestFullScreen`, `mozRequestFullScreen` methods for entering fullscreen. Legacy browsers (Safari, Firefox) used vendor-prefixed implementations before the Fullscreen API was standardized. Fixed 4 errors.
+
+**Remaining errors: 12** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
