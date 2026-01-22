@@ -3020,24 +3020,24 @@ wmsx.CPU = function() {
         // 2 bytes, 2M, 8T: - uNEG
         var ops = [0x4c, 0x54, 0x5c, 0x64, 0x6c, 0x74, 0x7c];
         instr = NEG;
-        for (i = 0; i < ops.length; i++) {
-            opcode = ops[i];
+        for (var idx = 0; idx < ops.length; idx++) {
+            opcode = ops[idx];
             defineInstruction(null, 0xed, opcode, 4, 1, instr, "NEG", true);
         }
 
         // 2 bytes, 4M, 14T: - uRETN
         ops = [0x55, 0x5d, 0x65, 0x6d, 0x75, 0x7d];
         instr = r8 ? RET_R800 : RET;    // Same as RET, no IFF2 supported
-        for (i = 0; i < ops.length; i++) {
-            opcode = ops[i];
+        for (idx = 0; idx < ops.length; idx++) {
+            opcode = ops[idx];
             defineInstruction(null, 0xed, opcode, 10, 4 + br, instr, "RETN", true);
         }
 
         // 2 bytes, 2M, 8T: - uIM 0
         ops = [0x4e, 0x66, 0x6e];
         instr = newIM(0);
-        for (i = 0; i < ops.length; i++) {
-            opcode = ops[i];
+        for (idx = 0; idx < ops.length; idx++) {
+            opcode = ops[idx];
             defineInstruction(null, 0xed, opcode, 4, 2, instr, "IM 0", true);
         }
 
