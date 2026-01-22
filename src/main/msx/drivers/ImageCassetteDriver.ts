@@ -109,9 +109,7 @@ wmsx.ImageCassetteDriver = function() {
     function TAPIN(F) {
         var val = deck.readByte();
         if (val === null) return fail(F);
-        var res = success(F, READ_WRITE_BYTE_EXTRA_ITERATIONS);
-        res.A = val;
-        return res;
+        return { F: F & 0xfe, extraIterations: READ_WRITE_BYTE_EXTRA_ITERATIONS, A: val };
     }
 
     function TAPIOF() {
