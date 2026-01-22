@@ -72,7 +72,11 @@
 
 **Fix 39: SettingsState object initialization** (d9777569) - Initialized settingsStateRet with all properties (mouseModeDesc, joysticksModeDesc, joykeysModeDesc, touchPortSet, touchActive, turboFireSpeedDesc) in ControllersHub.ts. Fixed 6 errors.
 
-**Remaining errors: 255**
+**Fix 40: swappedMode for XOR operations** (7ab55cb3) - Changed `swappedMode` from boolean to number (0/1) in DOMJoykeysControls.ts. Used `Number()` wrapper to convert boolean expression. Fixed 5 errors.
+
+**Fix 41: Optional data parameter** (ee3c3362) - Made `data = undefined` default parameter in processControlState in DOMMachineControls.ts. Fixed 1 error.
+
+**Remaining errors: 249**
 
 ---
 
@@ -93,7 +97,8 @@
 - JavaScript allows implicit coercion in bitwise operations, TypeScript enforces explicit conversion
 - `Number(boolean)` returns 1 for true, 0 for false - ideal for CPU flag bit calculations
 - Pattern `(condition << bitPosition)` sets specific bits in registers (common in CPU emulators)
-- Variables used in bitwise operations (`<<`, `|`, `&`) should be declared as numbers, not booleans
+- Variables used in bitwise operations (`<<`, `|`, `&`, `^`) should be declared as numbers, not booleans
+- XOR operator `^` requires numeric operands - convert boolean expressions with `Number()` or declare as numbers
 
 ### Function Declarations
 - `function name() {}` creates read-only function declaration that cannot be reassigned
@@ -123,6 +128,7 @@
 - `param = false` is appropriate for force/override flags that default to normal operation
 - When removing unused parameters is cleaner than adding arguments to all call sites
 - Default parameters preserve backward compatibility with existing call sites
+- Use `param = undefined` to explicitly document that parameter is optional and can be omitted at call sites
 
 ### Type Corrections
 - Variables should be declared with types matching their usage throughout the code
