@@ -20,6 +20,10 @@ interface ApplicationCache extends EventTarget {
 interface Window {
     applicationCache?: ApplicationCache;
     onhelp?: ((this: Window, ev: Event) => any) | null;
+
+    // Vendor-prefixed Web Audio API (legacy browser support)
+    webkitAudioContext?: typeof AudioContext;
+    WebkitAudioContext?: typeof AudioContext;
 }
 
 // Vendor-prefixed Pointer Lock API (legacy browser support)

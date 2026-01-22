@@ -138,7 +138,9 @@
 
 **Fix 72: Missing resizeWindow parameter** (ec88873d) - Added missing third parameter `resizeWindow: false` to `auxDisplayScale` call in `auxReadjustAll` function in CanvasDisplay.ts:2169. The function signature requires three parameters (aspectX, scaleY, resizeWindow). When the auxiliary window is maximized or being adjusted by window size changes, the window should not be resized programmatically, hence passing `false`. All other call sites properly provide three arguments. Fixed 1 error.
 
-**Remaining errors: 11** (excluding ZIP.ts and JSZip-related errors)
+**Fix 73: Navigator.standalone property** (d60988d6) - Added optional `standalone` property to Navigator interface in globals.d.ts. This Safari-specific property indicates whether a web app is running in standalone mode (saved to home screen on iOS). Used in FullScreenSetup.ts and Util.ts for PWA (Progressive Web App) detection via `navigator.standalone` check alongside standard `matchMedia("(display-mode: standalone)")` API. Fixed 2 errors.
+
+**Remaining errors: 9** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
