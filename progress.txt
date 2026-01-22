@@ -447,5 +447,22 @@
 - The function is also called from `updateMode` (line 740) with a parameter, and from pending update handling (line 1621) with `true`
 - This is the same pattern as Fix 26 (`updateMode`), Fix 27 (`updateYSEnabled`), and Fix 19 (`setVSynchMode`) - optional force parameters that default to false for normal operation
 
+### Fix 29: Include extended state properties in V9990 saveState object literal
+- **Error**: `Property 'dm' does not exist on type '{ s: number; if: number; sc: number; ... }'.` (TS2339) and similar for `sd`
+- **Location**: `src/main/msx/video/V9990.ts` lines 2016-2017
+- **Solution**: Moved the extended state properties (`dm` and `sd`) from conditional assignment after object creation into the initial object literal with conditional values (`dm: extended ? debugMode : undefined, sd: extended ? spriteDebugMode : undefined`)
+- **Result**: Fixed 2 TS2339 errors in V9990.ts
+- **Remaining errors**: 479
+- **Commit**: c3ce802b
+
+### Learnings
+- This is the same pattern as Fix 11, 12, 20, 23, and 24: TypeScript infers object type from the initial object literal and doesn't allow adding new properties afterward
+- The `saveState` function serializes V9990 video chip state for save/load functionality
+- The `extended` parameter controls whether to include additional debug state (debug mode and sprite debug mode)
+- When `extended` is not passed (undefined/falsy), the conditional expressions `extended ? value : undefined` evaluate to `undefined`
+- The `loadState` function checks `if (s.dm !== undefined)` and `if (s.sd !== undefined)` before using these values, so `undefined` is the appropriate fallback
+- Properties `dm` (debug mode) and `sd` (sprite debug mode) are only saved/loaded in extended save states for debugging purposes
+- The V9990 is Yamaha's advanced video chip used in the MSX TurboR GT, providing higher resolution and color depth than the standard MSX VDP
+
 ### Next error to fix
-`src/main/msx/video/V9990.ts(2016,15): error TS2339: Property 'dm' does not exist on type '{ s: number; if: number; sc: number; ... }'.`
+Check with `npx tsc --noEmit 2>&1 | head -50` for the next error.
