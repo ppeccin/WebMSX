@@ -2521,12 +2521,10 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             p: wmsx.Util.storeInt16BitArrayToStringBase64(paletteRegister),
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_SIZE),
             vrint: vramInterleaving,
-            cp: commandProcessor.saveState()
+            cp: commandProcessor.saveState(),
+            dm: extended ? debugMode : undefined,
+            sd: extended ? spriteDebugMode : undefined
         };
-        if (extended) {
-            s.dm = debugMode;
-            s.sd = spriteDebugMode;
-        }
         return s;
     };
 
