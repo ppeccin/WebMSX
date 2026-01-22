@@ -83,7 +83,7 @@ wmsx.FileLoader = function(room) {
         wmsx.Util.log("Reading file: " + file.name);
         var reader = new FileReader();
         reader.onload = function (event) {
-            var content = new Uint8Array(event.target.result);
+            var content = new Uint8Array(event.target.result as ArrayBuffer);
             var aFile = { name: file.name, content: content, lastModifiedDate: file.lastModified ? new Date(file.lastModified) : file.lastModifiedDate };     // lastModifiedDate deprecated?
             self.loadFromFile(aFile, openType, port, altPower, asExpansion);
             if (then) then(true);
