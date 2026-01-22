@@ -2010,12 +2010,10 @@ wmsx.V9990 = function() {
             vram: wmsx.Util.compressInt8BitArrayToStringBase64(vram, VRAM_SIZE),
             k1a: kanjiPort1Address,
             k2a: kanjiPort2Address,
-            cp: commandProcessor.saveState()
+            cp: commandProcessor.saveState(),
+            dm: extended ? debugMode : undefined,
+            sd: extended ? spriteDebugMode : undefined
         };
-        if (extended) {
-            s.dm = debugMode;
-            s.sd = spriteDebugMode;
-        }
         return s;
     };
 
