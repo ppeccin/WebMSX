@@ -258,7 +258,7 @@ wmsx.SCCIAudio = function() {
     var currentSample4 = 0;
     var amplitude4 = 0;
 
-    var channel5 = false;
+    var channel5 = 0;
     var channel5Samples = wmsx.Util.arrayFill(new Array(32), 0);
     var period5 = 0;
     var period5Count = 0;
