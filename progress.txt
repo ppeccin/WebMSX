@@ -574,5 +574,23 @@
 - The VDPCommandProcessor handles graphics commands for the VDP (Video Display Processor) in MSX computers
 - When variables are used in bitwise operations (`<<`, `|`, `&`), they should be declared as numbers, not booleans
 
+### Fix 36: Make VDPCommandProcessor start infinite parameter optional
+- **Error**: `Expected 5 arguments, but got 4.` (TS2554)
+- **Location**: `src/main/msx/video/VDPCommandProcessor.ts` lines 252, 300, 345, 481, 523, 580, 622, 641, 660 (9 occurrences)
+- **Solution**: Changed `function start(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite)` to `function start(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite = false)` to make the infinite parameter optional
+- **Result**: Fixed 9 TS2554 errors in VDPCommandProcessor.ts
+- **Remaining errors**: 438
+- **Commit**: ee063255
+
+### Learnings
+- This is the same pattern as Fix 31 (V9990CommandProcessor) but for the VDP (standard MSX video chip) command processor
+- The `start` function initiates VDP graphics command execution and estimates command duration
+- The `infinite` parameter controls whether a command has finite duration (most graphics commands) or runs indefinitely (CPU-driven commands)
+- When `infinite` is `false` (the default), duration is calculated based on pixels, cycles, and turbo multiplier
+- When `infinite` is `true`, `finishingCycle = -1` for commands that run until CPU completes all operations
+- Most VDP graphics commands (HMMV, HMMM, YMMM, LMMV, LMMM, LMMC, LMCM, LINE, SRCH) are finite operations (9 call sites)
+- Using `= false` as default is appropriate because finite commands are more common than infinite ones
+- The VDPCommandProcessor handles graphics commands for the TMS9918-derived VDP chip family (V9918, V9938, V9958)
+
 ### Next error to fix
 Check with `npx tsc --noEmit 2>&1 | head -50` for the next error.
