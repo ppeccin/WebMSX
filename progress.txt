@@ -130,7 +130,9 @@
 
 **Fix 68: Optional select parameter** (f56b09cf) - Made `select = false` default parameter in showBarMenu function in CanvasDisplay.ts. The function is called from multiple locations: some pass both `menu` and `select` (e.g., `showBarMenu(barMenuSystem, true)` line 266, `showBarMenu(newMenu, true)` line 2037), while others pass only `menu` (e.g., lines 1594, 1633). The `select` parameter controls whether to set `barMenuItemActive` to the default item via `barMenuItemSetActive(select ? barMenu.wmsxDefaultItem : null)`. When not provided, it should default to `false` (no auto-selection). Fixed 6 errors.
 
-**Remaining errors: 23** (excluding ZIP.ts and JSZip-related errors)
+**Fix 69: Optional touch parameter** (ab18a684) - Made `touch = false` default parameter in barMenuItemSetActive function in CanvasDisplay.ts. The function is called from multiple locations with varying arguments: some pass both `element` and `touch` (e.g., line 1617 with `true`, lines 1644/1648 with `e.type === "touchstart"` check), while most pass only `element` (lines 1652, 1664, 1702, 1889, 1988, 2047). The `touch` parameter controls haptic feedback via `controllersHub.hapticFeedback()` and touch activation timing for long-press Extensions activation. When not provided, it should default to `false` (no touch interaction). Fixed 6 errors.
+
+**Remaining errors: 17** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
