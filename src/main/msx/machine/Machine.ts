@@ -441,7 +441,7 @@ wmsx.Machine = function() {
         WMSX.userPreferences.save();
     }
 
-    function saveState(extended) {
+    function saveState(extended?) {
         var s = {
             cfg: wmsx.Configurator.saveState(),
             mn: self.machineName,
