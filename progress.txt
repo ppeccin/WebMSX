@@ -118,7 +118,9 @@
 
 **Fix 62: Optional forceBar parameter** (56004c4c) - Made `forceBar = false` default parameter in showCursorAndBar function in CanvasDisplay.ts. The function is called in many places without arguments to show cursor and bar with default behavior (bar shown unless mouse pointer is locked). When called with `true`, forces bar to show regardless of mouse lock state. Fixed 7 errors.
 
-**Remaining errors: 191**
+**Fix 63: Optional keepTextEntry parameter** (ed39cb4b) - Made `keepTextEntry = false` default parameter in closeAllOverlays function in CanvasDisplay.ts. The parameter controls whether to keep netPlayDialog and textEntryDialog open when closing other overlays. Most call sites (19 of 20) use the default behavior of closing all overlays including text entry. Only one call site passes true to preserve text entry dialogs when switching between UI states. Fixed 19 errors.
+
+**Remaining errors: 172**
 
 ---
 
