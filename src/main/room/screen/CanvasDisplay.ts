@@ -2166,7 +2166,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function auxReadjustAll(force?, byWindow?) {
         if (auxReadjustScreeSizeChanged(force || byWindow)) {
             if (auxIsMaxed() || byWindow) {
-                auxDisplayScale(auxAspectX, auxDisplayOptimalScaleY(auxReadjustScreenSize.w, auxReadjustScreenSize.h));
+                auxDisplayScale(auxAspectX, auxDisplayOptimalScaleY(auxReadjustScreenSize.w, auxReadjustScreenSize.h), false);
             } else {
                 auxDisplayScale(auxAspectX, auxScaleY, true);   // resize AuxWindow
             }
