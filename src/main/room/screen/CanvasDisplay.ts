@@ -1355,6 +1355,18 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         virtualKeyboard = new wmsx.DOMVirtualKeyboard(virtualKeyboardElement, controllersHub.getKeyboard(), machineTypeSocket);
     }
 
+    type BarMenuItem = {
+        label: string;
+        clickModif?: any;
+        control?: any;
+        divider?: boolean;
+        needsUIG?: boolean;
+        secSlot?: boolean;
+        disabled?: boolean;
+        toggle?: boolean;
+        radio?: boolean;
+    };
+
     function setupBar() {
         buttonsBar = document.getElementById("wmsx-bar");
         buttonsBarInner = document.getElementById("wmsx-bar-inner");
@@ -1367,7 +1379,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         if (isMobileDevice) document.documentElement.classList.add("wmsx-bar-mobile");
 
-        var menu = [
+        var menu: BarMenuItem[] = [
             { label: "Power",          clickModif: 0, control: wmsx.PeripheralControls.MACHINE_POWER_TOGGLE },
             { label: "Reset",          clickModif: KEY_SHIFT_MASK, control: wmsx.PeripheralControls.MACHINE_POWER_RESET },
             { label: "",               divider: true },
@@ -1531,7 +1543,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         wmsx.Util.addEventsListener(buttonsBar, "mouseup touchend", barElementTouchEndOrMouseUp);
     }
 
-    function addPeripheralControlButton(id, bx, by, media, tooltip, control, menu, menuTitle, parent) {
+    function addPeripheralControlButton(id, bx, by, media?, tooltip?, control?, menu?, menuTitle?, parent?) {
         var but = document.createElement('div');
         but.id = id;
         but.classList.add("wmsx-bar-button");
