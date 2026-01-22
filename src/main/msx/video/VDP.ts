@@ -767,7 +767,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         registerWrite(1, (register[1] & ~0x18) | (m & 0x18));
     }
 
-    function updateMode(forceRenderMetrics) {
+    function updateMode(forceRenderMetrics = false) {
         var oldData = modeData;
 
         // All Mx bits. Ignore YAE, YJK. Ignore M4, M5 if V9918
