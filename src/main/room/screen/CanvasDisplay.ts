@@ -1873,7 +1873,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     }
 
-    function showBarMenu(menu, select) {
+    function showBarMenu(menu, select = false) {
         if (!menu || barMenuActive === menu) return;
 
         if (!barMenu) {
