@@ -33,7 +33,7 @@ wmsx.EmbeddedFiles = {
         var content = base.content;
         for (var add in diff.diffs) {
             var bytes = diff.diffs[add];
-            for (var i = 0; i < bytes.length; ++i) content[(add | 0) + i] = bytes[i];
+            for (var i = 0; i < bytes.length; ++i) content[Number(add) + i] = bytes[i];
         }
         return { name: fileName, content: content };
     },
