@@ -392,7 +392,7 @@ wmsx.Machine = function() {
         }
     }
 
-    function setVideoStandard(pVideoStandard, forceUpdate, osdMode) {
+    function setVideoStandard(pVideoStandard, forceUpdate?, osdMode?) {
         if (osdMode !== false) self.showOSD((videoStandardIsAuto ? "AUTO: " : "FORCED: ") + pVideoStandard.desc, !!osdMode);
         if (!forceUpdate && videoStandard === pVideoStandard) return;
 
