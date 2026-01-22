@@ -2,6 +2,7 @@
 
 declare var wmsx: any;
 declare var WMSX: any;
+declare var WMSXFullScreenSetup: any;
 
 // Deprecated ApplicationCache API (removed from browsers but used for legacy support)
 interface ApplicationCache extends EventTarget {
