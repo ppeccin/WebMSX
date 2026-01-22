@@ -434,7 +434,7 @@ wmsx.V9990 = function() {
         paletteOffsetCursor = (register[28] & 0x0f) << 2;       // CSPO5-2
     }
 
-    function updateYSEnabled(force) {
+    function updateYSEnabled(force = false) {
         var enabled = superimposeActive && (register[8] & 0x20) !== 0;     // YSE
         var newMask = enabled ? 0xffff : 0x7fff;
         if (!force && ys16BitColorMask === newMask) return;
