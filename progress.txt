@@ -86,7 +86,9 @@
 
 **Fix 46: swappedMode for XOR operations** (8f695388) - Changed `swappedMode` from boolean to number (0/1) in GamepadJoysticksControls.ts. Wrapped assignment with `Number(mode === 0)` and boolean expressions `(port === 1)` and `(atPort === 1)` with `Number()` in XOR operations. Fixed 9 errors.
 
-**Remaining errors: 232**
+**Fix 47: Default parameters for applyControlActivated** (1b852031) - Made `altPower`, `secPort`, `data`, and `user` parameters optional with defaults in DOMPeripheralControls.ts. Typed `altPower`, `secPort`, and `user` as `boolean | number` to accept both boolean values and numeric flags (0/1) from network protocol binary encoding. Fixed 3 errors.
+
+**Remaining errors: 229**
 
 ---
 
@@ -139,6 +141,7 @@
 - When removing unused parameters is cleaner than adding arguments to all call sites
 - Default parameters preserve backward compatibility with existing call sites
 - Use `param = undefined` to explicitly document that parameter is optional and can be omitted at call sites
+- Use union types like `boolean | number` for parameters that accept both boolean and numeric flags (0/1), common in network protocols
 
 ### Type Corrections
 - Variables should be declared with types matching their usage throughout the code
