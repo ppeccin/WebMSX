@@ -58,7 +58,7 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
     };
 
     function updateMode() {
-        swappedMode = mode === 1 || mode === 3;
+        swappedMode = Number(mode === 1 || mode === 3);
         resetStates();
         updateConnectionsToHub();
         updateCodeMap();
@@ -194,7 +194,7 @@ wmsx.DOMJoykeysControls = function(room, hub, keyboard) {
     var screen;
 
     var mode = WMSX.JOYKEYS_MODE;
-    var swappedMode = false;
+    var swappedMode = 0;
 
     var keyCodeMap = {};
     var keyStateMap = {};
