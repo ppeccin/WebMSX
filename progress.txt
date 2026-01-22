@@ -112,7 +112,9 @@
 
 **Fix 59: IDBOpenDBRequest type assertions** (ad082c6a) - Added `as IDBOpenDBRequest` type assertions for `e.target` in onupgradeneeded and onsuccess event handlers in IndexedDBPersistence.ts. IndexedDB open request events have `IDBOpenDBRequest` as the target (which includes the `result` property), but TypeScript conservatively types `e.target` as `EventTarget`. Fixed 2 errors.
 
-**Remaining errors: 204**
+**Fix 60: WMSXFullScreenSetup global declaration** (21d18973) - Added `declare var WMSXFullScreenSetup: any` to globals.d.ts. This global object provides full-screen setup functionality including CSS application and detection of browser standalone mode for PWA/fullscreen features. Used in Room.ts and CanvasDisplay.ts to determine if the app should start in fullscreen mode. Fixed 2 errors.
+
+**Remaining errors: 202**
 
 ---
 
