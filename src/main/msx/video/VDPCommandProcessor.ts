@@ -838,7 +838,7 @@ wmsx.VDPCommandProcessor = function() {
     // Main VDP connections
     var vdp, vram, register, status;
 
-    var CE = false, TR = false;
+    var CE = 0, TR = 0;
     var SX, SY, DX, DY, NX, NY, ENY, DIX, DIY, CX, CY, LOP, destPos;
     var writeReady = false, writeHandler = null, readHandler = null;
     var finishingCycle = 0;     // -1: infinite duration, 0: instantaneous, > 0 finish at cycle
