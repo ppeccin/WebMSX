@@ -134,7 +134,7 @@ wmsx.DOMMouseControls = function(room, hub) {
 
         // Register events needed
         if ("onpointerlockchange" in document) document.addEventListener('pointerlockchange', pointerLockChangedEvent, false);
-        else if ("onmozpointerlockchange" in document) document.addEventListener('mozpointerlockchange', pointerLockChangedEvent, false);
+        if ("onmozpointerlockchange" in document) document.addEventListener('mozpointerlockchange', pointerLockChangedEvent, false);
         inputElement.addEventListener("mousemove", mouseMoveEvent);
         inputElement.addEventListener("mousedown", mouseButtonEvent);
         inputElement.addEventListener("mouseup",   mouseButtonEvent);
