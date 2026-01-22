@@ -33,7 +33,7 @@ wmsx.MultiFileReader = function (fileList, onAllSuccess, onFirstError, maxTotalS
         var reader = new FileReader();
         reader.onload = function (event) {
             file.wmsxSuccess = true;
-            file.content = new Uint8Array(event.target.result);
+            file.content = new Uint8Array(event.target.result as ArrayBuffer);
             // console.log("SUCCESS:", file.name);
             checkFinish();
         };
