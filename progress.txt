@@ -502,5 +502,23 @@
 - Using `= false` as default is appropriate because finite commands are far more common than infinite commands (11 calls vs 2 calls)
 - This preserves the original JavaScript behavior where `undefined` is falsy and evaluates to `false` in the conditional `if (infinite)`
 
+### Fix 32: Make VDP updateMode forceRenderMetrics parameter optional
+- **Error**: `Expected 1 arguments, but got 0.` (TS2554)
+- **Location**: `src/main/msx/video/VDP.ts` lines 345, 357, 443
+- **Solution**: Changed `function updateMode(forceRenderMetrics)` to `function updateMode(forceRenderMetrics = false)` to make the parameter optional
+- **Result**: Fixed 3 TS2554 errors in VDP.ts
+- **Remaining errors**: 459
+- **Commit**: ae053425
+
+### Learnings
+- This is the same pattern as Fix 26, 27, 28 in V9990.ts and Fix 19 in Machine.ts: optional force parameters that default to false for normal operation
+- The `updateMode` function updates the VDP video mode based on register settings (M1-M5 mode bits, YJK/YAE flags)
+- The `forceRenderMetrics` parameter is passed through to `updateRenderMetrics(force)` to control whether rendering metrics should be forcibly updated
+- Most calls to `updateMode()` occur when mode registers change naturally (lines 345, 357, 443) and don't need to force render metric updates
+- When `forceRenderMetrics` is `false` (the default), `updateRenderMetrics` may defer changes by setting `renderMetricsChangePending = true` if the change would occur mid-frame
+- Only calls from initialization or state loading pass `true` to force immediate updates (lines 297, 2562)
+- Using `= false` as default preserves the original JavaScript behavior where `undefined` is falsy and allows deferred updates for smoother rendering transitions
+- The VDP (Video Display Processor) is the TMS9918-derived video chip family used in MSX computers (V9918, V9938, V9958)
+
 ### Next error to fix
 Check with `npx tsc --noEmit 2>&1 | head -50` for the next error.
