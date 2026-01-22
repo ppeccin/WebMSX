@@ -91,7 +91,7 @@ wmsx.ColorCache = new function() {
     };
 
 
-    function hexValue(b, g, r, a) {
+    function hexValue(b, g, r, a = 1) {
         a = a !== 0 ? 0xff000000 : 0x00000000;
         switch(colorMode) {
             // Color
