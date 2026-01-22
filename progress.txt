@@ -1,0 +1,401 @@
+## TypeScript Conversion Progress
+
+### Fix 1: Declare wmsx global variable
+- **Error**: `Cannot find name 'wmsx'` (TS2304)
+- **Solution**: Created `src/main/globals.d.ts` with `declare var wmsx: any;`
+- **Result**: All wmsx errors fixed (was ~100+ occurrences)
+- **Remaining errors**: 1209 (mostly "Cannot find name 'WMSX'")
+- **Commit**: 8474dcb4
+
+### Learnings
+- The codebase uses a namespace pattern where `wmsx.ClassName = {...}` assigns modules to a global namespace object
+- Type declaration files (.d.ts) in src/main/ are picked up by tsconfig.json (which includes `src/main/**/*.ts`)
+- The `WMSX` global (uppercase) is separate and still needs to be declared
+
+### Fix 2: Declare WMSX global variable
+- **Error**: `Cannot find name 'WMSX'` (TS2304/TS2552)
+- **Solution**: Added `declare var WMSX: any;` to `src/main/globals.d.ts`
+- **Result**: All WMSX errors fixed (was 545 occurrences)
+- **Remaining errors**: 664
+- **Commit**: 6df40b75
+
+### Learnings
+- `WMSX` (uppercase) is the configuration namespace, separate from `wmsx` (lowercase) which is the class namespace
+- `WMSX` holds configuration parameters like `WMSX.params`, `WMSX.MACHINE`, `WMSX.MACHINES_CONFIG`, etc.
+- Both globals needed separate declarations
+
+### Fix 3: Add ES2015 lib for Number.parseFloat
+- **Error**: `Property 'parseFloat' does not exist on type 'NumberConstructor'` (TS2550)
+- **Solution**: Added `"ES2015"` to the `lib` array in `tsconfig.json`
+- **Result**: All Number.parseFloat errors fixed (10 occurrences) plus 9 other ES2015-related errors
+- **Remaining errors**: 645
+- **Commit**: e73e5e3c
+
+### Learnings
+- The `lib` compiler option controls what type definitions are available, separate from `target` which controls output format
+- `Number.parseFloat` was added in ES2015 (ES6)
+- Adding ES2015 to lib doesn't change runtime behavior - it just tells TypeScript these APIs exist
+- The runtime (browser) must still support these features, but ES2015 is widely supported
+
+### Fix 4: Add explicit Number() conversion for string arithmetic
+- **Error**: `The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.` (TS2362)
+- **Location**: `src/main/Configurator.ts` lines 223 and 239
+- **Solution**: Changed `strNum | 0` to `Number(strNum) | 0` to explicitly convert regex match results (strings) to numbers before bitwise operations
+- **Result**: Fixed 2 errors in Configurator.ts, reduced total from 645 to 634 (11 errors fixed, some may be cascading)
+- **Remaining errors**: 634
+- **Commit**: fc203ead
+
+### Learnings
+- `String.match()` returns an array of strings, even when matching digit patterns like `/[0-9]/g`
+- JavaScript allows implicit string-to-number coercion in bitwise operations (`"5" | 0` works), but TypeScript enforces explicit conversion
+- The idiom `n | 0` is used to convert values to 32-bit integers; `Number(x) | 0` preserves this behavior while satisfying TypeScript
+- Using `Number()` instead of `parseInt()` is simpler for single-digit characters from regex matches
+
+### Fix 5: Add type declaration for deprecated applicationCache API
+- **Error**: `Property 'applicationCache' does not exist on type 'Window & typeof globalThis'.` (TS2339)
+- **Location**: `src/main/Launcher.ts` lines 110, 113, 116, 117
+- **Solution**: Added an `ApplicationCache` interface and extended the `Window` interface in `src/main/globals.d.ts`
+- **Result**: Fixed 5 errors in Launcher.ts
+- **Remaining errors**: 629
+- **Commit**: 50d3ba0e
+
+### Learnings
+- The `applicationCache` API (AppCache) was a browser feature for offline web applications, deprecated and removed from modern browsers
+- TypeScript no longer includes this API in its standard lib definitions
+- When dealing with deprecated browser APIs that legacy code still uses, you can add custom type declarations
+- The interface should be optional (`applicationCache?`) since it may not exist in modern browsers
+- Properly typed interface includes: status property, status constants (UNCACHED, IDLE, CHECKING, DOWNLOADING, UPDATEREADY, OBSOLETE), and methods (swapCache, update)
+- Extending built-in interfaces like `Window` in `.d.ts` files merges the declarations
+
+### Fix 6: Use boolean false instead of number 0 for timer mask reset
+- **Error**: `Type 'number' is not assignable to type 'boolean'.` (TS2322)
+- **Location**: `src/main/msx/audio/OPL4AudioFM.ts` line 61
+- **Solution**: Changed `timer1Masked = timer2Masked = 0;` to `timer1Masked = timer2Masked = false;`
+- **Result**: Fixed 2 errors in OPL4AudioFM.ts (both on line 61)
+- **Remaining errors**: 627
+- **Commit**: ec5c7d8d
+
+### Learnings
+- Variables declared as boolean (`var timer1Masked = false`) should be reset with boolean values, not numbers
+- JavaScript treats `0` as falsy, so `!timer1Masked` would work the same with either `0` or `false`, but TypeScript enforces type consistency
+- The pattern `a = b = value` for multiple assignment works in TypeScript but all variables must accept the same type
+
+### Fix 7: Use number 0 instead of boolean false for channel5 initialization
+- **Error**: `Type 'number' is not assignable to type 'boolean'.` (TS2322)
+- **Location**: `src/main/msx/audio/SCCIAudio.ts` line 218
+- **Solution**: Changed `var channel5 = false;` to `var channel5 = 0;` on line 261
+- **Result**: Fixed 1 error in SCCIAudio.ts
+- **Remaining errors**: 626
+- **Commit**: 7b9c6e70
+
+### Learnings
+- In this codebase, channel enable flags (`channel1` through `channel5`) are used as 0/1 numbers, not booleans
+- The `setMixer` function assigns `1` or `0` to all channel variables: `channel5 = (mixer & 0x10) ? 1 : 0;`
+- Variable declarations should match the types assigned to them later
+- `channel5` was declared as `false` (boolean) but all other channels were declared as `0` (number), showing an inconsistency in the original code
+- Both `0` and `false` are falsy in JavaScript, so `if (channel5)` works the same either way, but TypeScript enforces type consistency
+
+### Fix 8: Convert function declarations to variable expressions for reassignment
+- **Error**: `Cannot assign to 'busRead_R800' because it is a function.` (TS2630)
+- **Location**: `src/main/msx/cpu/CPU.ts` lines 503-515
+- **Solution**: Converted 11 function declarations (`function name() {}`) to variable expressions (`var name = function() {};`) so they can be reassigned based on the `r800Timing` configuration value
+- **Functions converted**: `busRead_R800`, `busWrite_R800`, `fetchN_R800`, `fetchNN_R800`, `memRead_R800`, `memRead16_R800`, `memWrite_R800`, `memWrite16_R800`, `memWrite16Rev_R800`, `busInput_R800`, `busOutput_R800`
+- **Result**: Fixed 11 TS2630 errors (net reduction of 3 errors from 626 to 623, as some other errors may have cascaded)
+- **Remaining errors**: 623
+- **Commit**: 67e53818
+
+### Learnings
+- In TypeScript (and strict JavaScript), you cannot reassign a variable declared with `function` statement - it creates a function declaration which is read-only
+- To make functions reassignable, declare them as variables with function expressions: `var fn = function() {}` instead of `function fn() {}`
+- This pattern is used in the codebase to provide different implementations based on timing mode (R800 CPU timing vs standard Z80 timing)
+- Function expressions assigned to variables behave identically at runtime - they can be called the same way and have the same scope rules
+- The semicolons after function expressions are important (`;`) since they're now variable assignments, not function declarations
+
+### Fix 9: Wrap boolean expressions with Number() for arithmetic operations
+- **Error**: `The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.` (TS2362/TS2363)
+- **Location**: `src/main/msx/cpu/CPU.ts` (57 occurrences throughout the file)
+- **Solution**: Wrapped boolean comparison expressions with `Number()` when used in arithmetic operations (bitwise OR and left shift)
+- **Patterns fixed**:
+  - `((A === 0) << nZ)` → `(Number(A === 0) << nZ)` (and similar for res, B, val)
+  - `((B + C !== 0) << nPV)` → `(Number(B + C !== 0) << nPV)`
+  - `(((res & 0x0f) === 0) << nH)` → `(Number((res & 0x0f) === 0) << nH)` (and similar nested patterns)
+  - `| (A > 0x99);` → `| Number(A > 0x99);` (end-of-expression booleans)
+- **Result**: Fixed 57 TS2362 errors and 4 TS2363 errors in CPU.ts
+- **Remaining errors**: 558
+- **Commit**: 9492fe3d
+
+### Learnings
+- In Z80/R800 CPU emulation, flag registers are computed using bitwise operations where boolean conditions set specific bits
+- JavaScript implicitly converts `true` to `1` and `false` to `0` in arithmetic contexts, but TypeScript requires explicit conversion
+- `Number(boolExpr)` returns `1` for `true` and `0` for `false`, making it ideal for flag bit calculations
+- The pattern `(condition << bitPosition)` sets a specific bit in a flags register - this is a common idiom in CPU emulators
+- There are two contexts where booleans appear in arithmetic:
+  1. Left side of shift: `((res === 0) << nZ)` - boolean shifted to correct bit position
+  2. End of bitwise OR chain: `| (A > 0x99);` - boolean ORed directly into result
+- When using sed for bulk replacements, apply patterns from most specific (longest/nested) to least specific to avoid corrupting nested patterns
+
+### Fix 10: Use separate numeric index variable for undocumented instruction loops
+- **Error**: `Type 'number' is not assignable to type 'string'.` (TS2322), `Operator '<' cannot be applied to types 'string' and 'number'.` (TS2365), `An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.` (TS2356)
+- **Location**: `src/main/msx/cpu/CPU.ts` lines 3023, 3031, 3039
+- **Solution**: Changed `for (i = 0; i < ops.length; i++)` to `for (var idx = 0; idx < ops.length; idx++)` in three loops that iterate over undocumented instruction opcodes
+- **Result**: Fixed 9 TS errors (3 errors × 3 loops)
+- **Remaining errors**: 557
+- **Commit**: c1ab4a9a
+
+### Learnings
+- In JavaScript/TypeScript, `for...in` loops always iterate over property keys as strings, even for array indices
+- When `var` is used inside a `for...in` loop (e.g., `for (var i in obj)`), the variable `i` is declared with type `string` due to function scope
+- This `string` type persists throughout the entire function scope, affecting any subsequent uses of the same variable name
+- When you need both `for...in` (object/array key iteration) and numeric `for` loops in the same function scope, use different variable names to avoid type conflicts
+- The pattern `for (var idx = 0; idx < arr.length; idx++)` declares a numeric index that doesn't conflict with string keys from `for...in`
+
+### Fix 11: Initialize instruction object with object literal for proper type inference
+- **Error**: `Property 'prefix' does not exist on type '{}'.` (TS2339) and similar errors for all properties
+- **Location**: `src/main/msx/cpu/CPU.ts` lines 3140-3154 (20 errors total)
+- **Solution**: Refactored `defineInstruction()` to compute all values as local variables first, then create the object with all properties at once in an object literal
+- **Result**: Fixed 20 TS2339 errors in CPU.ts
+- **Remaining errors**: 537
+- **Commit**: ac8c6f85
+
+### Learnings
+- When initializing an object as `var obj = {}` and then assigning properties (`obj.prop = value`), TypeScript infers the type as `{}` (empty object type)
+- The empty object type `{}` has no properties, so any property access/assignment causes TS2339 errors
+- The fix is to initialize the object with all properties at once in an object literal: `var obj = { prop1: val1, prop2: val2 }`
+- TypeScript then infers the complete type from the object literal
+- When properties depend on each other (e.g., `totalCyclesZ80` depends on `remainCyclesZ80`), compute dependent values as local variables first
+- This pattern is common in CPU emulators where instruction objects are created with many related properties
+
+### Fix 12: Return complete object literal with A property in TAPIN function
+- **Error**: `Property 'A' does not exist on type '{ F: number; extraIterations: any; }'.` (TS2339)
+- **Location**: `src/main/msx/drivers/ImageCassetteDriver.ts` line 113
+- **Solution**: Instead of calling `success(F, extraIterations)` and then adding `res.A = val`, returned a complete object literal `{ F: F & 0xfe, extraIterations: READ_WRITE_BYTE_EXTRA_ITERATIONS, A: val }`
+- **Result**: Fixed 1 TS2339 error in ImageCassetteDriver.ts (total reduced from 537 to 528, 9 error reduction likely from cascading effects)
+- **Remaining errors**: 528
+- **Commit**: f3416dae
+
+### Learnings
+- This is the same pattern as Fix 11: TypeScript infers object type from the initial value and doesn't allow adding new properties afterward
+- When a function returns an object and you need to add more properties, either:
+  1. Inline the object creation with all properties at once (chosen here for simplicity)
+  2. Modify the helper function to accept additional properties
+  3. Use a type assertion (less preferred as it bypasses type checking)
+- The original code used `success()` helper to set `F` flag and `extraIterations`, then added `A` (accumulator register) value separately
+- For the TAPIN function (cassette tape input), `A` holds the byte read from the cassette, while `F` holds status flags
+
+### Fix 13: Remove unused parameters from INIHRD function
+- **Error**: `Expected 2 arguments, but got 0.` (TS2554)
+- **Location**: `src/main/msx/drivers/ImageDiskDriver.ts` line 32
+- **Solution**: Removed unused parameters `(F, HL)` from the `INIHRD` function definition on line 130, since the function body never uses them
+- **Result**: Fixed 1 TS2554 error
+- **Remaining errors**: 527
+- **Commit**: 1d0fd26b
+
+### Learnings
+- When a function is defined with parameters that are never used in the body, TypeScript still enforces argument count at call sites
+- This can happen when function signatures follow a pattern (like callback signatures) but specific implementations don't need all parameters
+- The `INIHRD` function is a disk BIOS initialization hook that performs no actual initialization in this emulator, so it doesn't need access to the CPU registers (F, HL)
+- Removing unused parameters is cleaner than adding unused arguments to all call sites
+
+### Fix 14: Make GETDPB fromChoice parameter optional with default value
+- **Error**: `Expected 6 arguments, but got 5.` (TS2554)
+- **Location**: `src/main/msx/drivers/ImageDiskDriver.ts` line 40
+- **Solution**: Changed `function GETDPB(F, A, B, C, HL, fromChoice)` to `function GETDPB(F, A, B, C, HL, fromChoice = false)` to make the parameter optional
+- **Result**: Fixed 1 TS2554 error
+- **Remaining errors**: 526
+- **Commit**: 53104974
+
+### Learnings
+- When a function is called with fewer arguments than parameters, TypeScript enforces argument count at call sites
+- Parameters can be made optional by providing a default value: `param = defaultValue`
+- This is preferable to removing the parameter when it's used at other call sites (line 208 passes `fromChoice = true`)
+- The `fromChoice` parameter was only used in commented-out debugging code, making it safe to default to `false`
+- Using default parameters preserves backward compatibility with existing call sites that pass all arguments
+
+### Fix 15: Wrap boolean with Number() for bitwise operation in setDRAMMode
+- **Error**: `The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.` (TS2362)
+- **Location**: `src/main/msx/machine/BUS.ts` line 92
+- **Solution**: Changed `dramWait = !dramMode | 0;` to `dramWait = Number(!dramMode) | 0;`
+- **Result**: Fixed 1 TS2362 error in BUS.ts
+- **Remaining errors**: 525
+- **Commit**: 724b4e38
+
+### Learnings
+- This is the same pattern as Fix 9 in CPU.ts - boolean expressions used in bitwise operations need explicit `Number()` conversion
+- The expression `!dramMode | 0` converts the negated boolean to an integer: `1` when `dramMode` is `false`, `0` when `dramMode` is `true`
+- The `| 0` idiom is used to ensure the result is a 32-bit integer, which is a common JavaScript pattern
+- `dramWait` controls timing waits for DRAM mode in the Turbo R S1990 MSX computer emulation
+
+### Fix 16: Make stopRecursion parameter optional with default value
+- **Error**: `Expected 4 arguments, but got 3.` (TS2554)
+- **Location**: `src/main/msx/machine/ExtensionsSocket.ts` lines 74, 75, 77, 78, 81
+- **Solution**: Changed `function updateExtensionOnConf(ext, val, op2, stopRecursion)` to `function updateExtensionOnConf(ext, val, op2, stopRecursion = false)` to make the parameter optional
+- **Result**: Fixed 5 TS2554 errors
+- **Remaining errors**: 520
+- **Commit**: 3b68bb94
+
+### Learnings
+- This is the same pattern as Fix 14: a function parameter that is sometimes omitted at call sites needs a default value
+- The `stopRecursion` parameter controls whether extension changes should propagate to related extensions (MUTUAL, BOUND, TOGGLE, CHANGE relationships)
+- When called from `toggleExtension` (user-initiated), propagation is desired (stopRecursion = false)
+- When called from `propageteUpdateExtensionOnConf` (internal recursion), propagation should stop to prevent infinite loops (stopRecursion = true)
+- Using `= false` as default preserves the original JavaScript behavior where `undefined` is falsy
+
+### Fix 17: Make setVideoStandardAuto osdMode parameter optional
+- **Error**: `Expected 1 arguments, but got 0.` (TS2554)
+- **Location**: `src/main/msx/machine/Machine.ts` lines 73, 209
+- **Solution**: Changed `function setVideoStandardAuto(osdMode)` to `function setVideoStandardAuto(osdMode?)` to make the parameter optional
+- **Result**: Fixed 2 TS2554 errors
+- **Remaining errors**: 518
+- **Commit**: a287ba5a
+
+### Learnings
+- The `?` suffix on a parameter makes it optional without providing a default value - the parameter will be `undefined` when not passed
+- This is different from `= undefined` which is explicit assignment, or `= false` which changes the value
+- The original code has nuanced behavior based on whether `osdMode` is `undefined`, `false`, or `true`:
+  - `undefined`: `osdMode !== false` is true, showOSD called with `!!undefined` → `false`
+  - `false`: `osdMode !== false` is false, showOSD not called at all
+  - `true`: `osdMode !== false` is true, showOSD called with `!!true` → `true`
+- Using `?` preserves this exact behavior by keeping `undefined` as the value when not provided
+- Using `= false` as default would change behavior (showOSD not called vs. called with false)
+
+### Fix 18: Change alternateSpeed from boolean to number | null
+- **Error**: `Type 'number' is not assignable to type 'boolean'.` (TS2322) and `This comparison appears to be unintentional because the types 'boolean' and 'number' have no overlap.` (TS2367)
+- **Location**: `src/main/msx/machine/Machine.ts` lines 88, 529, 663, 664, 667, 675, 676, 679
+- **Solution**: Changed `var alternateSpeed = false;` to `var alternateSpeed: number | null = null;`
+- **Result**: Fixed 8 errors in Machine.ts
+- **Remaining errors**: 510
+- **Commit**: 6efb6ec6
+
+### Learnings
+- When a variable is declared with a boolean but used as a number, TypeScript infers the wrong type
+- The `alternateSpeed` variable represents speed multipliers (`SPEED_FAST` = 10, `SPEED_SLOW` = 0.3) or "no alternate" (falsy)
+- The original code used `false` as a sentinel for "no alternate speed", but `null` works identically because both are falsy
+- In the expression `alternateSpeed || speedControl`, both `false || x` and `null || x` evaluate to `x`
+- Using explicit type annotation `number | null` clearly documents the variable's intent: it's either a speed multiplier or absent
+- This is better than using `any` because it preserves type safety for the numeric operations
+
+### Fix 19: Make setVSynchMode force parameter optional with default value
+- **Error**: `Expected 2 arguments, but got 1.` (TS2554)
+- **Location**: `src/main/msx/machine/Machine.ts` line 435
+- **Solution**: Changed `function setVSynchMode(mode, force)` to `function setVSynchMode(mode, force = false)` to make the parameter optional
+- **Result**: Fixed 1 TS2554 error
+- **Remaining errors**: 509
+- **Commit**: 512ef286
+
+### Learnings
+- This is the same pattern as Fix 14 and 16: a function parameter that is sometimes omitted at call sites needs a default value
+- The `setVSynchMode` function sets the vertical sync mode for display output
+- The `force` parameter controls whether to update even if the mode hasn't changed
+- When `force` is not passed, it defaults to `false`, which allows early return if `mode` matches current state (`if (vSynchMode === mode && !force) return`)
+- When `force = true` (passed at lines 260 and 486), the function always updates regardless of current state
+- Using `= false` as default preserves the original JavaScript behavior where `undefined` is falsy
+
+### Fix 20: Include extended state properties in initial object literal
+- **Error**: `Property 'vy' does not exist on type '{ cfg: any; mn: any; ... }'.` (TS2339) and similar for `pw`, `up`, `upf`
+- **Location**: `src/main/msx/machine/Machine.ts` lines 472-475
+- **Solution**: Moved the extended state properties (`vy`, `pw`, `up`, `upf`) from conditional assignment after object creation into the initial object literal with conditional values (`extended ? value : undefined`)
+- **Result**: Fixed 4 TS2339 errors in Machine.ts
+- **Remaining errors**: 505
+- **Commit**: 1900027f
+
+### Learnings
+- This is the same pattern as Fix 11 and 12: TypeScript infers object type from the initial object literal and doesn't allow adding new properties afterward
+- When properties need to be conditionally included, use conditional expressions in the object literal: `prop: condition ? value : undefined`
+- Using `undefined` as the conditional fallback preserves behavior since the `loadState` function already checks `if (s.prop !== undefined)` before using these values
+- This approach is cleaner than using a type assertion because it preserves type safety and makes the object structure explicit
+- The `saveState` function serializes the emulator state for save/load functionality, with `extended` mode including additional UI state like vSynch mode and pause state
+
+### Fix 21: Make setVideoStandard forceUpdate and osdMode parameters optional
+- **Error**: `Expected 3 arguments, but got 1.` (TS2554)
+- **Location**: `src/main/msx/machine/Machine.ts` line 493
+- **Solution**: Changed `function setVideoStandard(pVideoStandard, forceUpdate, osdMode)` to `function setVideoStandard(pVideoStandard, forceUpdate?, osdMode?)` to make the second and third parameters optional
+- **Result**: Fixed 1 TS2554 error
+- **Remaining errors**: 504
+- **Commit**: 2d746b87
+
+### Learnings
+- This is a similar pattern to Fix 17 (`setVideoStandardAuto`) - both functions have parameters that are sometimes omitted
+- The `setVideoStandard` function is called from `loadState` with only 1 argument when restoring machine state from a save
+- The `forceUpdate` parameter controls whether to update even if the video standard hasn't changed - when `undefined`, `!forceUpdate` is truthy so it may early return if standards match
+- The `osdMode` parameter has nuanced behavior: `undefined` shows OSD with false flag, `false` suppresses OSD, `true` shows OSD with true flag
+- Using `?` suffix preserves the original JavaScript behavior where missing arguments become `undefined`
+- This is the third function in Machine.ts made optional: `setVideoStandardAuto(osdMode?)`, `setVSynchMode(mode, force = false)`, and now `setVideoStandard(pVideoStandard, forceUpdate?, osdMode?)`
+
+### Fix 22: Make saveState extended parameter optional
+- **Error**: `Expected 1 arguments, but got 0.` (TS2554)
+- **Location**: `src/main/msx/machine/Machine.ts` lines 1224, 1257
+- **Solution**: Changed `function saveState(extended)` to `function saveState(extended?)` to make the parameter optional
+- **Result**: Fixed 2 TS2554 errors
+- **Remaining errors**: 502
+- **Commit**: ca09b64e
+
+### Learnings
+- This is the same pattern as Fix 17 and 21 - a function parameter that is sometimes omitted at call sites
+- The `saveState` function serializes machine state for save/load functionality
+- The `extended` parameter controls whether to include additional UI state (vSynch mode, power state, pause state)
+- When `extended` is not passed (undefined/falsy), the conditional expressions `extended ? value : undefined` evaluate to `undefined`
+- The function is called without arguments in `SaveStateSocket.saveState()` and `SaveStateSocket.saveStateFile()` for regular saves (non-extended)
+- The function is called with `extended` as a truthy value elsewhere for extended saves
+- Using `?` suffix preserves the exact behavior where `undefined` is falsy
+
+### Fix 23: Include version property in saveState object literal
+- **Error**: `Property 'v' does not exist on type '{...}'.` (TS2339)
+- **Location**: `src/main/msx/machine/Machine.ts` lines 1225, 1258
+- **Solution**: Added `v: WMSX.STATE_VERSION` to the initial object literal in the `saveState` function (line 445), and removed the redundant `state.v = VERSION;` assignments from lines 1225 and 1258
+- **Result**: Fixed 2 TS2339 errors in Machine.ts
+- **Remaining errors**: 500
+- **Commit**: 7cc76f60
+
+### Learnings
+- This is the same pattern as Fix 11, 12, and 20: TypeScript infers object type from the initial object literal and doesn't allow adding new properties afterward
+- The `saveState` function returns a serialized state object for save/load functionality
+- The `v` property holds the state version number (`WMSX.STATE_VERSION`) used to check compatibility when loading saved states
+- In the original code, `VERSION` was a local variable assigned from `WMSX.STATE_VERSION`, but we can use `WMSX.STATE_VERSION` directly in the object literal
+- By including `v` in the object literal, we ensure it's always part of the state object and TypeScript can infer the complete type
+- The version check is critical: when loading a state, the code checks `VERSIONS_ACCEPTED[state.v]` to ensure compatibility
+
+### Fix 24: Use spread operator for conditional properties in cloneInfo
+- **Error**: `Property 'n' does not exist on type '{}'.` (TS2339) and similar for properties `h`, `f`, `t`, `l`, `e`
+- **Location**: `src/main/msx/slots/SlotCreator.ts` lines 140-145 (6 errors total)
+- **Solution**: Refactored `cloneInfo()` function to use spread operator with conditional object spreading: `...(info.n ? { n: info.n } : {})` for each property
+- **Result**: Fixed 6 TS2339 errors in SlotCreator.ts
+- **Remaining errors**: 494
+- **Commit**: ab34d3d8
+
+### Learnings
+- This is the same pattern as Fixes 11, 12, 20, and 23: TypeScript infers `{}` (empty object type) when you create an object and then assign properties
+- The spread operator `...` can be used to conditionally include properties in object literals
+- The pattern `...(condition ? { prop: value } : {})` spreads either a single-property object or an empty object, effectively making the property conditional
+- This preserves the original behavior where properties are only included if they're truthy in the source object
+- The ROM info object properties are:
+  - `n`: string (ROM name from database or filename)
+  - `h`: string (SHA-1 hash of ROM content)
+  - `f`: string (slot format like "Mirrored", "ASCII8", "KonamiSCC", etc.)
+  - `t`: boolean (true flag, possibly for "tested" or format hint confidence)
+  - `l`: string (cartridge label)
+  - `e`: string (extension info, e.g., "SCCI" for SCC-I enhanced ROMs)
+- The `cloneInfo` function creates a shallow copy of ROM metadata, only including properties that are truthy (avoiding undefined/null/empty string properties)
+- Using the spread operator is more concise than multiple conditional statements and satisfies TypeScript's type system
+- This approach is cleaner than using type assertions (`as any`) because it preserves type safety
+
+### Fix 25: Make hexValue alpha parameter optional with default value
+- **Error**: `Expected 4 arguments, but got 3.` (TS2554)
+- **Location**: `src/main/msx/video/ColorCache.ts` lines 26, 36, 45, 54, 75, 87
+- **Solution**: Changed `function hexValue(b, g, r, a)` to `function hexValue(b, g, r, a = 1)` to make the alpha parameter optional
+- **Result**: Fixed 6 TS2554 errors in ColorCache.ts (total reduced from 500 to 488, 12 errors fixed due to cascading effects)
+- **Remaining errors**: 488
+- **Commit**: 7009db29
+
+### Learnings
+- The `hexValue` function converts RGB (and optional alpha) color components to 32-bit ABGR (Alpha-Blue-Green-Red) color values
+- The function's logic: `a = a !== 0 ? 0xff000000 : 0x00000000` treats any truthy value (including `undefined`) as fully opaque
+- When `a` is `undefined`: `undefined !== 0` is `true`, so `a = 0xff000000` (fully opaque)
+- When `a` is `0`: `0 !== 0` is `false`, so `a = 0x00000000` (fully transparent)
+- When `a` is any other value like `1`: `1 !== 0` is `true`, so `a = 0xff000000` (fully opaque)
+- By using `a = 1` as the default value, we preserve the original behavior where missing arguments result in fully opaque pixels
+- Most color conversions in the ColorCache use opaque colors (3 arguments), but 16-bit colors with transparency support use 4 arguments (line 64)
+- The ColorCache module generates lookup tables for converting various MSX video chip color formats (4-bit palette, 8-bit GRB, 9-bit GRB, 16-bit RGB, YUV, YJK) to 32-bit ABGR values for rendering
+- This is a common pattern in emulators: pre-computing color conversions in lookup tables for performance
+
+### Next error to fix
+`src/main/msx/video/V9990.ts(264,13): error TS2554: Expected 1 arguments, but got 0.`
