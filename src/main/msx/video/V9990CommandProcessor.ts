@@ -1174,7 +1174,7 @@ wmsx.V9990CommandProcessor = function() {
         return src === 0 ? dest : dest | mask;
     }
 
-    function start(timing, pixels, lines, infinite) {
+    function start(timing, pixels, lines, infinite = false) {
         CE = 1;
         v9990.setStatusCE(CE);
         writeHandler = null;
