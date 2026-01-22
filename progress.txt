@@ -128,7 +128,9 @@
 
 **Fix 67: Custom DOM properties** (536b89aa) - Extended `Element`, `HTMLElement`, `EventTarget`, and `File` interfaces in globals.d.ts with custom `wmsx*` properties used throughout the codebase. The codebase dynamically adds properties to DOM elements for UI state tracking (e.g., `wmsxBarElementType` for button type, `wmsxMenu` for menu data, `wmsxKey` for virtual keyboard mapping, `wmsxControl` for control binding). Extended both `Element` (for `document.elementFromPoint()` return type) and `HTMLElement` (for created elements) to cover all usage patterns. Added `wmsxSuccess` and `wmsxError` to `File` interface for tracking multi-file read operations. Extended `EventTarget` with `wmsxIgnoreEnterFS`, `wmsxNeedsUIG`, and `parentElement` properties used in event handlers. Fixed 82 errors (from 107 to 25 remaining, excluding ZIP.ts/JSZip errors).
 
-**Remaining errors: 25** (excluding ZIP.ts and JSZip-related errors)
+**Fix 68: Optional select parameter** (f56b09cf) - Made `select = false` default parameter in showBarMenu function in CanvasDisplay.ts. The function is called from multiple locations: some pass both `menu` and `select` (e.g., `showBarMenu(barMenuSystem, true)` line 266, `showBarMenu(newMenu, true)` line 2037), while others pass only `menu` (e.g., lines 1594, 1633). The `select` parameter controls whether to set `barMenuItemActive` to the default item via `barMenuItemSetActive(select ? barMenu.wmsxDefaultItem : null)`. When not provided, it should default to `false` (no auto-selection). Fixed 6 errors.
+
+**Remaining errors: 23** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
