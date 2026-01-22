@@ -142,7 +142,9 @@
 
 **Fix 74: Vendor-prefixed Web Audio API** (a72b5678) - Extended Window interface in globals.d.ts with `webkitAudioContext` and `WebkitAudioContext` properties (both typed as `typeof AudioContext`). These vendor-prefixed constructors were used by Safari/WebKit browsers before the Web Audio API was standardized. The codebase uses a fallback pattern: `window.AudioContext || window.webkitAudioContext || window.WebkitAudioContext` in WebAudioSpeaker.ts line 99 to support legacy browsers. Fixed 2 errors.
 
-**Remaining errors: 7** (excluding ZIP.ts and JSZip-related errors)
+**Fix 75: String to number conversion in for...in loop** (12320cf5) - Changed `(add | 0)` to `Number(add)` in EmbeddedFiles.ts line 36. The `add` variable comes from `for...in` loop iteration over `diff.diffs` object keys, making it a string type. TypeScript requires numeric operands for bitwise operations. The code applies binary diffs to embedded file content by iterating over address keys and modifying bytes at those addresses. Using `Number()` explicitly converts the string key to a number for array indexing. Fixed 1 error.
+
+**Remaining errors: 6** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
