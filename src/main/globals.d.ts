@@ -29,3 +29,8 @@ interface Document {
     readonly mozPointerLockElement?: Element | null;
     readonly webkitPointerLockElement?: Element | null;
 }
+
+// Custom Error property for WebMSX error handling
+interface Error {
+    wmsx?: boolean;
+}
