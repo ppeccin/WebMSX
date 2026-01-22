@@ -520,5 +520,22 @@
 - Using `= false` as default preserves the original JavaScript behavior where `undefined` is falsy and allows deferred updates for smoother rendering transitions
 - The VDP (Video Display Processor) is the TMS9918-derived video chip family used in MSX computers (V9918, V9938, V9958)
 
+### Fix 33: Add palette parameter to renderSpritesLineMode2Stretched
+- **Error**: `Expected 2 arguments, but got 3.` (TS2554)
+- **Location**: `src/main/msx/video/VDP.ts` lines 1332, 1372
+- **Solution**: Added `palette` as a third parameter to `renderSpritesLineMode2Stretched(line, bufferPos, palette)` and updated its helper functions `paintSpriteMode2Stretched` and `paintSpriteMode2StretchedCC` to accept and use the `palette` parameter instead of the global `colorPaletteReal`
+- **Result**: Fixed 2 TS2554 errors in VDP.ts
+- **Remaining errors**: 457
+- **Commit**: e19fbd77
+
+### Learnings
+- The function `renderSpritesLineMode2Stretched` (for stretched/doubled-width sprites in Graphics 6/Screen 7 mode) was missing the `palette` parameter that its sibling function `renderSpritesLineMode2` already had
+- Both functions follow the same pattern: they accept a `palette` parameter and pass it to their respective helper functions for sprite painting
+- The helper functions use the palette to look up color values: `palette[color]` instead of directly accessing the global `colorPaletteReal[color]`
+- This parameterization allows different palettes to be used for sprites (e.g., `colorPaletteReal` which is never dimmed for debug mode, vs `colorPalette` which can be dimmed)
+- Graphics 6 (Screen 7) is a 256x212 mode with 512 colors (9-bit GRB), where each pixel is doubled horizontally for display, hence the "Stretched" naming
+- The fix maintains consistency between `renderSpritesLineMode2` (normal width) and `renderSpritesLineMode2Stretched` (doubled width) functions
+- When multiple related functions share a similar pattern, it's important to keep their signatures consistent for maintainability
+
 ### Next error to fix
 Check with `npx tsc --noEmit 2>&1 | head -50` for the next error.
