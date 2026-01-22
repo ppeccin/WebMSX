@@ -84,7 +84,9 @@
 
 **Fix 45: Control flow narrowing for pointer lock events** (0eb75138) - Changed `else if` to separate `if` for `mozpointerlockchange` event registration in DOMMouseControls.ts. TypeScript's control flow analysis incorrectly narrowed `document` type to `never` in mutually exclusive `else if` branch. Fixed 1 error.
 
-**Remaining errors: 241**
+**Fix 46: swappedMode for XOR operations** (8f695388) - Changed `swappedMode` from boolean to number (0/1) in GamepadJoysticksControls.ts. Wrapped assignment with `Number(mode === 0)` and boolean expressions `(port === 1)` and `(atPort === 1)` with `Number()` in XOR operations. Fixed 9 errors.
+
+**Remaining errors: 232**
 
 ---
 
