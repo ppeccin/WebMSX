@@ -595,7 +595,7 @@ wmsx.Machine = function() {
     this.powerIsOn = false;
 
     var speedControl = 1;
-    var alternateSpeed = false;
+    var alternateSpeed: number | null = null;
     var defaultSpeed = WMSX.SPEED > 0 ? WMSX.SPEED / 100 : 1;
 
     var isLoading = false;
