@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "ES5",
     "module": "none",
-    "lib": ["ES5", "DOM", "DOM.Iterable", "ScriptHost"],
+    "lib": ["ES5", "ES2015", "DOM", "DOM.Iterable", "ScriptHost"],
     "outDir": "temp/compiled",
     "rootDir": "src",
     "strict": false,
