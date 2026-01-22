@@ -52,7 +52,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         this.focus();
         if (WMSXFullScreenSetup.shouldStartInFullScreen()) {
             setFullscreenState(true);
-            if (FULLSCREEN_MODE !== 2 & isMobileDevice) setEnterFullscreenByAPIOnFirstTouch();       // Not if mode = 2 (Windowed)
+            if (Number(FULLSCREEN_MODE !== 2) & Number(isMobileDevice)) setEnterFullscreenByAPIOnFirstTouch();       // Not if mode = 2 (Windowed)
         }
     };
 
@@ -98,7 +98,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
 
         // Dual Screen mode? Decide which canvas to paint
         var paintContext, paintCanvas;
-        if (videoOutputMode < 4 || ((videoOutputMode === 5) ^ internal)) {
+        if (videoOutputMode < 4 || (Number(videoOutputMode === 5) ^ Number(internal))) {
             paintContext = canvasContext || createCanvasContext();
             paintCanvas = canvas;
         } else {
