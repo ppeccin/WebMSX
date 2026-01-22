@@ -220,7 +220,7 @@ wmsx.Configurator = {
             if (value.constructor === Array) return;
             var nums = ("" + value).match(/[0-9]/g);
             if (!nums) return;
-            obj[prop] = nums.map(function(strNum) { return strNum | 0; });
+            obj[prop] = nums.map(function(strNum) { return Number(strNum) | 0; });
         }
     },
 
@@ -236,7 +236,7 @@ wmsx.Configurator = {
                 if (url !== null && url !== undefined) {
                     var nums = key.match(/[0-9P]/g);
                     if (nums) {
-                        var pos = nums.map(function(strNum) { return strNum === "P" ? -1 : strNum | 0; });
+                        var pos = nums.map(function(strNum) { return strNum === "P" ? -1 : Number(strNum) | 0; });
                         if (pos[0] >= 0) {
                             var formatParam = "SLOT" + nums[0] + (nums[1] || "") + "_FORMAT";
                             var format = url ? WMSX[formatParam] : null;
