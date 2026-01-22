@@ -78,7 +78,9 @@
 
 **Fix 42: Window onhelp property** (5566c11b) - Added `onhelp?: ((this: Window, ev: Event) => any) | null` to Window interface in globals.d.ts for IE F1 help key handler. Fixed 1 error.
 
-**Remaining errors: 248**
+**Fix 43: Optional forcePort parameter** (c1a23c33) - Made `forcePort?` optional in updateMode function in DOMMouseControls.ts. Fixed 2 errors.
+
+**Remaining errors: 246**
 
 ---
 
