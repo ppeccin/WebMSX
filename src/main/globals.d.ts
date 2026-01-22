@@ -150,3 +150,8 @@ interface EventTarget {
     wmsxNeedsUIG?: boolean;
     parentElement?: Element | null;
 }
+
+// Safari-specific Navigator properties for PWA/web app detection
+interface Navigator {
+    standalone?: boolean;
+}
