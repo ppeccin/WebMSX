@@ -771,7 +771,7 @@ wmsx.VDPCommandProcessor = function() {
         return a > b ? a : b;
     }
 
-    function start(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite) {
+    function start(pixels, cyclesPerPixel, lines, cyclesPerLine, infinite = false) {
         CE = 1;
         writeHandler = null;
         readHandler = null;
