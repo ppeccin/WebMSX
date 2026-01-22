@@ -111,12 +111,10 @@
     // Define built-in keyboards
 
     // English Machine, Host keyboard: en-US (default)
-    var en_US = {};
-    for (var key in base) en_US[key] = base[key];
+    var en_US = { ...base };
 
     // English Machine, Host keyboard: pt-BR
-    var en_BR = {};
-    for (key in base) en_BR[key] = base[key];
+    var en_BR = { ...base };
     en_BR.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_BR_QUOTE.wc | k.ALT, n: [ "Alt", "'" ] } ];
     en_BR.BACKSLASH =     [ k.VK_BR_BACKSLASH, k.VK_INT_YEN ];
     en_BR.OPEN_BRACKET =  k.VK_BR_OPEN_BRACKET;
@@ -131,8 +129,7 @@
     en_BR.DELETE =        [ k.VK_DELETE, { wc: k.VK_BR_SLASH.wc | k.ALT, n: [ "Alt", "/" ] } ];
 
     // English Machine, Host keyboard: ja-JP
-    var en_JP = {};
-    for (key in base) en_JP[key] = base[key];
+    var en_JP = { ...base };
     en_JP.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_JP_YEN.wc | k.ALT, n: [ "Alt", "¥" ] } ];
     en_JP.EQUAL =         k.VK_JP_CIRCUMFLEX;
     en_JP.BACKSLASH =     [ k.VK_JP_YEN, k.VK_INT_BACKSLASH ];
@@ -147,8 +144,7 @@
     en_JP.DELETE =        [ k.VK_DELETE, { wc: k.VK_JP_RO.wc | k.ALT, n: [ "Alt", "\\ ろ" ] } ];
 
     // English Machine, Host keyboard: es-ES
-    var en_ES = {};
-    for (key in base) en_ES[key] = base[key];
+    var en_ES = { ...base };
     en_ES.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_ES_ORDINAL.wc | k.ALT, n: [ "Alt", "º" ] } ];
     en_ES.MINUS =         k.VK_ES_MINUS;
     en_ES.EQUAL =         k.VK_ES_INV_EXCLA;
@@ -165,8 +161,7 @@
     en_ES.DELETE =        [ k.VK_DELETE, { wc: k.VK_ES_CEDILLA.wc | k.ALT, n: [ "Alt", "Ç" ] } ];
 
     // English Machine, Host keyboard: nl-NL
-    var en_NL = {};
-    for (key in base) en_NL[key] = base[key];
+    var en_NL = { ...base };
     en_NL.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_NL_ARROBA.wc | k.ALT, n: [ "Alt", "@" ] } ];
     en_NL.MINUS =         k.VK_NL_MINUS;
     en_NL.EQUAL =         k.VK_NL_ORDINAL;
@@ -183,8 +178,7 @@
     en_NL.DELETE =        [ k.VK_DELETE, { wc: k.VK_NL_LESSER.wc | k.ALT, n: [ "Alt", "<" ] } ];
 
     // English Machine, Host keyboard: it-IT
-    var en_IT = {};
-    for (key in base) en_IT[key] = base[key];
+    var en_IT = { ...base };
     en_IT.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_IT_BACKSLASH.wc | k.ALT, n: [ "Alt", "\\" ] } ];
     en_IT.MINUS =         k.VK_IT_MINUS;
     en_IT.EQUAL =         k.VK_IT_GRAVE_I;
@@ -201,8 +195,7 @@
     en_IT.DELETE =        [ k.VK_DELETE, { wc: k.VK_IT_GRAVE_U.wc | k.ALT, n: [ "Alt", "ù" ] } ];
 
     // English Machine, Host keyboard: fr-FR
-    var en_FR = {};
-    for (key in base) en_FR[key] = base[key];
+    var en_FR = { ...base };
     en_FR.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_FR_2u.wc | k.ALT, n: [ "Alt", "²" ] } ];
     en_FR.MINUS =         k.VK_FR_CLOSE_PARENS;
     en_FR.BACKSLASH =     [ k.VK_FR_LESSER, k.VK_INT_YEN ];
@@ -225,15 +218,13 @@
     en_FR.DELETE =        [ k.VK_DELETE, { wc: k.VK_FR_EXCLAMATION.wc | k.ALT, n: [ "Alt", "!" ] } ];
 
     // Japanese Machine, Host keyboard: en-US
-    var ja_US = {};
-    for (key in base) ja_US[key] = base[key];
+    var ja_US = { ...base };
     ja_US.OPEN_BRACKET =  k.VK_BACKQUOTE;
     ja_US.CLOSE_BRACKET = k.VK_OPEN_BRACKET;
     ja_US.BACKQUOTE =     k.VK_CLOSE_BRACKET;
 
     // Japanese Machine, Host keyboard: pt-BR
-    var ja_BR = {};
-    for (key in base) ja_BR[key] = base[key];
+    var ja_BR = { ...base };
     ja_BR.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_BR_QUOTE.wc | k.ALT, n: [ "Alt", "'" ] } ];
     ja_BR.BACKSLASH =     [ k.VK_BR_BACKSLASH, k.VK_INT_YEN ];
     ja_BR.OPEN_BRACKET =  [ k.VK_BR_QUOTE, k.VK_BR_ACUTE ];
@@ -248,8 +239,7 @@
     ja_BR.DELETE =        [ k.VK_DELETE, { wc: k.VK_BR_SLASH.wc | k.ALT, n: [ "Alt", "/" ] } ];
 
     // Japanese Machine, Host keyboard: ja-JP
-    var ja_JP = {};
-    for (key in base) ja_JP[key] = base[key];
+    var ja_JP = { ...base };
     ja_JP.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_JP_YEN.wc | k.ALT, n: [ "Alt", "¥" ] } ];
     ja_JP.EQUAL =         k.VK_JP_CIRCUMFLEX;
     ja_JP.BACKSLASH =     [ k.VK_JP_YEN, k.VK_INT_BACKSLASH ];
@@ -264,8 +254,7 @@
     ja_JP.DELETE =        [ k.VK_DELETE, { wc: k.VK_JP_RO.wc | k.ALT, n: [ "Alt", "\\ ろ" ] } ];
 
     // Japanese Machine, Host keyboard: es-ES
-    var ja_ES = {};
-    for (key in base) ja_ES[key] = base[key];
+    var ja_ES = { ...base };
     ja_ES.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_ES_ORDINAL.wc | k.ALT, n: [ "Alt", "º" ] } ];
     ja_ES.MINUS =         k.VK_ES_MINUS;
     ja_ES.EQUAL =         k.VK_ES_INV_EXCLA;
@@ -282,8 +271,7 @@
     ja_ES.DELETE =        [ k.VK_DELETE, { wc: k.VK_ES_CEDILLA.wc | k.ALT, n: [ "Alt", "Ç" ] } ];
 
     // Japanese Machine, Host keyboard: nl-NL
-    var ja_NL = {};
-    for (key in base) ja_NL[key] = base[key];
+    var ja_NL = { ...base };
     ja_NL.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_NL_ARROBA.wc | k.ALT, n: [ "Alt", "@" ] } ];
     ja_NL.MINUS =         k.VK_NL_MINUS;
     ja_NL.EQUAL =         k.VK_NL_ORDINAL;
@@ -299,9 +287,8 @@
     ja_NL.INSERT =        [ k.VK_INSERT, { wc: k.VK_NL_STAR.wc | k.ALT, n: [ "Alt", "*" ] } ];
     ja_NL.DELETE =        [ k.VK_DELETE, { wc: k.VK_NL_LESSER.wc | k.ALT, n: [ "Alt", "<" ] } ];
 
-    // Japanese Machine, Host keyboard: es-ES
-    var ja_IT = {};
-    for (key in base) ja_IT[key] = base[key];
+    // Japanese Machine, Host keyboard: it-IT
+    var ja_IT = { ...base };
     ja_IT.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_IT_BACKSLASH.wc | k.ALT, n: [ "Alt", "\\" ] } ];
     ja_IT.MINUS =         k.VK_IT_MINUS;
     ja_IT.EQUAL =         k.VK_IT_GRAVE_I;
@@ -318,8 +305,7 @@
     ja_IT.DELETE =        [ k.VK_DELETE, { wc: k.VK_IT_GRAVE_U.wc | k.ALT, n: [ "Alt", "ù" ] } ];
 
     // Japanese Machine, Host keyboard: fr-FR
-    var ja_FR = {};
-    for (key in base) ja_FR[key] = base[key];
+    var ja_FR = { ...base };
     ja_FR.ESCAPE =        [ k.VK_ESCAPE, { wc: k.VK_FR_2u.wc | k.ALT, n: [ "Alt", "²" ] } ];
     ja_FR.MINUS =         k.VK_FR_CLOSE_PARENS;
     ja_FR.EQUAL =         k.VK_FR_CIRCUMFLEX;
