@@ -401,7 +401,7 @@ wmsx.Machine = function() {
         videoClockUpdateSpeed();
     }
 
-    function setVideoStandardAuto(osdMode) {
+    function setVideoStandardAuto(osdMode?) {
         videoStandardIsAuto = true;
         var newStandard = wmsx.VideoStandard.NTSC;          // Default in case we can't discover it
         if (videoStandardSoft) {
