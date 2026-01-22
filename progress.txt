@@ -76,7 +76,9 @@
 
 **Fix 41: Optional data parameter** (ee3c3362) - Made `data = undefined` default parameter in processControlState in DOMMachineControls.ts. Fixed 1 error.
 
-**Remaining errors: 249**
+**Fix 42: Window onhelp property** (5566c11b) - Added `onhelp?: ((this: Window, ev: Event) => any) | null` to Window interface in globals.d.ts for IE F1 help key handler. Fixed 1 error.
+
+**Remaining errors: 248**
 
 ---
 
