@@ -132,7 +132,9 @@
 
 **Fix 69: Optional touch parameter** (ab18a684) - Made `touch = false` default parameter in barMenuItemSetActive function in CanvasDisplay.ts. The function is called from multiple locations with varying arguments: some pass both `element` and `touch` (e.g., line 1617 with `true`, lines 1644/1648 with `e.type === "touchstart"` check), while most pass only `element` (lines 1652, 1664, 1702, 1889, 1988, 2047). The `touch` parameter controls haptic feedback via `controllersHub.hapticFeedback()` and touch activation timing for long-press Extensions activation. When not provided, it should default to `false` (no touch interaction). Fixed 6 errors.
 
-**Remaining errors: 17** (excluding ZIP.ts and JSZip-related errors)
+**Fix 70: Bitwise OR assignment with boolean** (20fee284) - Changed `secSlot |= true` to `secSlot = true` in barMenuItemTouchEndOrMouseUp in CanvasDisplay.ts. TypeScript requires arithmetic/bitwise operations to have numeric operands, not booleans. The original code used `|=` (bitwise OR assignment) with a boolean value, which is invalid. Since the intent is simply to set `secSlot` to `true` when the touch activation time exceeds `TOUCH_EXT_SLOT2_TIME`, a simple assignment is both clearer and correct. The `secSlot` variable is used as a boolean flag passed to `processControlActivated`. Fixed 1 error.
+
+**Remaining errors: 16** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
