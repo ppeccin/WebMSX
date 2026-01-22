@@ -90,7 +90,9 @@
 
 **Fix 48: Custom Error properties** (a66ef7a2) - Extended Error interface in globals.d.ts with optional `wmsx` property. Used for custom error handling in DiskImages.ts to distinguish WebMSX-specific errors. Fixed 3 errors.
 
-**Remaining errors: 226**
+**Fix 49: rootDir object initialization** (70a87b88) - Added `availableEntries: [] as number[]` and `usedNames: new Set<string>()` to rootDir object literal in DiskImages.ts. Properties were previously set by helper functions after initialization, but TypeScript requires all properties in initial object literal for type inference. Fixed 1 error.
+
+**Remaining errors: 225**
 
 ---
 
