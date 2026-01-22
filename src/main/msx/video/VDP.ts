@@ -2080,7 +2080,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
         }
     }
 
-    function renderSpritesLineMode2Stretched(line, bufferPos) {
+    function renderSpritesLineMode2Stretched(line, bufferPos, palette) {
         if (!spritesEnabled || vram[spriteAttrTableAddress + 512] === 216) return;          // No sprites to show!
 
         var size = spritesSize << spritesMag;
@@ -2125,13 +2125,13 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             s = x <= 256 - size ? 0 : x - (256 - size);
             f = x >= 0 ? size : size + x;
             x += (size - f);
-            if (cc) paintSpriteMode2StretchedCC(x, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag);
-            else paintSpriteMode2Stretched(x, line, bufferPos + (x << 1), spritePri, pattern, color & 0xf, s, f, spritesMag, spriteDebugModeCollisions && ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
+            if (cc) paintSpriteMode2StretchedCC(x, bufferPos + (x << 1), spritePri, pattern, color & 0xf, palette, s, f, spritesMag);
+            else paintSpriteMode2Stretched(x, line, bufferPos + (x << 1), spritePri, pattern, color & 0xf, palette, s, f, spritesMag, spriteDebugModeCollisions && ((color & 0x20) === 0) && (drawn < 9));       // Consider IC
         }
         if (spritesInvalid < 0 && sprite > spritesMaxComputed) spritesMaxComputed = sprite;
     }
 
-    function paintSpriteMode2Stretched(x, y, bufferPos, spritePri, pattern, color, start, finish, magShift, collide) {
+    function paintSpriteMode2Stretched(x, y, bufferPos, spritePri, pattern, color, palette, start, finish, magShift, collide) {
         for (var i = finish - 1; i >= start; --i, ++x, bufferPos += 2) {
             var s = (pattern >>> (i >>> magShift)) & 0x01;
             if (s === 0) continue;
@@ -2141,11 +2141,11 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
             }
             spritesLinePriorities[x] = spritePri;                                           // Register new priority
             spritesLineColors[x] = color;                                                   // Register new color
-            frameBackBuffer[bufferPos] = frameBackBuffer[bufferPos + 1] = colorPaletteReal[color];
+            frameBackBuffer[bufferPos] = frameBackBuffer[bufferPos + 1] = palette[color];
         }
     }
 
-    function paintSpriteMode2StretchedCC(x, bufferPos, spritePri, pattern, color, start, finish, magShift) {
+    function paintSpriteMode2StretchedCC(x, bufferPos, spritePri, pattern, color, palette, start, finish, magShift) {
         var finalColor;
         for (var i = finish - 1; i >= start; --i, ++x, bufferPos += 2) {
             var s = (pattern >>> (i >>> magShift)) & 0x01;
@@ -2159,7 +2159,7 @@ wmsx.VDP = function(machine, cpu, vSyncConnection) {
                 finalColor = color;
             }
             spritesLineColors[x] = finalColor;                                              // Register new color
-            frameBackBuffer[bufferPos] = frameBackBuffer[bufferPos + 1] = colorPaletteReal[finalColor];
+            frameBackBuffer[bufferPos] = frameBackBuffer[bufferPos + 1] = palette[finalColor];
         }
     }
 
