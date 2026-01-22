@@ -70,7 +70,9 @@
 
 **Fix 38: Keyboard mapping initialization** (66c7f90c) - Replaced `for...in` loop with spread operator for copying base keyboard mappings in BuiltInKeyboards.ts. Fixed 176 errors.
 
-**Remaining errors: 261**
+**Fix 39: SettingsState object initialization** (d9777569) - Initialized settingsStateRet with all properties (mouseModeDesc, joysticksModeDesc, joykeysModeDesc, touchPortSet, touchActive, turboFireSpeedDesc) in ControllersHub.ts. Fixed 6 errors.
+
+**Remaining errors: 255**
 
 ---
 
