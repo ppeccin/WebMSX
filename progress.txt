@@ -136,7 +136,9 @@
 
 **Fix 71: Vendor-prefixed Fullscreen API** (3f70e1b1) - Extended `Document` interface in globals.d.ts with standard and vendor-prefixed (webkit, moz) Fullscreen API methods and properties: `exitFullscreen`, `webkitExitFullscreen`, `mozCancelFullScreen` for exiting fullscreen; `fullscreenElement`, `webkitFullscreenElement`, `mozFullScreenElement` for querying fullscreen element; `onfullscreenchange`, `onwebkitfullscreenchange`, `onmozfullscreenchange` for event handlers. Extended `Element` and `HTMLElement` interfaces with `requestFullscreen`, `webkitRequestFullscreen`, `webkitRequestFullScreen`, `mozRequestFullScreen` methods for entering fullscreen. Legacy browsers (Safari, Firefox) used vendor-prefixed implementations before the Fullscreen API was standardized. Fixed 4 errors.
 
-**Remaining errors: 12** (excluding ZIP.ts and JSZip-related errors)
+**Fix 72: Missing resizeWindow parameter** (ec88873d) - Added missing third parameter `resizeWindow: false` to `auxDisplayScale` call in `auxReadjustAll` function in CanvasDisplay.ts:2169. The function signature requires three parameters (aspectX, scaleY, resizeWindow). When the auxiliary window is maximized or being adjusted by window size changes, the window should not be resized programmatically, hence passing `false`. All other call sites properly provide three arguments. Fixed 1 error.
+
+**Remaining errors: 11** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
