@@ -1673,7 +1673,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
         }
     }
 
-    function barMenuItemSetActive(element, touch) {
+    function barMenuItemSetActive(element, touch = false) {
         if (element === barMenuItemActive) return;
         if (barMenuItemActive) barMenuItemActive.classList.remove("wmsx-hover");
         if (element && element.wmsxMenuOption) {
