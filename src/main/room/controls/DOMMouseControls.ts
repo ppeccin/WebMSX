@@ -74,7 +74,7 @@ wmsx.DOMMouseControls = function(room, hub) {
         }
     };
 
-    function updateMode(forcePort) {
+    function updateMode(forcePort?) {
         port = forcePort !== undefined ? forcePort : mode < 0 ? -1 : mode;
         if (netClientMode) resetClientModeLocalMouseState(mouseLocalState);
         else resetMouseState(mouseState);
