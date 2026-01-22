@@ -100,7 +100,9 @@
 
 **Fix 53: stopRecursion parameter** (759588e4) - Added missing `stopRecursion` parameter (false) to tryLoadFileAsSingleMedia call in FileLoader.ts line 232. Function expects 8 parameters to control recursive decompression of nested ZIP files when loading single media files. Fixed 1 error.
 
-**Remaining errors: 215**
+**Fix 54: Optional callback parameter** (a7c8ab4f) - Made `s = undefined` default parameter in two `resume` callback functions in FileLoader.ts. Callbacks are invoked both with and without arguments in file loading flow, but parameter is unused in function body. Fixed 1 error.
+
+**Remaining errors: 214**
 
 ---
 
