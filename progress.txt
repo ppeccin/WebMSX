@@ -96,7 +96,9 @@
 
 **Fix 51: Default parameters in FileDiskDrive** (5f3f58ca) - Made `appendMessage`, `sendNetOp`, `resetDelay`, and `oldDisk` parameters optional with `undefined` defaults in loadStack, replaceCurrentDisk, motorOff, and deserializeDisk functions. These parameters control optional behaviors like network synchronization messages and buffer reuse. Fixed 7 errors.
 
-**Remaining errors: 217**
+**Fix 52: FileReader result type assertion** (5122fb9e) - Added `as ArrayBuffer` type assertion to `event.target.result` in FileLoader.ts. FileReader.readAsArrayBuffer() guarantees result is ArrayBuffer, but TypeScript types it as `string | ArrayBuffer` union since different read methods return different types. Fixed 1 error.
+
+**Remaining errors: 216**
 
 ---
 
@@ -179,6 +181,12 @@
 ### sed and Bulk Replacements
 - Apply patterns from most specific (longest/nested) to least specific to avoid corrupting code
 - Nested patterns like `((res & 0x0f) === 0)` must be matched before simpler patterns
+
+### Type Assertions
+- Use `as Type` when you have more specific knowledge than TypeScript's inference
+- FileReader methods: `readAsArrayBuffer()` returns ArrayBuffer, `readAsText()` returns string
+- TypeScript types `event.target.result` conservatively as union of all possible return types
+- Type assertions clarify runtime guarantees without changing behavior
 
 ### MSX Architecture Context
 - VDP: TMS9918-derived video chip family (V9918, V9938, V9958) for standard MSX
