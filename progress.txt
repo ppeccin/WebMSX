@@ -413,5 +413,22 @@
 - Using `= false` as the default value preserves the original behavior where most mode updates don't force render metric recalculation
 - This is a common pattern: optional force/override parameters that default to false for normal operation but can be set to true for special cases
 
+### Fix 27: Make updateYSEnabled force parameter optional
+- **Error**: `Expected 1 arguments, but got 0.` (TS2554)
+- **Location**: `src/main/msx/video/V9990.ts` lines 324, 378, 492
+- **Solution**: Changed `function updateYSEnabled(force)` to `function updateYSEnabled(force = false)` to make the parameter optional
+- **Result**: Fixed 3 TS2554 errors in V9990.ts
+- **Remaining errors**: 482
+- **Commit**: 0ddbb44e
+
+### Learnings
+- The `updateYSEnabled` function controls the YS (Y/S or superimpose) enable flag for the V9990 video chip
+- The `force` parameter controls whether to update even if the enable state hasn't changed
+- When `force` is falsy (including the default `false`), the function can early-return if `ys16BitColorMask` hasn't changed: `if (!force && ys16BitColorMask === newMask) return;`
+- When `force` is `true` (line 2050), it forces update of palette values and 8-bit color cache even if the mask is the same
+- The YS feature controls superimpose mode where the V9990 output is overlaid on video from an external source
+- When YS is enabled, the 16-bit color mask changes to support transparency (color 0 becomes transparent): mask changes from `0x7fff` to `0xffff`
+- This is the same pattern as Fix 26 (`updateMode`) and Fix 19 (`setVSynchMode`) - optional force parameters that default to false for normal operation
+
 ### Next error to fix
-`src/main/msx/video/V9990.ts(324,13): error TS2554: Expected 1 arguments, but got 0.`
+`src/main/msx/video/V9990.ts(487,38): error TS2554: Expected 1 arguments, but got 0.`
