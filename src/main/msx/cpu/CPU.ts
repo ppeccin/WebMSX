@@ -433,70 +433,70 @@ wmsx.CPU = function() {
     }
 
 
-    function busRead_R800(addr) {
+    var busRead_R800 = function(addr) {
         W += bus.getAccessWait(addr);                           // Add slot waits
         return bus.read(addr);
-    }
-    function busWrite_R800(addr, val) {
+    };
+    var busWrite_R800 = function(addr, val) {
         W += bus.getAccessWait(addr);                           // Add slot waits
         bus.write(addr, val);
-    }
+    };
 
-    function fetchN_R800() {
+    var fetchN_R800 = function() {
         var addr = pcInc();
 
         W += bus.getBreakWait(addr, fetchLastAddress);          // Add page break
         fetchLastAddress = addr;
 
         return busRead_R800(addr);
-    }
-    function fetchNN_R800() {
+    };
+    var fetchNN_R800 = function() {
         return fetchN_R800() | (fetchN_R800() << 8);
-    }
+    };
 
-    function memRead_R800(addr) {
+    var memRead_R800 = function(addr) {
         // Forced break for first memory read already at instruction T cycles
         fetchForceNextBreak();
 
         return busRead_R800(addr);
-    }
-    function memRead16_R800(addr) {
+    };
+    var memRead16_R800 = function(addr) {
         // Forced break for first memory read already at instruction T cycles
         W += bus.getBreakWait(addr, addr + 1);              // Add second read page break
         fetchForceNextBreak();
 
         return busRead_R800(addr) | (busRead_R800((addr + 1) & 0xffff) << 8);
-    }
+    };
 
-    function memWrite_R800(addr, val) {
+    var memWrite_R800 = function(addr, val) {
         // Forced break for first memory write already at instruction T cycles
         fetchForceNextBreak();
 
         busWrite_R800(addr, val);
-    }
-    function memWrite16_R800(addr, val) {
+    };
+    var memWrite16_R800 = function(addr, val) {
         // Forced break for first memory write already at instruction T cycles
         W += bus.getBreakWait(addr, addr + 1);              // Add second write page break
         fetchForceNextBreak();
 
         busWrite_R800(addr, val & 255); busWrite_R800((addr + 1) & 0xffff, val >>> 8);
-    }
-    function memWrite16Rev_R800(addr, val) {
+    };
+    var memWrite16Rev_R800 = function(addr, val) {
         // Forced break for first memory write already at instruction T cycles
         W += bus.getBreakWait(addr, addr + 1);              // Add second write page break
         fetchForceNextBreak();
 
         busWrite_R800((addr + 1) & 0xffff, val >>> 8); busWrite_R800(addr, val & 255);
-    }
+    };
 
-    function busInput_R800(port) {
+    var busInput_R800 = function(port) {
         W += bus.getIOWait(port, clockMulti);
         return bus.input(port);
-    }
-    function busOutput_R800(port, val) {
+    };
+    var busOutput_R800 = function(port, val) {
         W += bus.getIOWait(port, clockMulti);
         bus.output(port, val);
-    }
+    };
 
 
     if (r800Timing !== 1) {
