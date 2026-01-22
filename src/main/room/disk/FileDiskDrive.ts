@@ -314,7 +314,7 @@ wmsx.FileDiskDrive = function(room) {
         driveDiskChanged[drive] = null;
     }
 
-    function loadStack(drive, stack, type, altPower, add, appendMessage) {
+    function loadStack(drive, stack, type, altPower, add, appendMessage = undefined) {
         if (room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 10, d: drive, s: serializeStack(stack), t: type, p: altPower, a: add });
 
         if (add) {
@@ -339,7 +339,7 @@ wmsx.FileDiskDrive = function(room) {
             || (diskDriveSocket.hasHardDiskInterface() && getCurrentDisk(2))) diskDriveSocket.autoPowerCycle(altPower);
     }
 
-    function replaceCurrentDisk(drive, disk, sendNetOp) {     // Affects only current disk from stack
+    function replaceCurrentDisk(drive, disk, sendNetOp = undefined) {     // Affects only current disk from stack
         if (sendNetOp && room.netPlayMode === 1) room.netController.addPeripheralOperationToSend({ op: 12, d: drive, k: serializeDisk(disk) });
 
         driveStack[drive][curDisk[drive]] = disk;
@@ -354,7 +354,7 @@ wmsx.FileDiskDrive = function(room) {
     }
 
     // Add a delay before turning the motor off (drive LED simulation)
-    function motorOff(drive, resetDelay) {
+    function motorOff(drive, resetDelay = undefined) {
         if (!driveMotor[drive]) return;
         if (driveMotorOffTimer[drive] && resetDelay) {
             clearTimeout(driveMotorOffTimer[drive]);
@@ -454,7 +454,7 @@ wmsx.FileDiskDrive = function(room) {
         }
     }
 
-    function deserializeDisk(disk, oldDisk) {
+    function deserializeDisk(disk, oldDisk = undefined) {
         // Try to reuse oldDisk content buffer
         return { name: disk.name, content: wmsx.Util.uncompressStringBase64ToInt8BitArray(disk.content, oldDisk && oldDisk.content, false, Uint8Array), modified: !!disk.modif };
     }
