@@ -98,7 +98,9 @@
 
 **Fix 52: FileReader result type assertion** (5122fb9e) - Added `as ArrayBuffer` type assertion to `event.target.result` in FileLoader.ts. FileReader.readAsArrayBuffer() guarantees result is ArrayBuffer, but TypeScript types it as `string | ArrayBuffer` union since different read methods return different types. Fixed 1 error.
 
-**Remaining errors: 216**
+**Fix 53: stopRecursion parameter** (759588e4) - Added missing `stopRecursion` parameter (false) to tryLoadFileAsSingleMedia call in FileLoader.ts line 232. Function expects 8 parameters to control recursive decompression of nested ZIP files when loading single media files. Fixed 1 error.
+
+**Remaining errors: 215**
 
 ---
 
