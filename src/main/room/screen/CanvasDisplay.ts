@@ -1655,7 +1655,7 @@ wmsx.CanvasDisplay = function(room, mainElement) {
     function barMenuItemTouchEndOrMouseUp(e) {
         if (logoMessageActive) return;
         var secSlot = e.shiftKey || e.button === 2;
-        if (barMenuItemTouchActivation && (wmsx.Util.performanceNow() - barMenuItemTouchActivation) > TOUCH_EXT_SLOT2_TIME) secSlot |= true;
+        if (barMenuItemTouchActivation && (wmsx.Util.performanceNow() - barMenuItemTouchActivation) > TOUCH_EXT_SLOT2_TIME) secSlot = true;
         if (barMenuItemActive) barMenuItemFireActive(secSlot, e.ctrlKey);
     }
 
