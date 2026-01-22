@@ -108,7 +108,9 @@
 
 **Fix 57: NetServer object initialization** (9e386bef) - Initialized `command` object with `sessionID` property and `client` object with `rtcConnection` and `dataChannel` properties in NetServer.ts. Properties were conditionally assigned after initialization, but TypeScript requires all properties in initial object literal for type inference. Used type annotations `as RTCPeerConnection | undefined` for RTC properties. Fixed 3 errors.
 
-**Remaining errors: 207**
+**Fix 58: Optional parameters in dropClient** (72809f70) - Made `wasError?` and `userMessage?` parameters optional in dropClient function in NetServer.ts. These parameters are only used when `showMessage` is true to display OSD messages and log errors. The `dropAllClients` function calls `dropClient` with only the `client` and `showMessage` (false) arguments, making the error reporting parameters unnecessary for that call path. Fixed 1 error.
+
+**Remaining errors: 206**
 
 ---
 
