@@ -129,8 +129,7 @@ wmsx.NetServer = function(room) {
         // Setup keep-alive
         if (keepAliveTimer === undefined) keepAliveTimer = setInterval(keepAlive, 30000);
         // Start a new Session
-        var command = { sessionControl: "createSession", sessionType: wmsx.NetServer.SESSION_TYPE_VERSION, wsOnly: wsOnly, queryVariables: [ "RTC_CONFIG", "RTC_DATA_CHANNEL_CONFIG" ] };
-        if (sessionIDToCreate) command.sessionID = sessionIDToCreate;
+        var command = { sessionControl: "createSession", sessionType: wmsx.NetServer.SESSION_TYPE_VERSION, wsOnly: wsOnly, queryVariables: [ "RTC_CONFIG", "RTC_DATA_CHANNEL_CONFIG" ], sessionID: sessionIDToCreate };
         ws.send(JSON.stringify(command));
     }
 
@@ -191,7 +190,7 @@ wmsx.NetServer = function(room) {
     }
 
     function onClientJoined(message) {
-        var client = { nick: message.clientNick, justJoined: true, wsOnly: wsOnly || !!message.wsOnly };
+        var client = { nick: message.clientNick, justJoined: true, wsOnly: wsOnly || !!message.wsOnly, rtcConnection: undefined as RTCPeerConnection | undefined, dataChannel: undefined as RTCDataChannel | undefined };
         clients[client.nick] = client;
 
         room.showOSD('NetPlay client "' + client.nick + '" joined', true);
