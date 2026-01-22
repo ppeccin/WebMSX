@@ -158,4 +158,6 @@ interface EventTarget {
 // Safari-specific Navigator properties for PWA/web app detection
 interface Navigator {
     standalone?: boolean;
+    userLanguage?: string;
+    msMaxTouchPoints?: number;
 }
