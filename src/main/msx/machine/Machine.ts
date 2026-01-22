@@ -421,7 +421,7 @@ wmsx.Machine = function() {
         setVideoStandard(forcedVideoStandard, false, true);     // force OSD
     }
 
-    function setVSynchMode(mode, force) {
+    function setVSynchMode(mode, force = false) {
         if (vSynchMode === mode && !force) return;
         vSynchMode = mode < 0 ? mode : mode % 2;
         vdp.setVSynchMode(vSynchMode);
