@@ -124,7 +124,9 @@ wmsx.DiskImages = function(room) {
                 content: image.slice(rootDirContentPosition, rootDirContentPosition + rootDirMaxEntries * bytesPerDirEntry),
                 nextFreeEntry: 0,
                 continuousContentPosition: rootDirContentPosition,   // does not reside in data clusters
-                clusterChain: [0]                                    // Dummy
+                clusterChain: [0],                                   // Dummy
+                availableEntries: [] as number[],
+                usedNames: new Set<string>()
             };
             setRootDirAvailableEntries(rootDir);
             setRootDirUsedNames(rootDir);
