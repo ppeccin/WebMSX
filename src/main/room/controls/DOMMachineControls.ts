@@ -34,7 +34,7 @@ wmsx.DOMMachineControls = function(room, peripheralControls) {
         return true;
     };
 
-    function processControlState(control, press, altFunc, data) {
+    function processControlState(control, press, altFunc, data = undefined) {
         // Check for NetPlay blocked controls
         if (room.netPlayMode === 2 && (netServerOnlyControls.has(control) || netClientBlockedControls.has(control)))
             return room.showOSD("Function not available in NetPlay Client mode", true, true);
