@@ -229,7 +229,7 @@ wmsx.FileLoader = function(room) {
         // Try as other Single media (first found)
         if (openType !== OPEN_TYPE.DISK)
             for (var i = 0; i < files.length; i++)
-                if (tryLoadFileAsSingleMedia(files[i], openType, port, altPower, asExpansion, format, filesFromZIP)) return true;
+                if (tryLoadFileAsSingleMedia(files[i], openType, port, altPower, asExpansion, format, filesFromZIP, false)) return true;
         return false;
     }
 
