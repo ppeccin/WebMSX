@@ -71,7 +71,7 @@ wmsx.FileDiskDrive = function(room) {
                 var file = files[i];
                 if (filesFromZip && file.content === undefined) file.content = file.asUint8Array();
                 // Hard Drive accepts any content only if not autoDrive and only one file being loaded
-                var disks = checkFileHasValidImages(file, drive === 2, !autoDrive && files.length === 1);
+                var disks = checkFileHasValidImages(file, drive === 2, !autoDrive && files.length === 1, false);
                 if (disks) stack.push.apply(stack, disks);
             }
             if (stack.length > 0) {
