@@ -89,7 +89,7 @@ wmsx.BUS = function(machine, cpu) {
 
     this.setDRAMMode = function(state) {
         dramMode = !!state;
-        dramWait = !dramMode | 0;
+        dramWait = Number(!dramMode) | 0;
     };
 
     this.setSlot3SecondaryConfig = function(conf) {
