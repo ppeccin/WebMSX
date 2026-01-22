@@ -148,7 +148,7 @@ wmsx.FileCassetteDeck = function(room) {
         return wmsx.Util.leafFilenameNoExtension(fileName) + ".cas";
     }
 
-    function seekHeader(dir, from) {
+    function seekHeader(dir, from = 0) {
         from = from || 0;
         // Verify: Removed the restriction for Headers to be at multiples of 8 bytes position. CAS files found for Konami Synthesizer does not honor this.
         //do {
