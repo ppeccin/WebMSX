@@ -37,12 +37,12 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
     };
 
     this.readLocalControllerPort = function(port) {
-        var joyState = ((port === 1) ^ swappedMode ? joy2State : joy1State);
+        var joyState = (Number(port === 1) ^ swappedMode ? joy2State : joy1State);
         return joyState.pin8Value ? 0x3f : turboFireClockCount > turboFireFlipClock ? joyState.portValue | 0x10 : joyState.portValue;
     };
 
      this.writeControllerPin8Port = function(atPort, val) {
-         ((atPort === 1) ^ swappedMode ? joy2State : joy1State).pin8Value = val;
+         (Number(atPort === 1) ^ swappedMode ? joy2State : joy1State).pin8Value = val;
      };
 
     this.toggleMode = function(dec) {
@@ -68,7 +68,7 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
             self.controllersClockPulse(true);
         }
 
-        swappedMode = mode === 0;
+        swappedMode = Number(mode === 0);
 
         resetStates();
         updateConnectionsToHub();
@@ -303,7 +303,7 @@ wmsx.GamepadJoysticksControls = function(room, hub, keyboard) {
     var screen;
 
     var mode = WMSX.JOYSTICKS_MODE - 1;      // parameter is -1..1
-    var swappedMode = false;
+    var swappedMode = 0;
 
     var turboFireClocks = 0, turboFireClockCount = 0, turboFireFlipClock = 0;
 
