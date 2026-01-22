@@ -146,7 +146,9 @@
 
 **Fix 76: Event handler manual invocation** (f4c6a340) - Replaced `req.onerror()` call with direct `loadError()` call in MultiDownloader.ts line 53. XMLHttpRequest event handlers (`onerror`, `ontimeout`) are typed to receive an Event parameter when invoked by the browser. Manually calling `req.onerror()` without arguments violates this signature. Instead of making the parameter optional (which would be incorrect for the event handler contract), directly call the underlying `loadError()` function with the same error message. This maintains identical behavior while respecting TypeScript's type system. Fixed 1 error.
 
-**Remaining errors: 5** (excluding ZIP.ts and JSZip-related errors)
+**Fix 77: FileReader result type assertion** (03125de0) - Added `as ArrayBuffer` type assertion to `event.target.result` in MultiFileReader.ts line 36. FileReader.readAsArrayBuffer() guarantees result is ArrayBuffer, but TypeScript types it as `string | ArrayBuffer` union since different read methods return different types. Same pattern as Fix 52 in FileLoader.ts. Fixed 1 error.
+
+**Remaining errors: 4** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
