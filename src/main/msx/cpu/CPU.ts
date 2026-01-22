@@ -3136,26 +3136,32 @@ wmsx.CPU = function() {
         // ------------------------------
 
         function defineInstruction(prefix1, prefix2, opcode, cyclesZ80, cyclesR800, operation, mnemonic, undocumented) {
-            var instr = {};
-            instr.prefix = prefix2 ? ((prefix1 << 8) | prefix2) : prefix1;
-            instr.opcode = opcode;
-            instr.remainCyclesZ80 =  cyclesZ80 + 1;                                                     // extra M1 wait for Z80
-            instr.remainCyclesR800 = cyclesR800;                                                        // NO extra M1 wait for R800
-            instr.totalCyclesZ80 =  instr.remainCyclesZ80 + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);      // only informative: each prefix adds 4T + 1 extra M1 state for the first prefix
-            instr.totalCyclesR800 = instr.remainCyclesR800 + (prefix1 ? 1 : 0) + (prefix2 ? 1 : 0);     // only informative: each prefix adds 1T
-
-            instr.remainCycles = w8 ? instr.remainCyclesR800 - 1 : instr.remainCyclesZ80 - 1;
-            instr.operation = operation;
-            instr.mnemonic = mnemonic;
-            instr.undocumented = undocumented;
-
-            instr.opcodeString =
-                (instr.prefix ? wmsx.Util.toHex2(instr.prefix) : "") + (instr.prefix === 0xddcb || instr.prefix === 0xfdcb ? " " : "") +
-                wmsx.Util.toHex2(instr.opcode) + " " +
+            var prefix = prefix2 ? ((prefix1 << 8) | prefix2) : prefix1;
+            var remainCyclesZ80 =  cyclesZ80 + 1;                                                     // extra M1 wait for Z80
+            var remainCyclesR800 = cyclesR800;                                                        // NO extra M1 wait for R800
+            var totalCyclesZ80 =  remainCyclesZ80 + (prefix1 ? 5 : 0) + (prefix2 ? 4 : 0);            // only informative: each prefix adds 4T + 1 extra M1 state for the first prefix
+            var totalCyclesR800 = remainCyclesR800 + (prefix1 ? 1 : 0) + (prefix2 ? 1 : 0);           // only informative: each prefix adds 1T
+            var remainCycles = w8 ? remainCyclesR800 - 1 : remainCyclesZ80 - 1;
+            var opcodeString =
+                (prefix ? wmsx.Util.toHex2(prefix) : "") + (prefix === 0xddcb || prefix === 0xfdcb ? " " : "") +
+                wmsx.Util.toHex2(opcode) + " " +
                 mnemonic + (undocumented ? "*" : "");
 
-            instr.toString = function() {
-                return this.opcodeString;
+            var instr = {
+                prefix: prefix,
+                opcode: opcode,
+                remainCyclesZ80: remainCyclesZ80,
+                remainCyclesR800: remainCyclesR800,
+                totalCyclesZ80: totalCyclesZ80,
+                totalCyclesR800: totalCyclesR800,
+                remainCycles: remainCycles,
+                operation: operation,
+                mnemonic: mnemonic,
+                undocumented: undocumented,
+                opcodeString: opcodeString,
+                toString: function() {
+                    return this.opcodeString;
+                }
             };
 
             registerInstruction(instr);
