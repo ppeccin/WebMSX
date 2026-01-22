@@ -164,7 +164,7 @@ wmsx.ExtensionsSocket = function(machine) {
         }
     };
 
-    function updateExtensionOnConf(ext, val, op2, stopRecursion) {
+    function updateExtensionOnConf(ext, val, op2, stopRecursion = false) {
         if (!config[ext]) return;
         op2 = op2 && !!config[ext].SLOT2;
         if (self.isActiveOnConf(ext, op2) === val) return;
