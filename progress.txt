@@ -88,7 +88,9 @@
 
 **Fix 47: Default parameters for applyControlActivated** (1b852031) - Made `altPower`, `secPort`, `data`, and `user` parameters optional with defaults in DOMPeripheralControls.ts. Typed `altPower`, `secPort`, and `user` as `boolean | number` to accept both boolean values and numeric flags (0/1) from network protocol binary encoding. Fixed 3 errors.
 
-**Remaining errors: 229**
+**Fix 48: Custom Error properties** (a66ef7a2) - Extended Error interface in globals.d.ts with optional `wmsx` property. Used for custom error handling in DiskImages.ts to distinguish WebMSX-specific errors. Fixed 3 errors.
+
+**Remaining errors: 226**
 
 ---
 
