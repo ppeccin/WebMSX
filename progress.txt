@@ -430,5 +430,22 @@
 - When YS is enabled, the 16-bit color mask changes to support transparency (color 0 becomes transparent): mask changes from `0x7fff` to `0xffff`
 - This is the same pattern as Fix 26 (`updateMode`) and Fix 19 (`setVSynchMode`) - optional force parameters that default to false for normal operation
 
+### Fix 28: Make updateRenderMetrics force parameter optional
+- **Error**: `Expected 1 arguments, but got 0.` (TS2554)
+- **Location**: `src/main/msx/video/V9990.ts` line 487
+- **Solution**: Changed `function updateRenderMetrics(force)` to `function updateRenderMetrics(force = false)` to make the parameter optional
+- **Result**: Fixed 1 TS2554 error in V9990.ts
+- **Remaining errors**: 481
+- **Commit**: 5b88cd8c
+
+### Learnings
+- The `updateRenderMetrics` function updates render metrics (width/height) for the V9990 video chip based on display mode and interlace settings
+- The `force` parameter controls whether to update render metrics immediately or defer the update
+- When `force` is falsy (including the default `false`), if width or height needs to change, it sets `renderMetricsUpdatePending = true` for later processing
+- When `force` is `true`, it updates the render metrics immediately (used at line 1621 when handling pending updates)
+- The call at line 487 occurs when the IL (interlace) register bit changes, where a deferred update is appropriate
+- The function is also called from `updateMode` (line 740) with a parameter, and from pending update handling (line 1621) with `true`
+- This is the same pattern as Fix 26 (`updateMode`), Fix 27 (`updateYSEnabled`), and Fix 19 (`setVSynchMode`) - optional force parameters that default to false for normal operation
+
 ### Next error to fix
-`src/main/msx/video/V9990.ts(487,38): error TS2554: Expected 1 arguments, but got 0.`
+`src/main/msx/video/V9990.ts(2016,15): error TS2339: Property 'dm' does not exist on type '{ s: number; if: number; sc: number; ... }'.`
