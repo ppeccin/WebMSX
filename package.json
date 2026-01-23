@@ -2,11 +2,19 @@
   "name": "WebMSX",
   "title": "WebMSX - The online MSX emulator",
   "version": "6.0.6",
+  "dependencies": {
+    "jszip": "^2.7.0"
+  },
   "devDependencies": {
     "grunt": "",
     "grunt-contrib-clean": "",
     "grunt-contrib-concat": "",
     "grunt-contrib-uglify": "2.3.0",
-    "grunt-contrib-copy": ""
+    "grunt-contrib-copy": "",
+    "grunt-shell": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "grunt"
   }
 }
