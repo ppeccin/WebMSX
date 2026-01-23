@@ -152,7 +152,9 @@
 
 **Fix 79: Window WMSX_IMAGES_PATH property** (0a91eb4b) - Extended Window interface in globals.d.ts with `WMSX_IMAGES_PATH?: string`. This custom property can be set externally to configure the WebMSX images directory path before initialization. Used in both WMSX.ts and WMSXCBios.ts with fallback pattern `window.WMSX_IMAGES_PATH || "images/"`. Fixed 2 errors.
 
-**Remaining errors: 0** (excluding ZIP.ts and JSZip-related errors)
+**Fix 80: JSZip 2.x type declarations** (c13f4111) - Added comprehensive type declarations for JSZip 2.x library in globals.d.ts. Defined interfaces: `JSZipFile` (with `name`, `dir`, `content`, `asUint8Array()`, `asArrayBuffer()`, `asText()`, `asBinary()` for zip file entries), `JSZipObject` (with overloaded `file()` method for single file lookup and regex-based search), `JSZipDeflateCompression` (with `compress()` and `uncompress()` methods), `JSZipCompressions` (containing `DEFLATE` property), and `JSZipConstructor` (with constructor signature and `compressions` static property). Used throughout Util.ts for ZIP file handling and DEFLATE compression in state serialization, and in FileLoader.ts and FileDiskDrive.ts for loading media from ZIP archives. Fixed 7 errors.
+
+**Remaining errors: 0**
 
 ---
 
@@ -255,6 +257,12 @@
 - FileReader methods: `readAsArrayBuffer()` returns ArrayBuffer, `readAsText()` returns string
 - TypeScript types `event.target.result` conservatively as union of all possible return types
 - Type assertions clarify runtime guarantees without changing behavior
+
+### External Library Type Declarations
+- For older libraries without bundled types or `@types/*` packages, add custom declarations in `.d.ts` files
+- Use interface + constructor pattern: `interface LibObject {...}` and `interface LibConstructor { new(...): LibObject; ... }`
+- Declare constructor as `declare var Lib: LibConstructor;` to enable `new Lib()` and static property access
+- Method overloading (e.g., `file(name: string): File | null; file(regex: RegExp): File[];`) provides precise return types
 
 ### MSX Architecture Context
 - VDP: TMS9918-derived video chip family (V9918, V9938, V9958) for standard MSX
