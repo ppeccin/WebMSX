@@ -24,6 +24,9 @@ interface Window {
     // Vendor-prefixed Web Audio API (legacy browser support)
     webkitAudioContext?: typeof AudioContext;
     WebkitAudioContext?: typeof AudioContext;
+
+    // Custom WebMSX configuration property for images path
+    WMSX_IMAGES_PATH?: string;
 }
 
 // Vendor-prefixed Pointer Lock API (legacy browser support)
