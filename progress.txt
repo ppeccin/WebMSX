@@ -150,7 +150,9 @@
 
 **Fix 78: Legacy Navigator properties** (63a8c6c0) - Extended Navigator interface in globals.d.ts with `userLanguage?: string` (IE-specific language property) and `msMaxTouchPoints?: number` (Microsoft-prefixed touch points). Used in Util.ts for backward-compatible language detection via `navigator.languages[0] || navigator.language || navigator.userLanguage` fallback chain and touch device detection via `navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0` check. Fixed 2 errors.
 
-**Remaining errors: 2** (excluding ZIP.ts and JSZip-related errors)
+**Fix 79: Window WMSX_IMAGES_PATH property** (0a91eb4b) - Extended Window interface in globals.d.ts with `WMSX_IMAGES_PATH?: string`. This custom property can be set externally to configure the WebMSX images directory path before initialization. Used in both WMSX.ts and WMSXCBios.ts with fallback pattern `window.WMSX_IMAGES_PATH || "images/"`. Fixed 2 errors.
+
+**Remaining errors: 0** (excluding ZIP.ts and JSZip-related errors)
 
 ---
 
