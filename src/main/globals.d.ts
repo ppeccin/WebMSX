@@ -4,6 +4,39 @@ declare var wmsx: any;
 declare var WMSX: any;
 declare var WMSXFullScreenSetup: any;
 
+// JSZip 2.x library type declarations
+// Used for ZIP file handling and DEFLATE compression/decompression
+interface JSZipFile {
+    name: string;
+    dir: boolean;
+    content?: Uint8Array;
+    asUint8Array(): Uint8Array;
+    asArrayBuffer(): ArrayBuffer;
+    asText(): string;
+    asBinary(): string;
+}
+
+interface JSZipObject {
+    file(name: string): JSZipFile | null;
+    file(regex: RegExp): JSZipFile[];
+}
+
+interface JSZipDeflateCompression {
+    compress(data: Uint8Array | string): Uint8Array;
+    uncompress(data: Uint8Array | string): Uint8Array;
+}
+
+interface JSZipCompressions {
+    DEFLATE: JSZipDeflateCompression;
+}
+
+interface JSZipConstructor {
+    new (data?: ArrayBuffer | Uint8Array | string): JSZipObject;
+    compressions: JSZipCompressions;
+}
+
+declare var JSZip: JSZipConstructor;
+
 // Deprecated ApplicationCache API (removed from browsers but used for legacy support)
 interface ApplicationCache extends EventTarget {
     readonly status: number;
