@@ -7,7 +7,7 @@ module.exports = function (grunt) {
         "temp/compiled/main/room/screen/FullScreenSetup.js",
         "temp/compiled/main/util/Util.js",
         "temp/compiled/main/util/SHA1.js",
-        "temp/compiled/main/util/ZIP.js",
+        "node_modules/jszip/dist/jszip.js",
         "temp/compiled/main/util/EmbeddedFiles.js",
         "temp/compiled/main/util/MultiDownloader.js",
         "temp/compiled/main/util/MultiFileReader.js",
