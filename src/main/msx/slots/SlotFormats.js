@@ -501,6 +501,50 @@ wmsx.SlotFormats = {
         }
     },
 
+    "Neo8": {
+        name: "Neo8",
+        desc: "Neo8 Mapper Cartridge",
+        priority: 915,
+        priorityForRom: function (rom) {
+            // Any >= 8K content, multiple of 8K, starting with the Cartridge identifier "AB", boosted if has Mapper ID
+            if (rom.content.length >= 8192 && (rom.content.length & 0x1fff) === 0
+                && rom.content[0] === 65 && rom.content[1] === 66) {
+                return String.fromCharCode.apply(null, rom.content.slice(16, 24)) === "ROM_NEO8"
+                    ? this.priority - wmsx.SlotCreator.FORMAT_PRIORITY_BOOST
+                    : this.priority;
+            }
+            return null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeNeo8(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeNeo8.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
+    "Neo16": {
+        name: "Neo16",
+        desc: "Neo16 Mapper Cartridge",
+        priority: 916,
+        priorityForRom: function (rom) {
+            // Any >= 16K content, multiple of 16K, starting with the Cartridge identifier "AB", boosted if has Mapper ID
+            if (rom.content.length >= 16384 && (rom.content.length & 0x3fff) === 0
+                && rom.content[0] === 65 && rom.content[1] === 66) {
+                return String.fromCharCode.apply(null, rom.content.slice(16, 24)) === "ROM_NE16"
+                    ? this.priority - wmsx.SlotCreator.FORMAT_PRIORITY_BOOST
+                    : this.priority;
+            }
+            return null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeNeo16(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeNeo16.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "KonamiSCCI": {
         name: "KonamiSCCI",
         desc: "Konami SCC+ Sound Mapper Cartridge (in SCC-I mode)",
@@ -991,6 +1035,8 @@ wmsx.SlotFormatsUserOptions = [
     "ASCII16",
     "Konami",
     "KonamiSCC",
+    "Neo8",
+    "Neo16",
     "KonamiSCCI",
     "ASCII8SRAM2",
     "ASCII8SRAM8",
