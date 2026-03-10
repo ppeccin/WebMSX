@@ -545,6 +545,28 @@ wmsx.SlotFormats = {
         }
     },
 
+    "ASCII16X": {
+        name: "ASCII16X",
+        desc: "ASCII16-X Lite Mapper Cartridge (no Flash)",
+        priority: 917,
+        priorityForRom: function (rom) {
+            // Any >= 16K content, multiple of 16K, starting with the Cartridge identifier "AB", boosted if has Mapper ID
+            if (rom.content.length >= 16384 && (rom.content.length & 0x3fff) === 0
+                && rom.content[0] === 65 && rom.content[1] === 66) {
+                return String.fromCharCode.apply(null, rom.content.slice(16, 24)) === "ASCII16X"
+                    ? this.priority - wmsx.SlotCreator.FORMAT_PRIORITY_BOOST
+                    : this.priority;
+            }
+            return null;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeASCII16X(rom, this);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeASCII16X.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "KonamiSCCI": {
         name: "KonamiSCCI",
         desc: "Konami SCC+ Sound Mapper Cartridge (in SCC-I mode)",

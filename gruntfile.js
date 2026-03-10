@@ -59,6 +59,7 @@ module.exports = function (grunt) {
         "src/main/msx/slots/cartridges/CartridgeASCII16K.js",
         "src/main/msx/slots/cartridges/CartridgeNeo8.js",
         "src/main/msx/slots/cartridges/CartridgeNeo16.js",
+        "src/main/msx/slots/cartridges/CartridgeASCII16X.js",
         "src/main/msx/slots/cartridges/CartridgeKonami.js",
         "src/main/msx/slots/cartridges/CartridgeRType.js",
         "src/main/msx/slots/cartridges/CartridgeCrossBlaim.js",
