@@ -18,6 +18,7 @@ wmsx.Y8950Audio = function(pName) {
         kslValues = tabs.getKSLValues();
         rateAttackDurTable = tabs.getRateAttackDurations();
         rateDecayDurTable = tabs.getRateDecayDurations();
+        if (VOLPAN) wmsx.AudioTables.setupVolPan(1, VOL, PAN, volPanL, volPanR);
     }
 
     this.connect = function(machine) {
@@ -255,7 +256,11 @@ wmsx.Y8950Audio = function(pName) {
         }
 
         if (dacEnabled) sample += dacOutput;
-        return sample;
+        if (!VOLPAN) return sample;
+
+        sampleResult[0] = sample * volPanL[0];
+        sampleResult[1] = sample * volPanR[0];
+        return sampleResult;
     };
 
     function readRegister(reg) {
@@ -798,7 +803,7 @@ wmsx.Y8950Audio = function(pName) {
 
     function connectAudio() {
         if (audioSocket) {
-            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, VOLUME, SAMPLE_RATE);
+            if (!audioSignal) audioSignal = new wmsx.AudioSignal(name, self, VOLUME, SAMPLE_RATE, VOLPAN);
             audioSocket.connectAudioSignal(audioSignal);
             audioConnected = true;
         }
@@ -855,6 +860,8 @@ wmsx.Y8950Audio = function(pName) {
     var ksrOffset = new Array(18);
     var fbLastMod1 = new Array(9), fbLastMod2 = new Array(9);
     var phaseInc = new Array(18), phaseCounter = new Array(18);
+    var volPanL = new Array(1);
+    var volPanR = new Array(1);
 
     var adpcmDelta = 0, adpcmVolume = 0xff, adpcmMemPtr = 0, adpcmNowStep = 0;
     var adpcmOut = 0, adpcmOutput = 0, adpcmDiff = 0, adpcmNextLeveling = 0, adpcmSampleStep = 0, adpcmData = 0;
@@ -891,8 +898,12 @@ wmsx.Y8950Audio = function(pName) {
     var ADPCM_STEP_BITS = 16, ADPCM_STEP_MASK = (1 << ADPCM_STEP_BITS) - 1;
 
     var sineTable, expTable, multiFactors, kslValues, rateAttackDurTable, rateDecayDurTable;
+    var sampleResult = [ 0, 0 ];
     var VOLUME = 0.66 * (1.58 / 9 / 256);
     var SAMPLE_RATE = 49780;
+    var VOL = (WMSX.MSXAUDIO_VOL || "f").toUpperCase();
+    var PAN = (WMSX.MSXAUDIO_PAN || "8").toUpperCase();
+    var VOLPAN = (VOL !== "F" || PAN !== "8");
 
 
     // Savestate  -------------------------------------------
