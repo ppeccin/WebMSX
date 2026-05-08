@@ -72,6 +72,7 @@ wmsx.Y8950Audio = function(pName) {
     this.reset = function() {
         wmsx.Util.arrayFill(register, 0);
         register[0x04] = 0x18;
+        register[0x12] = 0xff;
         register[0x19] = 0x0f;      // Matches openMSX reset behavior
         registerAddress = 0;
         status = STATUS_BUF_RDY;
@@ -89,6 +90,7 @@ wmsx.Y8950Audio = function(pName) {
         dacEnabled = false;
         midiStatus = 0;
         midiBusyReads = 0;
+        adpcmDataReg = 0;
         chipEnabled = true;
         resetFM();
         resetADPCMPlayback();
@@ -320,12 +322,12 @@ wmsx.Y8950Audio = function(pName) {
                 break;
             case 0x0f:
             case 0x1a:
-                writeSampleData(val);
+                writeADPCMData(val);
                 break;
             case 0x10:
             case 0x11:
             case 0x12:
-                setupADPCMPlayback();
+                updateADPCMParams();
                 break;
             case 0x15:
                 updateDAC13();
@@ -377,9 +379,20 @@ wmsx.Y8950Audio = function(pName) {
     }
 
     function readSampleData() {
+        if ((register[0x07] & 0xe0) !== 0x20) return 0;
         var val = sampleRam[sampleAddress];
         advanceSampleAddress();
         return val;
+    }
+
+    function writeADPCMData(val) {
+        if ((register[0x07] & 0xe0) === 0x60)
+            writeSampleData(val);
+        else if ((register[0x07] & 0xe0) === 0x80) {
+            adpcmDataReg = val;
+            resetStatus(STATUS_BUF_RDY);
+            updateIRQ();
+        }
     }
 
     function advanceSampleAddress() {
@@ -390,14 +403,13 @@ wmsx.Y8950Audio = function(pName) {
     }
 
     function setupADPCMPlayback() {
-        adpcmDelta = register[0x10] | (register[0x11] << 8);
-        adpcmVolume = register[0x12] || 0xff;
+        updateADPCMParams();
         if (register[0x07] & 0x01) {
             register[0x07] = 0;
             resetADPCMPlayback();
         } else if (register[0x07] & 0x80) {
             setStatus(STATUS_PCM_BSY);
-            adpcmMemPtr = sampleStart << 1;
+            adpcmMemPtr = (register[0x07] & 0x20) ? sampleStart << 1 : 0;
             adpcmNowStep = (1 << ADPCM_STEP_BITS) - adpcmDelta;
             adpcmOut = adpcmOutput = adpcmNextLeveling = adpcmSampleStep = 0;
             adpcmDiff = ADPCM_DIFF_DEFAULT;
@@ -408,14 +420,19 @@ wmsx.Y8950Audio = function(pName) {
         updateIRQ();
     }
 
-    function resetADPCMPlayback() {
+    function updateADPCMParams() {
         adpcmDelta = register[0x10] | (register[0x11] << 8);
-        adpcmVolume = register[0x12] || 0xff;
+        adpcmVolume = register[0x12];
+    }
+
+    function resetADPCMPlayback() {
+        updateADPCMParams();
         adpcmMemPtr = 0;
         adpcmNowStep = 0;
         adpcmOut = adpcmOutput = adpcmNextLeveling = adpcmSampleStep = 0;
         adpcmDiff = ADPCM_DIFF_DEFAULT;
         adpcmData = 0;
+        adpcmDataReg = 0;
     }
 
     function calcADPCMSample() {
@@ -427,7 +444,13 @@ wmsx.Y8950Audio = function(pName) {
 
             var val;
             if (!(adpcmMemPtr & 1)) {
-                adpcmData = sampleRam[(adpcmMemPtr >> 1) & SAMPLE_RAM_MASK];
+                if (register[0x07] & 0x20)
+                    adpcmData = sampleRam[(adpcmMemPtr >> 1) & SAMPLE_RAM_MASK];
+                else {
+                    adpcmData = adpcmDataReg;
+                    setStatus(STATUS_BUF_RDY);
+                    updateIRQ();
+                }
                 val = adpcmData >> 4;
             } else
                 val = adpcmData & 0x0f;
@@ -443,7 +466,7 @@ wmsx.Y8950Audio = function(pName) {
             adpcmOutput = prevLeveling * adpcmVolume + deltaLeveling * ((adpcmVolume * adpcmNowStep) >> ADPCM_STEP_BITS);
 
             ++adpcmMemPtr;
-            if ((adpcmMemPtr >> 1) > sampleStop) {
+            if ((register[0x07] & 0x20) && (adpcmMemPtr >> 1) > sampleStop) {
                 setStatus(STATUS_EOS);
                 if (register[0x07] & 0x10) {
                     adpcmMemPtr = sampleStart << 1;
@@ -865,6 +888,7 @@ wmsx.Y8950Audio = function(pName) {
 
     var adpcmDelta = 0, adpcmVolume = 0xff, adpcmMemPtr = 0, adpcmNowStep = 0;
     var adpcmOut = 0, adpcmOutput = 0, adpcmDiff = 0, adpcmNextLeveling = 0, adpcmSampleStep = 0, adpcmData = 0;
+    var adpcmDataReg = 0;
 
     var STATUS_BUF_RDY = 0x08;
     var STATUS_PCM_BSY = 0x01;
@@ -969,6 +993,7 @@ wmsx.Y8950Audio = function(pName) {
             an: adpcmNextLeveling,
             ai2: adpcmSampleStep,
             ab: adpcmData,
+            ar: adpcmDataReg,
             ac: audioConnected
         };
     };
@@ -1023,7 +1048,7 @@ wmsx.Y8950Audio = function(pName) {
         fbLastMod2 = s.fb2 ? wmsx.Util.restoreStringBase64ToSignedInt16BitArray(s.fb2, fbLastMod2) : fbLastMod2;
         phaseCounter = s.pc ? wmsx.Util.restoreStringBase64ToInt32BitArray(s.pc) : phaseCounter;
         adpcmDelta = s.ad || 0;
-        adpcmVolume = s.av || 0xff;
+        adpcmVolume = s.av !== undefined ? s.av : 0xff;
         adpcmMemPtr = s.ap || 0;
         adpcmNowStep = s.aw || 0;
         adpcmOut = s.ao || 0;
@@ -1032,6 +1057,7 @@ wmsx.Y8950Audio = function(pName) {
         adpcmNextLeveling = s.an || 0;
         adpcmSampleStep = s.ai2 || 0;
         adpcmData = s.ab || 0;
+        adpcmDataReg = s.ar || 0;
         if (audioConnected) connectAudio();
     };
 
