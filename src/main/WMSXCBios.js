@@ -149,6 +149,7 @@ WMSX.EXTENSIONS_CONFIG = {
     RAMNORMAL: {                      URL: "@[RAMNormal].rom",     SLOT: [3],             MUTUAL: "RAMMAPPER" },
     V9990:     { DESC: "V9990 Video", URL: "@[V9990].rom",         SLOT: [4, 3] },
     MSXMUSIC:  { DESC: "MSX-MUSIC",   URL: "@cbios_music[MSXMUSIC].rom", SLOT: [3, 3] },
+    MSXAUDIO:  { DESC: "MSX-AUDIO",   URL: "@[MSXAUDIO].rom",      SLOT: [1] },
     DOUBLEPSG: { DESC: "Double PSG",  URL: "@[ExtraPSG].rom",      SLOT: [4, 0] },
     SCCI:      { DESC: "Konami SCC+", URL: "@[SCCIExpansion].rom", SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
     SCC:       {                      URL: "@[SCCExpansion].rom",  SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCCI: 0, PAC: 0, MEGARAM: 0 } },
@@ -174,6 +175,8 @@ WMSX.PRESETS_CONFIG = {
     // Sound Devices
     MSXMUSIC:   { "EXTENSIONS.MSXMUSIC": 1 },
     NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": 0 },
+    MSXAUDIO:   { "EXTENSIONS.MSXAUDIO": 1 },
+    NOMSXAUDIO: { "EXTENSIONS.MSXAUDIO": 0 },
     DOUBLEPSG:  { "EXTENSIONS.DOUBLEPSG": 1 },
 
     // Other Cartridge extensions

@@ -9,7 +9,6 @@ wmsx.SlotFormatsNotSupported = {
     "KeyboardMaster": 0,            // Make Support?                                  1 game, has alts.          Special sound chip. Not released
     "NettouYakyuu": 0,              // Make Support?                                  1 game, no alts.           Special sound chip. Can't find ROM
 
-    "MSXAUDIO": 0,                  // Make Support?                                  System ROM
     "SuperPierrot": 0,              // Make Support?                                  1 game, no alts.
     "Generic16k": 0,                // Make Support?                                  ?
 
