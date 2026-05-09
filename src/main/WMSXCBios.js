@@ -110,6 +110,8 @@ WMSX = {
     SCC_PAN:                        "8",                        // SCC PanPot adjust. Same as above (5 values)
     OPLL_VOL:                       "f",                        // OPLL Volume adjust. Same as above (14 values)
     OPLL_PAN:                       "8",                        // OPLL PanPot adjust. Same as above (14 values)
+    MSXAUDIO_VOL:                   "f",                        // MSX-AUDIO Volume adjust. Same as above
+    MSXAUDIO_PAN:                   "8",                        // MSX-AUDIO PanPot adjust. Same as above
 
     IMAGES_PATH:                    window.WMSX_IMAGES_PATH || "images/",
     FILE_SEPARATOR_REGEX:           /[\\/?:]/,
@@ -149,6 +151,7 @@ WMSX.EXTENSIONS_CONFIG = {
     RAMNORMAL: {                      URL: "@[RAMNormal].rom",     SLOT: [3],             MUTUAL: "RAMMAPPER" },
     V9990:     { DESC: "V9990 Video", URL: "@[V9990].rom",         SLOT: [4, 3] },
     MSXMUSIC:  { DESC: "MSX-MUSIC",   URL: "@cbios_music[MSXMUSIC].rom", SLOT: [3, 3] },
+    MSXAUDIO:  { DESC: "MSX-AUDIO",   URL: "@[MSXAUDIO].rom",      SLOT: [1] },
     DOUBLEPSG: { DESC: "Double PSG",  URL: "@[ExtraPSG].rom",      SLOT: [4, 0] },
     SCCI:      { DESC: "Konami SCC+", URL: "@[SCCIExpansion].rom", SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCC:  0, PAC: 0, MEGARAM: 0 } },
     SCC:       {                      URL: "@[SCCExpansion].rom",  SLOT: [1], SLOT2: [2], CHANGE: { HARDDISK: 0, SCCI: 0, PAC: 0, MEGARAM: 0 } },
@@ -174,6 +177,8 @@ WMSX.PRESETS_CONFIG = {
     // Sound Devices
     MSXMUSIC:   { "EXTENSIONS.MSXMUSIC": 1 },
     NOMSXMUSIC: { "EXTENSIONS.MSXMUSIC": 0 },
+    MSXAUDIO:   { "EXTENSIONS.MSXAUDIO": 1 },
+    NOMSXAUDIO: { "EXTENSIONS.MSXAUDIO": 0 },
     DOUBLEPSG:  { "EXTENSIONS.DOUBLEPSG": 1 },
 
     // Other Cartridge extensions
@@ -214,8 +219,10 @@ WMSX.PRESETS_CONFIG = {
     SCCSTEREO:  { SCC_PAN: "8c4c4" },
     SCCSTEREO2: { PSG_PAN: "4c4c8" },
     OPLLSTEREO: { OPLL_PAN: "4c4c4c4c488888" },
-    ALLSTEREO:  { _INCLUDE: "PSGSTEREO,  SCCSTEREO,  OPLLSTEREO" },
-    ALLSTEREO2: { _INCLUDE: "PSGSTEREO2, SCCSTEREO2, OPLLSTEREO" },
+    MSXAUDIOSTEREO: { MSXAUDIO_PAN: "f" },
+    MBSTEREO: { OPLL_PAN: "1", MSXAUDIO_PAN: "f" },
+    ALLSTEREO:  { _INCLUDE: "PSGSTEREO,  SCCSTEREO,  OPLLSTEREO, MSXAUDIOSTEREO" },
+    ALLSTEREO2: { _INCLUDE: "PSGSTEREO2, SCCSTEREO2, OPLLSTEREO, MSXAUDIOSTEREO" },
 
     // Boosted Machine Preset
     BOOSTED: { Z80_CLOCK_MODE: 3, VDP_CLOCK_MODE: 3, BOOT_DURATION_AUTO: 165, _INCLUDE: "HARDDISK" },

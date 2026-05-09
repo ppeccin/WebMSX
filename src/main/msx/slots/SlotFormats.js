@@ -337,6 +337,26 @@ wmsx.SlotFormats = {
         }
     },
 
+    "MSXAUDIO": {
+        name: "MSXAUDIO",
+        desc: "MSX-AUDIO Cartridge",
+        priority: 1511,
+        internal: true,
+        embeddedURL: "@[MSXAUDIO].rom",
+        priorityForRom: function (rom) {
+            if (rom.info && rom.info.f === this.name) return rom.info.t ? this.priority : 801;
+            // Unknown ROMs must be selected via format hint.
+            if (rom.content.length !== 32768) return null;
+            return this.priority;
+        },
+        createFromROM: function (rom) {
+            return new wmsx.CartridgeMSXAUDIO(rom);
+        },
+        recreateFromSaveState: function (state, previousSlot) {
+            return wmsx.CartridgeMSXAUDIO.recreateFromSaveState(state, previousSlot);
+        }
+    },
+
     "MegaRAM": {
         name: "MegaRAM",
         desc: "MegaRAM Mapper Cartridge",
@@ -1088,5 +1108,6 @@ wmsx.SlotFormatsUserOptions = [
     "FMPAC",
     "Kanji1",
     "MSXDOS2",
+    "MSXAUDIO",
     "MSXMUSIC"
 ];
