@@ -1,0 +1,7 @@
+.git
+node_modules
+temp
+release
+doc
+test/history
+*.md

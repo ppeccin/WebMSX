@@ -10,6 +10,31 @@ Please go to **https://webmsx.org** to enjoy it online!
 Refer to [**/doc**](https://github.com/ppeccin/WebMSX/tree/master/doc) for parameters reference and URL usage examples.
 Refer to [**/release**](https://github.com/ppeccin/WebMSX/tree/master/release) for stable release files and deployment examples.
 
+## Running with Docker
+
+This repo includes a `Dockerfile` and `docker-compose.yml` that build the emulator from source (via Grunt) and serve the standalone version with nginx.
+
+Using docker-compose:
+
+```sh
+docker compose up -d --build
+```
+
+Then open **http://localhost:8080** in your browser.
+
+Or with plain Docker:
+
+```sh
+docker build -t webmsx .
+docker run -d -p 8080:80 webmsx
+```
+
+Pre-built images are published on tagged releases to `ghcr.io/<owner>/webmsx` (see `.github/workflows/release.yml`), where `<owner>` is the GitHub org/user hosting the repo:
+
+```sh
+docker run -d -p 8080:80 ghcr.io/<owner>/webmsx:latest
+```
+
 MSX and the MSX logo are shown here as a tribute.
 All trademarks are property of their respective owners.
 

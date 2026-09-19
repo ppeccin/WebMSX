@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and start container
+        run: docker compose up -d --build
+
+      - name: Wait for container to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:8080/ > /dev/null; then
+              echo "Container is up"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Container did not become ready in time"
+          exit 1
+
+      - name: Smoke test - HTTP response and content
+        run: |
+          # Standalone build is a multi-MB self-contained HTML file; only the
+          # first bytes are needed to check for the expected marker, so use a
+          # byte-range request instead of downloading (and grepping) the whole body.
+          body="$(curl -sf -r 0-4095 http://localhost:8080/)"
+          if ! grep -qi "webmsx" <<< "$body"; then
+            echo "Response did not contain expected WebMSX marker"
+            exit 1
+          fi
+          echo "Smoke test passed"
+
+      - name: Show logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Tear down
+        if: always()
+        run: docker compose down
